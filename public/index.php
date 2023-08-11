@@ -1,13 +1,5 @@
 <?php 
-/**!
- * @Url - https://github.com/peterujah/
- * @author - Peter Chigozie(NG) peterujah
- * @company - Nano Block Technology Nigeria Limited
- * @copyright
- * This source code is subjected to pavichomeslimited.com, you are not allowed to redistribute or resell a copy of this program.
- * You are permitted to modify any part of the program to fit your business need.
- * For any question concerning this program please contact ujahchigozie@gmail.com, support@blockbytetech.com
- */
+
 session_set_cookie_params(365 * 24 * 60 * 60, "/", ".{$_SERVER['SERVER_NAME']}", true, false);
 session_start();
 error_reporting(E_ALL);
@@ -15,8 +7,6 @@ ini_set('display_errors', '1');
 require_once(__DIR__ . '/../system/vendor/autoload.php');
 use \Luminova\AppController;
 $app = new AppController(__DIR__, true);
-//$app = AppController::getInstance(__DIR__, true);
-
 
 $request = $app->getRouter();
 
