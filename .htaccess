@@ -1,0 +1,3 @@
+RewriteEngine On
+DirectoryIndex index.html
+Options -Indexes
