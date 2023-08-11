@@ -1,0 +1,67 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "d968562eddcd72b2e91f691bda9fc40a",
+    "packages": [
+        {
+            "name": "peterujah/php-functions",
+            "version": "1.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/peterujah/php-functions.git",
+                "reference": "2c751646eb5bbc4c191d79ff6d336428e1f15bfb"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/peterujah/php-functions/zipball/2c751646eb5bbc4c191d79ff6d336428e1f15bfb",
+                "reference": "2c751646eb5bbc4c191d79ff6d336428e1f15bfb",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.0 || ^8.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Peterujah\\NanoBlock\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ujah Chigozie",
+                    "email": "ujahchigozie@gmail.com"
+                }
+            ],
+            "description": "Wrapped all basic reusable php function which I always on on project.",
+            "homepage": "https://github.com/peterujah/php-functions",
+            "keywords": [
+                "PHP Function",
+                "library",
+                "php",
+                "php class",
+                "reusable function"
+            ],
+            "support": {
+                "issues": "https://github.com/peterujah/php-functions/issues",
+                "source": "https://github.com/peterujah/php-functions/tree/1.3"
+            },
+            "time": "2022-10-13T08:26:27+00:00"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": [],
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": [],
+    "platform-dev": [],
+    "plugin-api-version": "2.0.0"
+}
