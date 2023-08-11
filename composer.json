@@ -1,0 +1,53 @@
+{
+    "name": "nanoblocktech/luminova",
+    "description": "Luminova PHP framework design for speed",
+    "keywords": ["framework","php","api","router"],
+    "license": "MIT",
+    "type": "project",
+    "homepage": "https://github.com/nanoblocktech/luminova",
+    "support": {
+        "source": "https://github.com/nanoblocktech/luminova/"
+    },
+    "require": {
+        "php": "^7.4 || ^8.0",
+        "ext-json": "*",
+        "psr/log": "^1.1"
+    },
+    "require-dev": {
+        "peterujah/php-functions": "^1.3"
+    },
+    "suggest": {
+        "ext-curl": "Needed if you use CURLRequest class",
+        "ext-exif": "Needed if you run Image class tests",
+        "ext-fileinfo": "Needed to improves mime type detection for files",
+        "ext-gd": "Needed if you use Image class GDHandler",
+        "ext-imagick": "Needed if you use Image class ImageMagickHandler",
+        "ext-memcache": "Needed if you use Cache class MemcachedHandler with Memcache",
+        "ext-memcached": "Needed if you use Cache class MemcachedHandler with Memcached",
+        "ext-mysqli": "Needed if you use MySQL"
+    },
+    "autoload": {
+        "psr-4": {
+            "Luminova\\":"system/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Luminova\\Tests\\": "tests"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-develop": "1.x-dev"
+        }
+    },
+    "scripts": {
+        "post-update-cmd": [
+            "Luminova\\ComposerScripts::postUpdate"
+        ]
+    }
+}
