@@ -158,7 +158,6 @@ class Template extends Compress{
         if (!is_array($attributes)) {
             throw new InvalidArgumentException("Attributes must be an array");
         }
-
         foreach ($attributes as $name => $value) {
             if (!is_string($name)) {
                 throw new InvalidArgumentException("Invalid attribute name: $name");
@@ -167,8 +166,7 @@ class Template extends Compress{
             if (empty($value)) {
                 throw new InvalidArgumentException("Invalid class object for attribute $name");
             }
-
-            $this->attributesMapper[$name] = $value;
+            $this->attributesMapper["_{$name}"] = $value;
         }
 
         return $this;
@@ -236,8 +234,8 @@ class Template extends Compress{
         $options["root"] = $root;
         $this->setAttributes($options);
         /*
-            extract($options);
             can access key as variable
+            extract($options);
         */
 
 
