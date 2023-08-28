@@ -1,0 +1,30 @@
+{
+    "name": "peterujah/db-controller",
+    "type": "library",
+    "description": "Php PDO databse wrapper.",
+    "homepage": "https://github.com/peterujah/db-controller",
+     "keywords": [
+        "library",
+        "PDO",
+        "mysl PDO",
+        "mysql",
+        "database",
+        "database class"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ujah Chigozie",
+            "email": "ujahchigozie@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^7.0 || ^8.0"
+    },
+    "autoload": {
+        "psr-4": { 
+            "Peterujah\\NanoBlock\\": "src/" 
+        }
+    },
+    "prefer-stable": true
+}

@@ -1,0 +1,58 @@
+{
+    "packages": [
+        {
+            "name": "peterujah/db-controller",
+            "version": "1.7",
+            "version_normalized": "1.7.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/peterujah/db-controller.git",
+                "reference": "b2e12a041f0670db8547e3778bd7a8353c6f227f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/peterujah/db-controller/zipball/b2e12a041f0670db8547e3778bd7a8353c6f227f",
+                "reference": "b2e12a041f0670db8547e3778bd7a8353c6f227f",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.0 || ^8.0"
+            },
+            "time": "2023-06-27T14:44:11+00:00",
+            "type": "library",
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "Peterujah\\NanoBlock\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ujah Chigozie",
+                    "email": "ujahchigozie@gmail.com"
+                }
+            ],
+            "description": "Php PDO databse wrapper.",
+            "homepage": "https://github.com/peterujah/db-controller",
+            "keywords": [
+                "database",
+                "database class",
+                "library",
+                "mysl PDO",
+                "mysql",
+                "pdo"
+            ],
+            "support": {
+                "issues": "https://github.com/peterujah/db-controller/issues",
+                "source": "https://github.com/peterujah/db-controller/tree/1.7"
+            },
+            "install-path": "../peterujah/db-controller"
+        }
+    ],
+    "dev": true,
+    "dev-package-names": []
+}

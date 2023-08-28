@@ -1,0 +1,23 @@
+{
+    "require": {
+        "peterujah/db-controller": "^1.7"
+    },
+	"autoload": {
+        "psr-4": {
+            "Root\\": "../../",
+            "Luminova\\":"../system/",
+            "Luminova\\Cache\\": "../system/Cache/",
+            "Luminova\\Exceptions\\": "../system/Exceptions/",
+            "Luminova\\Config\\": "../system/Config/",
+            "Luminova\\Logger\\": "../system/Logger/",
+            "Luminova\\SessionManager\\": "../system/Session/",
+            "Luminova\\DatabaseManager\\": "../system/Database/",
+            "Luminova\\Functions\\": "../system/Functions/",
+            "App\\Controllers\\": "../app/Controllers/",
+            "Test\\": "../test/"
+        }
+    },
+    "config":{
+        "platform-check": false
+    }
+}
