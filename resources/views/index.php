@@ -6,6 +6,6 @@
 </head>
 <body>
 	<h1>Welcome</h1>
-  <a href="<?php $base;?>user/Peter">Profile</a>
+  <a href="<?=$this->base;?>user/Peter">Profile</a>
 </body>
 </html>
