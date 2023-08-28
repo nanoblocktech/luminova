@@ -6,6 +6,6 @@
 </head>
 <body>
 	<h1>Hello World</h1>
-    <p><?=$this->subtitle;?></p>
+    <p><?=$this->_subtitle;?></p>
 </body>
 </html>
