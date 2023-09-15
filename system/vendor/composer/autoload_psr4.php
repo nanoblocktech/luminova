@@ -8,8 +8,9 @@ $baseDir = dirname($vendorDir);
 return array(
     'Test\\' => array($baseDir . '/../test'),
     'Root\\' => array($baseDir . '/../..'),
-    'Peterujah\\NanoBlock\\' => array($vendorDir . '/peterujah/db-controller/src'),
     'Luminova\\SessionManager\\' => array($baseDir . '/Session'),
+    'Luminova\\Seo\\' => array($baseDir . '/Seo'),
+    'Luminova\\Security\\' => array($baseDir . '/Security'),
     'Luminova\\Logger\\' => array($baseDir . '/Logger'),
     'Luminova\\Functions\\' => array($baseDir . '/Functions'),
     'Luminova\\Exceptions\\' => array($baseDir . '/Exceptions'),

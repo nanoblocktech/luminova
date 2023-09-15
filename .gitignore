@@ -1,3 +1,12 @@
 .DS_Store
-composer.phar
 /vendor/
+/test
+/log
+.env
+meta.manifest.json
+packages.json
+index.html
+git.ssh
+/.fleet
+/.idea
+/.vscode

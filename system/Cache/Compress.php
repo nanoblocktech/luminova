@@ -101,12 +101,12 @@ namespace Luminova\Cache;
             'X-Content-Type-Options' => 'nosniff',
             'X-Frame-Options' => 'deny',
             'X-XSS-Protection' => '1; mode=block',
+            'X-Powered-By' => 'Luminova',
             'Vary' => 'Accept-Encoding',
             'Connection' => 'close',
         );
         $this->gzip = true;
     }
-
     /**
      * Enable or disable Gzip compression.
      *

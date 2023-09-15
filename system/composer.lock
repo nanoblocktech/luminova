@@ -4,58 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4f52ce6905eba903fa58f4891062a2bd",
-    "packages": [
-        {
-            "name": "peterujah/db-controller",
-            "version": "1.7",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/peterujah/db-controller.git",
-                "reference": "b2e12a041f0670db8547e3778bd7a8353c6f227f"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/peterujah/db-controller/zipball/b2e12a041f0670db8547e3778bd7a8353c6f227f",
-                "reference": "b2e12a041f0670db8547e3778bd7a8353c6f227f",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^7.0 || ^8.0"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Peterujah\\NanoBlock\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Ujah Chigozie",
-                    "email": "ujahchigozie@gmail.com"
-                }
-            ],
-            "description": "Php PDO databse wrapper.",
-            "homepage": "https://github.com/peterujah/db-controller",
-            "keywords": [
-                "database",
-                "database class",
-                "library",
-                "mysl PDO",
-                "mysql",
-                "pdo"
-            ],
-            "support": {
-                "issues": "https://github.com/peterujah/db-controller/issues",
-                "source": "https://github.com/peterujah/db-controller/tree/1.7"
-            },
-            "time": "2023-06-27T14:44:11+00:00"
-        }
-    ],
+    "content-hash": "8d070178755c320c69f93ee4800660ef",
+    "packages": [],
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",

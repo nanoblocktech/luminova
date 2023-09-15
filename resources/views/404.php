@@ -4,7 +4,8 @@
 <head>
     <title>404 Error</title>
 </head>
-<body>
-	<h1>Error 404</h1>
+  <body>
+    <h1>Error 404</h1>
+    <p><?=$this->_error_url;?></p>
   </body>
 </html>

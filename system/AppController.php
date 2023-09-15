@@ -2,12 +2,21 @@
 namespace Luminova;
 use \Luminova\Router;
 use \Luminova\Template;
-use \Luminova\Functions;
+use \App\Controllers\Func;
+use \App\Controllers\Config;
+//use \Luminova\Functions;
 use \Luminova\Config\DotEnv;
-use \Luminova\Config\ConfigManager;
+//use \Luminova\Config\ConfigManager;
 use \Luminova\SessionManager\Session;
+use \Luminova\Security\CsrfToken;
+use \Luminova\Seo\MetaObjectGraph;  
 
 class AppController extends Template {
+    public const SESSION = "session";
+    public const FUNC = "func";
+    public const CONFIG = "config";
+    public const CRSF = "csrf";
+    public const META = "meta";
     private static $instance = null;
     /*
     * Router $router
@@ -16,6 +25,8 @@ class AppController extends Template {
     private $router;
 
     public function __construct($dir = __DIR__, $debug = false){
+        // Initialize the session manager
+        Session::initializeSessionManager();
         /*
         Register dotenv variables
         */
@@ -24,16 +35,20 @@ class AppController extends Template {
         /*
         Add default classes to application
         */
-        $this->addClass("session", new Session(Session::LIVE));
-        $this->addClass("func", new Functions());
-        $this->addClass("config", new ConfigManager());
-
+        $this->registerClass(self::SESSION, new Session(Session::LIVE));
+        $this->registerClass(self::FUNC, new Func());
+        $this->registerClass(self::CONFIG, new Config());
+        $this->registerClass(self::CRSF, new CsrfToken());
+        $this->registerClass(self::META, new MetaObjectGraph($this));
+        //$this->registerClass(CsrfToken::class);
+       
+        
         /*
         Initialize router instance
         */
         $this->router = new Router();
         $this->router->setNamespace('\App\Controllers');
-
+        
         /*
         Initialize template Engin 
         */
@@ -42,8 +57,9 @@ class AppController extends Template {
         * If document root is not changed to public
         * Then manually enable app to use public as default
         */
-        $this->setDocumentRoot("../public");
-
+        if($this->isLocal()){
+            $this->setDocumentRoot("public");
+        }
         /*
         Set cache control for application cache
         */
@@ -60,18 +76,26 @@ class AppController extends Template {
         $this->setBasePath( $this->getBasePath() );
 
         /*
+        * Set the canonical url
+        Uncomment to use www canonical version
+        $this->meta->setCanonical($this->config::base_www_url() . $this->router->getCurrentUri());
+        */
+        $this->meta->setCanonical($this->config::baseUrl() . $this->router->getCurrentUri());
+
+        /*
         Initialize global error handler
         */
         $this->router->setErrorHandler(function() {
-            exit($this->render("404")->view());
+            exit($this->render("404")->view(["error_url" => $this->config::baseUrl() . $this->router->getCurrentUri()]));
         });
     }
 
 	public function getHostname(){
         return $_SERVER['SERVER_NAME'];
     }
+
 	public function isLocal(){
-		return ($this->getHostname() == "localhost");
+		return ($this->getHostname() === "localhost");
 	}
 
 	/*public function getAssets(){
@@ -108,8 +132,18 @@ class AppController extends Template {
         return self::$instance;
     }
 
-    public function getRouter() : Router {
+    public function getRouterInstance() : Router {
         return $this->router;
+    }
+
+    public function readManifest(){
+        $jsonString = file_get_contents($this->getDir() . DIRECTORY_SEPARATOR . 'meta.config.json');
+        $config = json_decode($jsonString);
+
+        if ($config === null) {
+            return (object)[];
+        }
+        return $config;
     }
     
 }

@@ -15,13 +15,11 @@ class ComposerStaticInit9c155849e043191fc1df7e0b46712cd7
         array (
             'Root\\' => 5,
         ),
-        'P' => 
-        array (
-            'Peterujah\\NanoBlock\\' => 20,
-        ),
         'L' => 
         array (
             'Luminova\\SessionManager\\' => 24,
+            'Luminova\\Seo\\' => 13,
+            'Luminova\\Security\\' => 18,
             'Luminova\\Logger\\' => 16,
             'Luminova\\Functions\\' => 19,
             'Luminova\\Exceptions\\' => 20,
@@ -45,13 +43,17 @@ class ComposerStaticInit9c155849e043191fc1df7e0b46712cd7
         array (
             0 => __DIR__ . '/../..' . '/../..',
         ),
-        'Peterujah\\NanoBlock\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/peterujah/db-controller/src',
-        ),
         'Luminova\\SessionManager\\' => 
         array (
             0 => __DIR__ . '/../..' . '/Session',
+        ),
+        'Luminova\\Seo\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/Seo',
+        ),
+        'Luminova\\Security\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/Security',
         ),
         'Luminova\\Logger\\' => 
         array (

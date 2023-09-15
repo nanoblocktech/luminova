@@ -6,14 +6,15 @@
  */
 namespace Luminova\DatabaseManager;
 use Luminova\Config\DotEnv;
+use Luminova\Config\ConfigManager;
 
-class Conn {
+class Conn extends ConfigManager{
     public $db;
     private static $instance;
 
     public function __construct() {
         $this->db = self::createDatabaseInstance();
-		$this->db->setDebug(!self::getVariables("app.production.mood"));
+		$this->db->setDebug(!parent::getVariables("app.production.mood"));
     }
 
     public static function getInstance() {
@@ -24,7 +25,7 @@ class Conn {
     }
 
     private static function createDatabaseInstance() {
-        switch (self::getVariables("database.driver")) {
+        switch (parent::getVariables("database.driver")) {
             case "MYSQLI":
                 return new MysqliDriver(self::getDatabaseConfig());
             case "PDO":
@@ -35,32 +36,16 @@ class Conn {
 
     private static function getDatabaseConfig() {
         $config = [
-            "PORT" => self::getVariables("database.port"),
-            "HOST" => self::getVariables("database.hostname"),
-            "VERSION" => self::getVariables("database.version"),
-            "CHARSET" => self::getVariables("database.charset"),
-			"SQLITE_PATH" => self::getVariables("database.sqlite.path")
+            "PORT" => parent::getVariables("database.port"),
+            "HOST" => parent::getVariables("database.hostname"),
+            "VERSION" => parent::getVariables("database.version"),
+            "CHARSET" => parent::getVariables("database.charset"),
+			"SQLITE_PATH" => parent::getVariables("database.sqlite.path")
         ];
-        $env = self::getVariables("app.production.mood");
-        $config["USERNAME"] = $env ? self::getVariables("database.username") : self::getVariables("database.development.username");
-        $config["PASSWORD"] = $env ? self::getVariables("database.password") : self::getVariables("database.development.password");
-        $config["NAME"] = $env ? self::getVariables("database.name") : self::getVariables("database.development.name");
+        $env = parent::getVariables("app.production.mood");
+        $config["USERNAME"] = $env ? parent::getVariables("database.username") : parent::getVariables("database.development.username");
+        $config["PASSWORD"] = $env ? parent::getVariables("database.password") : parent::getVariables("database.development.password");
+        $config["NAME"] = $env ? parent::getVariables("database.name") : parent::getVariables("database.development.name");
         return $config;
-    }
-
-    private static function getVariables($key) {
-        if (getenv($key) !== false) {
-            return getenv($key);
-        }
-
-        if (!empty($_ENV[$key])) {
-            return $_ENV[$key];
-        }
-
-        if (!empty($_SERVER[$key])) {
-            return $_SERVER[$key];
-        }
-
-        return null;
     }
 }

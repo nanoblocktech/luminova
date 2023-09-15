@@ -522,6 +522,12 @@ class Functions{
 		return $subdomain;
 	}
 
+	public static function toKebabCase($string) {
+		$string = str_replace([' ', ':', '.', ',','-'], '', $string);
+		$kebabCase = preg_replace('/([a-z0-9])([A-Z])/', '$1-$2', $string);
+		return strtolower($kebabCase);
+	}
+
 	/** 
 	 * Copy files and folder to a new directory
 	 * @param string $origin string

@@ -6,7 +6,10 @@
  */
 namespace Luminova;
 class RequestHandler {
-
+    public const ERRORS = [
+        404 => '404 Not Found',
+        500 => '500 Internal Server Error'
+    ];
      /**
      * Get all request headers.
      *

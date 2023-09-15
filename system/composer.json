@@ -1,6 +1,6 @@
 {
     "require": {
-        "peterujah/db-controller": "^1.7"
+        
     },
 	"autoload": {
         "psr-4": {
@@ -11,6 +11,8 @@
             "Luminova\\Config\\": "../system/Config/",
             "Luminova\\Logger\\": "../system/Logger/",
             "Luminova\\SessionManager\\": "../system/Session/",
+            "Luminova\\Security\\": "../system/Security/",
+            "Luminova\\Seo\\": "../system/Seo/",
             "Luminova\\DatabaseManager\\": "../system/Database/",
             "Luminova\\Functions\\": "../system/Functions/",
             "App\\Controllers\\": "../app/Controllers/",

@@ -256,13 +256,12 @@ class Router extends RequestHandler{
       }
     }
     
-
     /**
      * Triggers error response
      *
      * @param string $pattern A route pattern such as /about/system
      */
-    public function triggerError($match = null){
+    public function triggerError($match = null, $code = 404){
 
         // Counter to keep track of the number of routes we've handled
         $numHandled = 0;
@@ -307,7 +306,7 @@ class Router extends RequestHandler{
         if (($numHandled == 0) && (isset($this->notFoundCallback['/']))) {
             $this->execute($this->notFoundCallback['/']);
         } elseif ($numHandled == 0) {
-            header($_SERVER['SERVER_PROTOCOL'] . ' 404 Not Found');
+            header($_SERVER['SERVER_PROTOCOL'] . ' ' . parent::ERRORS[$code]??parent::ERRORS[404]);
         }
     }
 

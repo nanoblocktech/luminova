@@ -1,16 +1,28 @@
 <?php 
 namespace Luminova\SessionManager;
 class Session {
-    public const GUEST = "_liminova_app_guest_";
-    public const LIVE = "_liminova_app_live_";
-    protected $db;
+    public const GUEST = "_system_application_guest_";
+    public const LIVE = "_system_application_live_";
+    protected $key;
     protected $conn;
-    public function __construct($db) {
-        $this->db = $db;
+    protected static $instance;
+    public function __construct($key) {
+        $this->key = $key;
+    }
+
+    public static function getInstance($key) {
+        if (self::$instance === null) {
+            self::$instance = new self($key);
+        }
+        return self::$instance;
     }
   
     public function add($key, $value){
-        $_SESSION[$this->db][$key] = $value;
+        $_SESSION[$this->key][$key] = $value;
+        return $this;
+    }
+    public function userAdd($index, $value){
+        $_SESSION[$this->key]["user_session_profile"][$index] = $value;
         return $this;
     }
 
@@ -20,11 +32,19 @@ class Session {
     }
 
     public function get($index){
-        return $_SESSION[$this->db][$index]??null;
+        return $_SESSION[$this->key][$index]??null;
     }
 
-    public function getFrom($index, $db = self::GUEST){
-        return $_SESSION[$db][$index]??null;
+    public function userGet($index){
+        return ($this->user()[$index]??null);
+    }
+
+    public function getFrom($index, $key = self::GUEST){
+        return $_SESSION[$key][$index]??null;
+    }
+
+    public function user(){
+        return $_SESSION[$this->key]["user_session_profile"]??[];
     }
 
     public function unset($key){
@@ -33,21 +53,29 @@ class Session {
     }
 
     public function remove($index){
-        unset($_SESSION[$this->db][$index]);
+        unset($_SESSION[$this->key][$index]);
         return $this;
     }
 
     public function clear(){
-        unset($_SESSION[$this->db]);
+        unset($_SESSION[$this->key]);
         return $this;
     }
 
     public function id(){
-        return $this->get("_id");
+        return $this->userGet("user_id");
+    }
+
+    public function uuid(){
+        return $this->userGet("user_uuid");
+    }
+
+    public function userHash(){
+        return "{$this->userGet("user_uuid")}-{$this->userGet("user_id")}";
     }
 
     public function online(){
-        return $this->on($this->db);
+        return $this->on($this->key);
     }
 
     public function onLive(){
@@ -58,8 +86,8 @@ class Session {
         return $this->on(self::GUEST);
     }
 
-    public function on($db){
-        return (isset($_SESSION[$db]) && !empty($_SESSION[$db]["_id"]));
+    public function on($key){
+        return (isset($_SESSION[$key]) && !empty($_SESSION[$key]["user_id"]));
     }
 
     public function forceAuthLogin(){
@@ -75,7 +103,14 @@ class Session {
     }
 
     public function arrayData(){
-        return $_SESSION[$this->db]??[];
+        return $_SESSION[$this->key]??[];
+    }
+
+    public static function initializeSessionManager($path = "/"){
+        if (session_status() === PHP_SESSION_NONE) {
+            session_set_cookie_params(365 * 24 * 60 * 60, $path, ".{$_SERVER['SERVER_NAME']}", true, false);
+            session_start();
+        }
     }
 
 }
