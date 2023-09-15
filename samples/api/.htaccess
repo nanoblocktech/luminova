@@ -1,0 +1,6 @@
+RewriteEngine on
+RewriteRule ^([^/\.]+)/?$ $1.php  [L,QSA]
+
+<IfModule mod_autoindex.c>
+    Options -Indexes
+</IfModule>

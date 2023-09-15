@@ -65,6 +65,16 @@
             "@php -r \"file_exists('app/Controllers/Func.php') || copy('samples/Func.php', 'app/Controllers/Func.php');\"",
             "echo Checking for existing api autoloader file...", 
             "@php -r \"file_exists('system/autoload.api.php') || copy('samples/autoload.api.php', 'system/autoload.api.php');\"",
+            "echo Checking for index file...", 
+            "@php -r \"file_exists('public/index.php') || copy('samples/index.php', 'public/index.php');\"",
+            "echo Checking for htaccess file...", 
+            "@php -r \"file_exists('public/.htaccess') || copy('samples/.htaccess', 'public/.htaccess');\"",
+            "echo Checking for robots file...", 
+            "@php -r \"file_exists('public/robots.txt') || copy('samples/robots.txt', 'public/robots.txt');\"",
+            "echo Checking for api folder...", 
+            "@php -r \"file_exists('public/api/') || copy('samples/api/', 'public/api/');\"",
+            "echo Checking for assets folder...", 
+            "@php -r \"file_exists('public/assets/') || mkdir('public/assets/');\"",
             "echo Done."
         ]
     },
