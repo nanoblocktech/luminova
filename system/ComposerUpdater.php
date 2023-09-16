@@ -1,6 +1,6 @@
 <?php 
 namespace Luminova;
-class ComposerAutoUpdater{
+class ComposerUpdater{
     public static function updateFiles() {
         self::checkAndCopyFile('.env', 'samples/.env');
         self::checkAndCopyFile('meta.config.json', 'samples/meta.config.json');
