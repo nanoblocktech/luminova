@@ -72,14 +72,18 @@
             "Luminova\\ComposerAutoUpdater::updateFiles",
             "Luminova\\ComposerAutoUpdater::moveProjectToRoot"
         ],
-        "app-analyze": [
+        "analyze-app": [
             "Composer\\Config::disableProcessTimeout",
             "bash -c \"XDEBUG_MODE=off phpstan analyse\"",
             "rector process --dry-run"
+        ],
+        "build-app": [
+            "php builder.phar"
         ]
     },
     "scripts-descriptions": {
-        "app-analyze": "Run static analysis"
+        "analyze-app": "Run static analysis",
+        "build-app": "Export project production files"
     },
     "minimum-stability": "stable",
     "prefer-stable": true
