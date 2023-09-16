@@ -68,7 +68,7 @@
         "post-update-cmd": [
             "Luminova\\ComposerAutoUpdater::updateFiles"
         ],
-        "post-install-cmd": [
+        "post-create-project-cmd": [
             "Luminova\\ComposerAutoUpdater::updateFiles",
             "Luminova\\ComposerAutoUpdater::moveProjectToRoot"
         ],
