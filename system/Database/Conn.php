@@ -4,7 +4,7 @@
  * For the full copyright and license information, please view
  * the LICENSE file that was distributed with this source code.
  */
-namespace Luminova\DatabaseManager;
+namespace Luminova\Database;
 use Luminova\Config\DotEnv;
 use Luminova\Config\ConfigManager;
 
@@ -27,10 +27,10 @@ class Conn extends ConfigManager{
     private static function createDatabaseInstance() {
         switch (parent::getVariables("database.driver")) {
             case "MYSQLI":
-                return new MysqliDriver(self::getDatabaseConfig());
+                return new Mysqli(self::getDatabaseConfig());
             case "PDO":
             default:
-                return new PDODriver(self::getDatabaseConfig());
+                return new Pdo(self::getDatabaseConfig());
         }
     }
 

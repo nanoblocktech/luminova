@@ -5,7 +5,7 @@
  * the LICENSE file that was distributed with this source code.
  */
 namespace Luminova\Config;
-use \Luminova\Exceptions\FileNotFoundException;
+use Luminova\Exceptions\FileNotFoundException;
 class DotEnv {
     public static function register(string $path) {
         if (!file_exists($path)) {

@@ -1,5 +1,5 @@
 <?php 
-namespace Luminova\SessionManager;
+namespace Luminova\Sessions;
 class Session {
     public const GUEST = "_system_application_guest_";
     public const LIVE = "_system_application_live_";

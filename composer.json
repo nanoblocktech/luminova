@@ -28,19 +28,19 @@
     },
     "autoload": {
         "psr-4": {
-            "Luminova\\":"system/",
+            "Luminova\\": "system/",
             "Luminova\\Cache\\": "system/Cache/",
             "Luminova\\Exceptions\\": "system/Exceptions/",
             "Luminova\\Config\\": "system/Config/",
             "Luminova\\Logger\\": "system/Logger/",
-            "Luminova\\SessionManager\\": "system/Session/",
+            "Luminova\\Sessions\\": "system/Sessions/",
             "Luminova\\Security\\": "system/Security/",
             "Luminova\\Seo\\": "system/Seo/",
-            "Luminova\\DatabaseManager\\": "system/Database/",
+            "Luminova\\Database\\": "system/Database/",
             "Luminova\\Functions\\": "system/Functions/",
             "App\\Controllers\\": "app/Controllers/"
         }
-    },
+    },    
     "autoload-dev": {
         "psr-4": {
             "Luminova\\Tests\\": "tests"

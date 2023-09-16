@@ -1,9 +1,9 @@
 <?php 
 namespace Luminova;
-use \Luminova\Exceptions\PageNotFoundException; 
-use \Luminova\Exceptions\ClassNotFoundException; 
-use \Luminova\Exceptions\InvalidArgumentException; 
-use \Luminova\Cache\Compress;
+use Luminova\Exceptions\PageNotFoundException; 
+use Luminova\Exceptions\ClassNotFoundException; 
+use Luminova\Exceptions\InvalidArgumentException; 
+use Luminova\Cache\Compress;
 class Template extends Compress{ 
     /** Holds the project base directory
      * @var string|path|dir $baseTemplateDir __DIR__

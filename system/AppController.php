@@ -7,7 +7,7 @@ use \App\Controllers\Config;
 //use \Luminova\Functions;
 use \Luminova\Config\DotEnv;
 //use \Luminova\Config\ConfigManager;
-use \Luminova\SessionManager\Session;
+use \Luminova\Sessions\Session;
 use \Luminova\Security\CsrfToken;
 use \Luminova\Seo\MetaObjectGraph;  
 

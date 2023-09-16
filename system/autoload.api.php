@@ -1,8 +1,8 @@
 <?php
 require_once(__DIR__ . '/plugins/autoload.php');
-use \Luminova\DatabaseManager\Query;
+use \Luminova\Database\Query;
 use \Luminova\Config\DotEnv;
-use \Luminova\SessionManager\Session;
+use \Luminova\Session\Session;
 // Initialize the session manager
 Session::initializeSessionManager();
 
