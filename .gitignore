@@ -2,6 +2,7 @@
 /test
 /log
 /system/log
+/dump
 .env
 meta.manifest.json
 composer.lock

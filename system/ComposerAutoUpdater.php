@@ -15,12 +15,52 @@ class ComposerAutoUpdater{
         self::checkAndCreateDirectory('public/assets/');
     }
 
+    public static function moveProjectToRoot() {
+        $composerJsonPath = __DIR__ . '/composer.json';
+        if(file_exists($composerJsonPath)){
+            $projectDir = dirname($composerJsonPath);
+            $composerData = json_decode(file_get_contents($composerJsonPath), true);
+        
+            if (isset($composerData['name'])) {
+                list($vendor, $name) = explode("/", $composerData['name']);
+                if ($name === basename($projectDir)) {
+                    self::checkAndMoveDirectory($projectDir, '../');
+                }
+            }
+        }
+    }    
+
     private static function checkAndCopyFile($destination, $source)
     {
         if (!file_exists($destination)) {
             copy($source, $destination);
             echo "Copied: $source to $destination\n";
         }
+    }
+
+    private static function checkAndMoveDirectory($destination, $source)
+    {
+        if (!is_dir($destination)) {
+            mkdir($destination);
+            echo "Created directory: $destination\n";
+        }
+
+        $files = scandir($source);
+        foreach ($files as $file) {
+            if ($file !== '.' && $file !== '..') {
+                $srcFile = "$source/$file";
+                $dstFile = "$destination/$file";
+                if (!is_dir($srcFile)) {
+                    rename($srcFile, $dstFile);
+                    echo "Moved: $srcFile to $dstFile\n";
+                } else {
+                    self::checkAndMoveDirectory($dstFile, $srcFile); 
+                }
+            }
+        }
+
+        rmdir($source);
+        echo "Removed directory: $source\n";
     }
 
     private static function checkAndCopyDirectory($destination, $source)
@@ -35,13 +75,16 @@ class ComposerAutoUpdater{
             if ($file !== '.' && $file !== '..') {
                 $srcFile = "$source/$file";
                 $dstFile = "$destination/$file";
-                if (!file_exists($dstFile)) {
+                if (!is_dir($srcFile)) {
                     copy($srcFile, $dstFile);
                     echo "Copied: $srcFile to $dstFile\n";
+                } else {
+                    self::checkAndCopyDirectory($dstFile, $srcFile);
                 }
             }
         }
     }
+
 
     private static function checkAndCreateDirectory($directory)
     {

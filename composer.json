@@ -61,7 +61,8 @@
             "Luminova\\ComposerAutoUpdater::updateFiles"
         ],
         "post-install-cmd": [
-            "Luminova\\ComposerAutoUpdater::updateFiles"
+            "Luminova\\ComposerAutoUpdater::updateFiles",
+            "Luminova\\ComposerAutoUpdater::moveProjectToRoot"
         ]
     },
     "minimum-stability": "stable",
