@@ -8,7 +8,6 @@ use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\Use_;
 use PHPStan\Analyser\Scope;
 use PHPStan\Rules\Rule;
-use PHPStan\Node\Expr\VariableNode;
 use PhpParser\Node\Expr\Variable;
 
 final class PHPStanRules implements Rule
@@ -49,7 +48,7 @@ final class PHPStanRules implements Rule
         }
 
         // Check for variable naming convention
-        if ($node instanceof Variable || $node instanceof VariableNode) {
+        if ($node instanceof Variable) {
             $variableName = ($node instanceof Variable) ? $node->name : $node->getOriginalNode()->name;
             
             if (strpos($variableName, '_') !== false) {
