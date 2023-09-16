@@ -1,7 +1,9 @@
 <?php 
 namespace Luminova;
 class ComposerAutoUpdater{
+    private static $projectFiles = [
 
+    ];
     public static function updateFiles() {
         self::checkAndCopyFile('.env', 'samples/.env');
         self::checkAndCopyFile('meta.config.json', 'samples/meta.config.json');
@@ -103,7 +105,7 @@ class ComposerAutoUpdater{
             if ($file !== '.' && $file !== '..') {
                 $srcFile = "$source/$file";
                 $dstFile = "$destination/$file";
-                if (!is_dir($srcFile) && !is_file($dstFile)) {
+                if (!is_dir($srcFile) && !file_exists($dstFile)) {
                     copy($srcFile, $dstFile);
                     echo "Copied: $srcFile to $dstFile\n";
                 } else if(is_dir($srcFile)){
