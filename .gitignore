@@ -1,11 +1,13 @@
 .DS_Store
 /test
 /log
+/system/log
 .env
 meta.manifest.json
-packages.json
+composer.lock
+composer.json
 index.html
 git.ssh
-/.fleet
-/.idea
-/.vscode
+.fleet
+.idea
+.vscode
