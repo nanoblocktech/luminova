@@ -11,24 +11,52 @@ class ComposerAutoUpdater{
         self::checkAndCopyFile('public/index.php', 'samples/index.php');
         self::checkAndCopyFile('public/.htaccess', 'samples/.htaccess');
         self::checkAndCopyFile('public/robots.txt', 'samples/robots.txt');
-        self::checkAndCopyDirectory('public/api/', 'samples/api/');
+        self::checkAndCopyDirectory('public/api', 'samples/api');
         self::checkAndCreateDirectory('public/assets/');
     }
 
-    public static function moveProjectToRoot() {
-        $composerJsonPath = __DIR__ . '/composer.json';
+    public static function renameProjectRoot() {
+        $composerJsonPath = __DIR__ . '/../composer.json';
         if(file_exists($composerJsonPath)){
-            $projectDir = dirname($composerJsonPath);
+            $projectDir = dirname(dirname(dirname($composerJsonPath)));
             $composerData = json_decode(file_get_contents($composerJsonPath), true);
-        
+            $projectDestination = dirname($projectDir) . "/my-project.com";
             if (isset($composerData['name'])) {
                 list($vendor, $name) = explode("/", $composerData['name']);
-                if ($name === basename($projectDir)) {
-                    self::checkAndMoveDirectory($projectDir, '../');
+                if ($name === basename($projectDir) && rename($projectDir, $projectDestination)){
+                    echo "Renamed project directory to my-project.com\n";
                 }
             }
         }
     }    
+         
+
+    public static function moveProjectToRoot() {
+        $composerJsonPath = __DIR__ . '/../composer.json';
+        if (file_exists($composerJsonPath)) {
+            $composerData = json_decode(file_get_contents($composerJsonPath), true);
+            if (!isset($composerData['name'])) {
+                return;
+            }
+            $projectDir = dirname(dirname(dirname($composerJsonPath)));
+            list($vendor, $name) = explode("/", $composerData['name']);
+            if ($name === basename($projectDir)) {
+                $documentRoot = basename(dirname(dirname(dirname(realpath(__DIR__)))));
+                $projectDestination = dirname($projectDir);
+                $projectDestinationName = basename($projectDestination);
+
+                if ($projectDestinationName === $documentRoot) {
+
+                    if(rename($projectDir, "{$projectDestination}/my-project.com")){
+                        echo "Renamed project directory to my-project.com\n";
+                    }
+                }else{
+                    self::checkAndMoveDirectory($projectDestination, $projectDir);
+                }
+            }
+            
+        }
+    }
 
     private static function checkAndCopyFile($destination, $source)
     {
@@ -41,7 +69,7 @@ class ComposerAutoUpdater{
     private static function checkAndMoveDirectory($destination, $source)
     {
         if (!is_dir($destination)) {
-            mkdir($destination);
+            mkdir($destination, 0755, true); 
             echo "Created directory: $destination\n";
         }
 
@@ -66,7 +94,7 @@ class ComposerAutoUpdater{
     private static function checkAndCopyDirectory($destination, $source)
     {
         if (!is_dir($destination)) {
-            mkdir($destination);
+            mkdir($destination, 0755, true); 
             echo "Created directory: $destination\n";
         }
 
@@ -75,10 +103,10 @@ class ComposerAutoUpdater{
             if ($file !== '.' && $file !== '..') {
                 $srcFile = "$source/$file";
                 $dstFile = "$destination/$file";
-                if (!is_dir($srcFile)) {
+                if (!is_dir($srcFile) && !is_file($dstFile)) {
                     copy($srcFile, $dstFile);
                     echo "Copied: $srcFile to $dstFile\n";
-                } else {
+                } else if(is_dir($srcFile)){
                     self::checkAndCopyDirectory($dstFile, $srcFile);
                 }
             }
@@ -86,10 +114,11 @@ class ComposerAutoUpdater{
     }
 
 
+
     private static function checkAndCreateDirectory($directory)
     {
-        if (!is_dir($directory)) {
-            mkdir($directory);
+        if (!file_exists($directory)) {
+            mkdir($directory, 0755, true); 
             echo "Created directory: $directory\n";
         }
     }

@@ -7,25 +7,20 @@ namespace Composer\Autoload;
 class ComposerStaticInit9c155849e043191fc1df7e0b46712cd7
 {
     public static $prefixLengthsPsr4 = array (
-        'T' => 
-        array (
-            'Test\\' => 5,
-        ),
-        'R' => 
-        array (
-            'Root\\' => 5,
-        ),
         'L' => 
         array (
-            'Luminova\\SessionManager\\' => 24,
+            'Luminova\\Tests\\' => 15,
+            'Luminova\\Sessions\\' => 18,
             'Luminova\\Seo\\' => 13,
             'Luminova\\Security\\' => 18,
             'Luminova\\Logger\\' => 16,
             'Luminova\\Functions\\' => 19,
             'Luminova\\Exceptions\\' => 20,
-            'Luminova\\DatabaseManager\\' => 25,
+            'Luminova\\Database\\' => 18,
             'Luminova\\Config\\' => 16,
+            'Luminova\\Command\\' => 17,
             'Luminova\\Cache\\' => 15,
+            'Luminova\\Arrays\\' => 16,
             'Luminova\\' => 9,
         ),
         'A' => 
@@ -35,62 +30,105 @@ class ComposerStaticInit9c155849e043191fc1df7e0b46712cd7
     );
 
     public static $prefixDirsPsr4 = array (
-        'Test\\' => 
+        'Luminova\\Tests\\' => 
         array (
-            0 => __DIR__ . '/../..' . '/../test',
+            0 => __DIR__ . '/../../..' . '/tests',
         ),
-        'Root\\' => 
+        'Luminova\\Sessions\\' => 
         array (
-            0 => __DIR__ . '/../..' . '/../..',
-        ),
-        'Luminova\\SessionManager\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/Session',
+            0 => __DIR__ . '/../../..' . '/system/Sessions',
         ),
         'Luminova\\Seo\\' => 
         array (
-            0 => __DIR__ . '/../..' . '/Seo',
+            0 => __DIR__ . '/../../..' . '/system/Seo',
         ),
         'Luminova\\Security\\' => 
         array (
-            0 => __DIR__ . '/../..' . '/Security',
+            0 => __DIR__ . '/../../..' . '/system/Security',
         ),
         'Luminova\\Logger\\' => 
         array (
-            0 => __DIR__ . '/../..' . '/Logger',
+            0 => __DIR__ . '/../../..' . '/system/Logger',
         ),
         'Luminova\\Functions\\' => 
         array (
-            0 => __DIR__ . '/../..' . '/Functions',
+            0 => __DIR__ . '/../../..' . '/system/Functions',
         ),
         'Luminova\\Exceptions\\' => 
         array (
-            0 => __DIR__ . '/../..' . '/Exceptions',
+            0 => __DIR__ . '/../../..' . '/system/Exceptions',
         ),
-        'Luminova\\DatabaseManager\\' => 
+        'Luminova\\Database\\' => 
         array (
-            0 => __DIR__ . '/../..' . '/Database',
+            0 => __DIR__ . '/../../..' . '/system/Database',
         ),
         'Luminova\\Config\\' => 
         array (
-            0 => __DIR__ . '/../..' . '/Config',
+            0 => __DIR__ . '/../../..' . '/system/Config',
+        ),
+        'Luminova\\Command\\' => 
+        array (
+            0 => __DIR__ . '/../../..' . '/system/Command',
         ),
         'Luminova\\Cache\\' => 
         array (
-            0 => __DIR__ . '/../..' . '/Cache',
+            0 => __DIR__ . '/../../..' . '/system/Cache',
+        ),
+        'Luminova\\Arrays\\' => 
+        array (
+            0 => __DIR__ . '/../../..' . '/system/Arrays',
         ),
         'Luminova\\' => 
         array (
-            0 => __DIR__ . '/../..' . '/',
+            0 => __DIR__ . '/../../..' . '/system',
         ),
         'App\\Controllers\\' => 
         array (
-            0 => __DIR__ . '/../..' . '/../app/Controllers',
+            0 => __DIR__ . '/../../..' . '/app/Controllers',
         ),
     );
 
     public static $classMap = array (
+        'App\\Controllers\\Config' => __DIR__ . '/../../..' . '/app/Controllers/Config.php',
+        'App\\Controllers\\Func' => __DIR__ . '/../../..' . '/app/Controllers/Func.php',
+        'App\\Controllers\\HelloWorld' => __DIR__ . '/../../..' . '/app/Controllers/HelloWorld.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'Luminova\\AppController' => __DIR__ . '/../../..' . '/system/AppController.php',
+        'Luminova\\Arrays\\ArrayInput' => __DIR__ . '/../../..' . '/system/Arrays/ArrayInput.php',
+        'Luminova\\BaseController' => __DIR__ . '/../../..' . '/system/BaseController.php',
+        'Luminova\\Cache\\Compress' => __DIR__ . '/../../..' . '/system/Cache/Compress.php',
+        'Luminova\\Cache\\Optimizer' => __DIR__ . '/../../..' . '/system/Cache/Optimizer.php',
+        'Luminova\\Cache\\SystemCache' => __DIR__ . '/../../..' . '/system/Cache/SystemCache.php',
+        'Luminova\\Command\\AppCommand' => __DIR__ . '/../../..' . '/system/Command/AppCommand.php',
+        'Luminova\\Command\\Create' => __DIR__ . '/../../..' . '/system/Command/Create.php',
+        'Luminova\\Command\\Plugin' => __DIR__ . '/../../..' . '/system/Command/Plugin.php',
+        'Luminova\\Command\\RebuildCommand' => __DIR__ . '/../../..' . '/system/Command/RebuildCommand.php',
+        'Luminova\\Command\\Subscriber' => __DIR__ . '/../../..' . '/system/Command/Subscriber.php',
+        'Luminova\\ComposerAutoUpdater' => __DIR__ . '/../../..' . '/system/ComposerAutoUpdater.php',
+        'Luminova\\Config\\ConfigManager' => __DIR__ . '/../../..' . '/system/Config/ConfigManager.php',
+        'Luminova\\Config\\DotEnv' => __DIR__ . '/../../..' . '/system/Config/DotEnv.php',
+        'Luminova\\Config\\PHPStanRules' => __DIR__ . '/../../..' . '/system/Config/PHPStanRules.php',
+        'Luminova\\Database\\Columns' => __DIR__ . '/../../..' . '/system/Database/Columns.php',
+        'Luminova\\Database\\Conn' => __DIR__ . '/../../..' . '/system/Database/Conn.php',
+        'Luminova\\Database\\Mysqli' => __DIR__ . '/../../..' . '/system/Database/Mysqli.php',
+        'Luminova\\Database\\Pdo' => __DIR__ . '/../../..' . '/system/Database/Pdo.php',
+        'Luminova\\Database\\Query' => __DIR__ . '/../../..' . '/system/Database/Query.php',
+        'Luminova\\Exceptions\\ClassNotFoundException' => __DIR__ . '/../../..' . '/system/Exceptions/ClassNotFoundException.php',
+        'Luminova\\Exceptions\\DatabaseException' => __DIR__ . '/../../..' . '/system/Exceptions/DatabaseException.php',
+        'Luminova\\Exceptions\\FileNotFoundException' => __DIR__ . '/../../..' . '/system/Exceptions/FileNotFoundException.php',
+        'Luminova\\Exceptions\\InvalidArgumentException' => __DIR__ . '/../../..' . '/system/Exceptions/InvalidArgumentException.php',
+        'Luminova\\Exceptions\\PageNotFoundException' => __DIR__ . '/../../..' . '/system/Exceptions/PageNotFoundException.php',
+        'Luminova\\Functions' => __DIR__ . '/../../..' . '/system/Functions.php',
+        'Luminova\\Functions\\FunctionInterface' => __DIR__ . '/../../..' . '/system/Functions/FunctionInterface.php',
+        'Luminova\\Functions\\Functions' => __DIR__ . '/../../..' . '/system/Functions/Functions.php',
+        'Luminova\\Logger\\FileLogger' => __DIR__ . '/../../..' . '/system/Logger/FileLogger.php',
+        'Luminova\\Logger\\LoggerInterface' => __DIR__ . '/../../..' . '/system/Logger/LoggerInterface.php',
+        'Luminova\\RequestHandler' => __DIR__ . '/../../..' . '/system/RequestHandler.php',
+        'Luminova\\Router' => __DIR__ . '/../../..' . '/system/Router.php',
+        'Luminova\\Security\\CsrfToken' => __DIR__ . '/../../..' . '/system/Security/CsrfToken.php',
+        'Luminova\\Seo\\MetaObjectGraph' => __DIR__ . '/../../..' . '/system/Seo/MetaObjectGraph.php',
+        'Luminova\\Sessions\\Session' => __DIR__ . '/../../..' . '/system/Sessions/Session.php',
+        'Luminova\\Template' => __DIR__ . '/../../..' . '/system/Template.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
