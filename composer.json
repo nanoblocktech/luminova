@@ -58,11 +58,11 @@
     },
     "scripts": {
         "post-update-cmd": [
-            "Luminova\\ComposerScripts::postUpdate",
+            "Luminova\\ComposerAutoUpdater::updateFiles",
             "@postUpdateHandler"
         ],
         "post-install-cmd": [
-            "Luminova\\ComposerScripts::postUpdate",
+            "Luminova\\ComposerAutoUpdater::updateFiles",
             "@postUpdateHandler"
         ],
         "post-updateHandler": [
