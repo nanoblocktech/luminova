@@ -8,6 +8,8 @@ use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\Use_;
 use PHPStan\Analyser\Scope;
 use PHPStan\Rules\Rule;
+use PHPStan\Node\Expr\VariableNode;
+use PhpParser\Node\Expr\Variable;
 
 final class PHPStanRules implements Rule
 {
