@@ -49,7 +49,8 @@ final class PHPStanRules implements Rule
 
         // Check for variable naming convention
         if ($node instanceof Variable) {
-            $variableName = ($node instanceof Variable) ? $node->name : $node->getOriginalNode()->name;
+            //$variableName = ($node instanceof Variable) ? $node->name : $node->getOriginalNode()->name;
+            $variableName = $node->name;
             
             if (strpos($variableName, '_') !== false) {
                 $errors[] = sprintf(
