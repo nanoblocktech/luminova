@@ -3,6 +3,7 @@
 /log
 /system/log
 /dump
+/build
 .env
 meta.manifest.json
 composer.lock
