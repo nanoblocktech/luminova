@@ -1,5 +1,5 @@
 <?php
-require_once(__DIR__ . '/vendor/autoload.php');
+require_once(__DIR__ . '/plugins/autoload.php');
 use \Luminova\DatabaseManager\Query;
 use \Luminova\Config\DotEnv;
 use \Luminova\SessionManager\Session;

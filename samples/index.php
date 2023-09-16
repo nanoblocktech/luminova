@@ -6,7 +6,7 @@
  * @Url - https://github.com/nanoblocktech/luminova
  * @copyright 
  */
-require_once(__DIR__ . '/../system/vendor/autoload.php');
+require_once(__DIR__ . '/../system/plugins/autoload.php');
 use \Luminova\AppController;
 $app = new AppController(__DIR__, true);
 $router = $app->getRouterInstance();
