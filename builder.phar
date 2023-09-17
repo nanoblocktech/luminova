@@ -2,7 +2,7 @@
 <?php
 require_once(__DIR__ . '/system/plugins/autoload.php');
 /*if ($argc < 2) {
-    echo "Usage: php builder.php <output-filename>\n";
+    echo "Usage: php builder.phar <output-filename>\n";
     exit(1);
 }*/
 
