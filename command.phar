@@ -13,17 +13,17 @@ $application->add(new AppCommand());
 $application->add(new RebuildCommand());
 
 // Create an array of parameters
-$input = new ArrayInput([
-    'command' => 'your-custom-command',
+$archive_app = new ArrayInput([
+    'command' => 'archive-app',
     '--option' => 'option-value',
     'argument1' => 'arg1-value',
 ]);
 
-$input_build = new ArrayInput([
-    'command' => 'rebuild-project-command',
+$build_app = new ArrayInput([
+    'command' => 'build-app',
     '--option' => 'option-value',
     'argument1' => 'arg1-value',
 ]);
 
-$application->run($input);
-$application->run($input_build);
+$application->run($archive_app);
+$application->run($build_app);
