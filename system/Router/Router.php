@@ -1,8 +1,8 @@
 <?php
-namespace Luminova;
-use Luminova\RequestHandler;
+namespace Luminova\Router;
+use Luminova\Router\BaseRouter;
 
-class Router extends RequestHandler{
+class Router extends BaseRouter{
     /**
      * @var array The route patterns and their handling functions
      */

@@ -45,6 +45,9 @@
             "Luminova\\Functions\\": "system/Functions/",
             "Luminova\\Command\\": "system/Command/",
             "Luminova\\Arrays\\": "system/Arrays/",
+            "Luminova\\Composer\\": "system/Composer/",
+            "Luminova\\Router\\": "system/Router/",
+            "Luminova\\Template\\": "system/Template/",
             "App\\Controllers\\": "app/Controllers/"
         }
     },    
@@ -68,11 +71,11 @@
     },
     "scripts": {
         "post-update-cmd": [
-            "Luminova\\ComposerUpdater::updateFiles"
+            "Luminova\\Composer\\Updater::updateFiles"
         ],
         "post-create-project-cmd": [
-            "Luminova\\ComposerUpdater::updateFiles",
-            "Luminova\\ComposerUpdater::moveProjectToRoot"
+            "Luminova\\Composer\\Updater::updateFiles",
+            "Luminova\\Composer\\Updater::moveProjectToRoot"
         ],
         "analyze-app": [
             "Composer\\Config::disableProcessTimeout",

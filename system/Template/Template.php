@@ -1,5 +1,5 @@
 <?php 
-namespace Luminova;
+namespace Luminova\Template;
 use Luminova\Exceptions\PageNotFoundException; 
 use Luminova\Exceptions\ClassNotFoundException; 
 use Luminova\Exceptions\InvalidArgumentException; 
@@ -9,11 +9,6 @@ class Template extends Compress{
      * @var string|path|dir $baseTemplateDir __DIR__
     */
     private $baseTemplateDir;
-
-    /** Holds the debug state
-     * @var bool $isDebugMode true 0r false
-    */
-    private $isDebugMode = false;
 
     /** Holds the project template filename
      * @var string $templateFile 
@@ -94,7 +89,6 @@ class Template extends Compress{
     */
     public function __construct(string $dir =__DIR__, bool $debug = false){
         $this->baseTemplateDir = dirname($dir);
-        $this->isDebugMode = $debug;
         //$compress = new Compress();
         parent::__construct();
     }
@@ -120,9 +114,9 @@ class Template extends Compress{
         return $this;
     }
 
-    public function getDir(): string{
+    public function getRootDir(): string{
         if(empty($this->baseTemplateDir)){
-            $this->baseTemplateDir = dirname(__DIR__);
+            $this->baseTemplateDir = dirname(dirname(__DIR__));
         }
         return $this->baseTemplateDir;
     }
@@ -143,7 +137,7 @@ class Template extends Compress{
     * @return Template $this
     */
     public function render(string $viewName): Template {
-        $this->templateFile = "{$this->getDir()}{$this->ds}{$this->templateFolder}{$this->ds}{$viewName}.php";
+        $this->templateFile = "{$this->getRootDir()}{$this->ds}{$this->templateFolder}{$this->ds}{$viewName}.php";
         $this->activeView = $viewName;
         return $this;
     }
@@ -288,7 +282,7 @@ class Template extends Compress{
     * @param array $options additional parameters to pass in the template file
     */
     public function renderViewContent(string $relativePath, array $options = []): void {
-        $root =  ($this->isDebugMode ? $relativePath : $this->ds);
+        $root =  (parent::getVariables("app.production.mood") == 0 ? $relativePath : $this->ds);
         $base =  rtrim($root . $this->appPublicFolder, "/") . "/";
  
         if(empty($options["active"])){
@@ -344,7 +338,7 @@ class Template extends Compress{
             ob_start();
             include_once $this->templateFile;
             $this->contents = ob_get_clean();
-            if(self::getVariables("enable.compression") == 1){
+            if(parent::getVariables("enable.compression") == 1){
                 switch($options["ContentType"]){
                     case "json":
                         $this->json( $this->contents );
@@ -417,27 +411,11 @@ class Template extends Compress{
     }
 
     private static function addTitleSuffix(string $title): string{
-        $appName = self::getVariables("app.name");
+        $appName = parent::getVariables("app.name");
         if (strpos($title, "| {$appName}") === false) {
             $title = " {$title} | {$appName}";
         }
         return $title;
-    }
-
-    private static function getVariables(string $key, mixed $default = null): mixed {
-        if (getenv($key) !== false) {
-            return getenv($key);
-        }
-
-        if (!empty($_ENV[$key])) {
-            return $_ENV[$key];
-        }
-
-        if (!empty($_SERVER[$key])) {
-            return $_SERVER[$key];
-        }
-
-        return $default;
     }
     
 }

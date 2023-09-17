@@ -1,4 +1,6 @@
 <?php 
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
 /**!
  * @url - https://github.com/peterujah/
  * @author - Peter (NG)
@@ -7,8 +9,10 @@
  * @copyright 
  */
 require_once(__DIR__ . '/../system/plugins/autoload.php');
-use \Luminova\AppController;
-$app = new AppController(__DIR__, true);
+use \App\Controllers\Application;
+use \Luminova\AppControllers;
+$app = new Application(__DIR__);
+
 $router = $app->getRouterInstance();
 
 $router->beforeMiddleware('GET|POST', '/.*', function () use($app, $router) {

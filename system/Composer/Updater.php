@@ -1,11 +1,12 @@
 <?php 
-namespace Luminova;
-class ComposerUpdater{
+namespace Luminova\Composer;
+class Updater{
     public static function updateFiles(): void {
         self::checkAndCopyFile('.env', 'samples/.env');
         self::checkAndCopyFile('meta.config.json', 'samples/meta.config.json');
         self::checkAndCopyFile('app/Controllers/Config.php', 'samples/Config.php');
         self::checkAndCopyFile('app/Controllers/Func.php', 'samples/Func.php');
+        self::checkAndCopyFile('app/Controllers/Application.php', 'samples/Application.php');
         self::checkAndCopyFile('system/autoload.api.php', 'samples/autoload.api.php');
         self::checkAndCopyFile('public/index.php', 'samples/index.php');
         self::checkAndCopyFile('public/.htaccess', 'samples/.htaccess');

@@ -129,6 +129,10 @@ class Session {
 
     public static function initializeSessionManager(string $path = "/"): void 
     {
+        if ((bool) ini_get('session.auto_start')) {
+            //$this->logger->error('Session: session.auto_start is enabled in php.ini. Aborting.');
+            return;
+        }
         if (session_status() === PHP_SESSION_NONE) {
             session_set_cookie_params(365 * 24 * 60 * 60, $path, ".{$_SERVER['SERVER_NAME']}", true, false);
             session_start();

@@ -1,6 +1,6 @@
 <?php 
 namespace Luminova\Config;
-class ConfigManager {
+class BaseConfig {
     
     public function __construct(){
 
@@ -35,7 +35,7 @@ class ConfigManager {
         return (string) self::getVariables("app.file.version");
     }
 
-    public static function minify(): int 
+    public static function shouldMinify(): int 
     {
         return (int) self::getVariables("build.minify");
     }
@@ -52,6 +52,7 @@ class ConfigManager {
    
     public static function getVariables(string $key, mixed $default = null): mixed 
     {
+        //$underscoreProperty = str_replace('.', '_', $property);
         if (getenv($key) !== false) {
             return getenv($key);
         }

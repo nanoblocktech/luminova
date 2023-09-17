@@ -6,7 +6,8 @@
  * @license     MIT public license
  */
 namespace Luminova\Cache;
- class Compress{
+use Luminova\Config\BaseConfig;
+ class Compress extends BaseConfig{
     // Constants for content types
     /**
 	* holds json content type

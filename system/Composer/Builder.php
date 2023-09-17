@@ -1,8 +1,8 @@
 <?php
 
-namespace Luminova;
+namespace Luminova\Composer;
 
-class ComposerBuilder
+class Builder
 {
 
     private static $projectFiles = [

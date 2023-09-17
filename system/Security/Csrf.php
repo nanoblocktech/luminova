@@ -1,7 +1,7 @@
 <?php 
 namespace Luminova\Security;
 
-class CsrfToken {
+class Csrf {
     private static $token;
     protected static $TOKEN_KEY = "csrf_token";
 

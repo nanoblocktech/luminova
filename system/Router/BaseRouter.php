@@ -4,8 +4,8 @@
  * For the full copyright and license information, please view
  * the LICENSE file that was distributed with this source code.
  */
-namespace Luminova;
-class RequestHandler {
+namespace Luminova\Router;
+class BaseRouter {
     public const ERRORS = [
         404 => '404 Not Found',
         500 => '500 Internal Server Error'

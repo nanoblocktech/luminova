@@ -1,13 +1,13 @@
 <?php
 namespace Luminova\Seo;  
-use \Luminova\AppController;
-class MetaObjectGraph {
+use \Luminova\BaseController;
+class Meta{
     private $link;
     private $app;
     private $manifest;
     private $defaultConfig = [];
     private $extendedConfig = array();
-    public function __construct(AppController $app)
+    public function __construct(BaseController $app)
     {
         $this->app = $app;
         $this->manifest = $this->app->readManifest();
@@ -350,11 +350,6 @@ class MetaObjectGraph {
         return true;
     }
 
-
-    public function getYoastGraph(): string 
-    {
-        return '<script type="application/ld+json" class="yoast-schema-graph">' . $this->toJson() . '</script>';
-    }
 
     public function getObjectGraph(): string 
     {
