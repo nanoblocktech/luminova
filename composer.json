@@ -68,11 +68,11 @@
     },
     "scripts": {
         "post-update-cmd": [
-            "Luminova\\ComposerAutoUpdater::updateFiles"
+            "Luminova\\ComposerUpdater::updateFiles"
         ],
         "post-create-project-cmd": [
-            "Luminova\\ComposerAutoUpdater::updateFiles",
-            "Luminova\\ComposerAutoUpdater::moveProjectToRoot"
+            "Luminova\\ComposerUpdater::updateFiles",
+            "Luminova\\ComposerUpdater::moveProjectToRoot"
         ],
         "analyze-app": [
             "Composer\\Config::disableProcessTimeout",
