@@ -60,6 +60,61 @@
             "install-path": "../nikic/php-parser"
         },
         {
+            "name": "peterujah/cache",
+            "version": "1.3",
+            "version_normalized": "1.3.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/peterujah/cache.git",
+                "reference": "4034e7f7ee8b697a3262bdb01ae0916addb030d3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/peterujah/cache/zipball/4034e7f7ee8b697a3262bdb01ae0916addb030d3",
+                "reference": "4034e7f7ee8b697a3262bdb01ae0916addb030d3",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.0 || ^8.0"
+            },
+            "time": "2022-02-18T14:09:29+00:00",
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.3-dev"
+                }
+            },
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "Peterujah\\NanoBlock\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ujah Chigozie",
+                    "email": "ujahchigozie@gmail.com"
+                }
+            ],
+            "description": "Cache - a simple php caching.",
+            "keywords": [
+                "cache",
+                "library",
+                "php cache library",
+                "php file cache",
+                "web cache"
+            ],
+            "support": {
+                "issues": "https://github.com/peterujah/cache/issues",
+                "source": "https://github.com/peterujah/cache/tree/1.3"
+            },
+            "install-path": "../peterujah/cache"
+        },
+        {
             "name": "peterujah/php-functions",
             "version": "1.3",
             "version_normalized": "1.3.0.0",

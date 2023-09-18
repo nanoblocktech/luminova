@@ -55,6 +55,7 @@ class ComposerStaticInit9c155849e043191fc1df7e0b46712cd7
         'Peterujah\\NanoBlock\\' => 
         array (
             0 => __DIR__ . '/..' . '/peterujah/php-functions/src',
+            1 => __DIR__ . '/..' . '/peterujah/cache/src',
         ),
         'PHPStan\\ExtensionInstaller\\' => 
         array (
@@ -136,7 +137,6 @@ class ComposerStaticInit9c155849e043191fc1df7e0b46712cd7
         'App\\Controllers\\Func' => __DIR__ . '/../../..' . '/app/Controllers/Func.php',
         'App\\Controllers\\HelloWorld' => __DIR__ . '/../../..' . '/app/Controllers/HelloWorld.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
-        'Luminova\\AppController' => __DIR__ . '/../../..' . '/system/AppController.php',
         'Luminova\\Arrays\\ArrayInput' => __DIR__ . '/../../..' . '/system/Arrays/ArrayInput.php',
         'Luminova\\BaseController' => __DIR__ . '/../../..' . '/system/BaseController.php',
         'Luminova\\Cache\\Compress' => __DIR__ . '/../../..' . '/system/Cache/Compress.php',
@@ -168,13 +168,14 @@ class ComposerStaticInit9c155849e043191fc1df7e0b46712cd7
         'Luminova\\Logger\\LoggerInterface' => __DIR__ . '/../../..' . '/system/Logger/LoggerInterface.php',
         'Luminova\\Router\\BaseRouter' => __DIR__ . '/../../..' . '/system/Router/BaseRouter.php',
         'Luminova\\Router\\Router' => __DIR__ . '/../../..' . '/system/Router/Router.php',
-        'Luminova\\Security\\CsrfToken' => __DIR__ . '/../../..' . '/system/Security/CsrfToken.php',
-        'Luminova\\Seo\\MetaObjectGraph' => __DIR__ . '/../../..' . '/system/Seo/MetaObjectGraph.php',
+        'Luminova\\Security\\Csrf' => __DIR__ . '/../../..' . '/system/Security/Csrf.php',
+        'Luminova\\Seo\\Meta' => __DIR__ . '/../../..' . '/system/Seo/Meta.php',
         'Luminova\\Sessions\\Session' => __DIR__ . '/../../..' . '/system/Sessions/Session.php',
         'Luminova\\Template\\Template' => __DIR__ . '/../../..' . '/system/Template/Template.php',
         'Luminova\\Tests\\Tests' => __DIR__ . '/../../..' . '/tests/Tests.php',
         'PHPStan\\ExtensionInstaller\\GeneratedConfig' => __DIR__ . '/..' . '/phpstan/extension-installer/src/GeneratedConfig.php',
         'PHPStan\\ExtensionInstaller\\Plugin' => __DIR__ . '/..' . '/phpstan/extension-installer/src/Plugin.php',
+        'Peterujah\\NanoBlock\\Cache' => __DIR__ . '/..' . '/peterujah/cache/src/Cache.php',
         'Peterujah\\NanoBlock\\Functions' => __DIR__ . '/..' . '/peterujah/php-functions/src/Functions.php',
         'PhpParser\\Builder' => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser/Builder.php',
         'PhpParser\\BuilderFactory' => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser/BuilderFactory.php',

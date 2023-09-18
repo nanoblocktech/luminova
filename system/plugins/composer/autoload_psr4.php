@@ -8,7 +8,7 @@ $baseDir = dirname(dirname($vendorDir));
 return array(
     'Psr\\Log\\' => array($vendorDir . '/psr/log/Psr/Log'),
     'PhpParser\\' => array($vendorDir . '/nikic/php-parser/lib/PhpParser'),
-    'Peterujah\\NanoBlock\\' => array($vendorDir . '/peterujah/php-functions/src'),
+    'Peterujah\\NanoBlock\\' => array($vendorDir . '/peterujah/php-functions/src', $vendorDir . '/peterujah/cache/src'),
     'PHPStan\\ExtensionInstaller\\' => array($vendorDir . '/phpstan/extension-installer/src'),
     'Luminova\\Tests\\' => array($baseDir . '/tests'),
     'Luminova\\Template\\' => array($baseDir . '/system/Template'),

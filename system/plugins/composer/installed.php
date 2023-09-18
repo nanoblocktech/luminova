@@ -3,7 +3,7 @@
         'name' => 'nanoblocktech/luminova',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '2384075532d0157df7691f0587ee1e218fba38d4',
+        'reference' => '81e7a2aa9a4dc5810b8807578e1e604140a52945',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'nanoblocktech/luminova' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '2384075532d0157df7691f0587ee1e218fba38d4',
+            'reference' => '81e7a2aa9a4dc5810b8807578e1e604140a52945',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../../',
             'aliases' => array(),
@@ -27,6 +27,15 @@
             'install_path' => __DIR__ . '/../nikic/php-parser',
             'aliases' => array(),
             'dev_requirement' => true,
+        ),
+        'peterujah/cache' => array(
+            'pretty_version' => '1.3',
+            'version' => '1.3.0.0',
+            'reference' => '4034e7f7ee8b697a3262bdb01ae0916addb030d3',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../peterujah/cache',
+            'aliases' => array(),
+            'dev_requirement' => false,
         ),
         'peterujah/php-functions' => array(
             'pretty_version' => '1.3',
