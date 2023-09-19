@@ -212,7 +212,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     '/Applications/XAMPP/xamppfiles/htdocs/luminova.com/system/Cache/Compress.php' => 
     array (
-      0 => 'e0e7c0113678e2e1725759eae52fc2a6d2e8bccf',
+      0 => 'b352edb2891e75f3b9e4e99501196ac53a42029f',
       1 => 
       array (
         0 => 'luminova\\cache\\compress',

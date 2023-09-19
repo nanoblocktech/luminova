@@ -7,7 +7,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
   array (
     '/Applications/XAMPP/xamppfiles/htdocs/luminova.com/samples/Application.php' => 
     array (
-      0 => 'cbc393cebd8f06d03378460b5fac22798efeef5a',
+      0 => '519632dfbc42fb0b9e44bc9b162c620108664c63',
       1 => 
       array (
         0 => 'app\\controllers\\application',
@@ -22,7 +22,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     '/Applications/XAMPP/xamppfiles/htdocs/luminova.com/samples/index.php' => 
     array (
-      0 => 'a922361ce650135f826a5760e9d46b0e9f3b100b',
+      0 => '6a32b6a0cc7b044886f8ffcbf138a8f981f9291c',
       1 => 
       array (
       ),

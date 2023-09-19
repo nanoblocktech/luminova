@@ -3,7 +3,7 @@ includes:
 
 parameters:
 	phpVersion: 80100
-	tmpDir: build/phpstan
+	tmpDir: builds/phpstan
 	level: 6
 	bootstrapFiles:
 		- system/plugins/autoload.php
@@ -14,8 +14,11 @@ parameters:
 		- app/log/*
 		- system/log/*
 		- system/plugins/*
+		- builds/*
+		- dump/*
 	scanDirectories:
 		- samples/
+		- resources/views/*
 	checkMissingIterableValueType: false
 	checkGenericClassInNonGenericObjectType: false
 	checkMissingCallableSignature: true

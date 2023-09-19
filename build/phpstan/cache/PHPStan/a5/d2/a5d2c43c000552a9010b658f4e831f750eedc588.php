@@ -7,7 +7,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
   array (
     '/Applications/XAMPP/xamppfiles/htdocs/luminova.com/app/Controllers/Application.php' => 
     array (
-      0 => 'cbc393cebd8f06d03378460b5fac22798efeef5a',
+      0 => '519632dfbc42fb0b9e44bc9b162c620108664c63',
       1 => 
       array (
         0 => 'app\\controllers\\application',
