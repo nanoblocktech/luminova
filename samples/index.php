@@ -11,11 +11,11 @@ ini_set('display_errors', '1');
 require_once(__DIR__ . '/../system/plugins/autoload.php');
 use \App\Controllers\Application;
 use \Luminova\AppControllers;
-$app = new Application(__DIR__, true);
+$app = new Application(__DIR__);
 
 $router = $app->getRouterInstance();
 
-$router->beforeMiddleware('GET|POST', '/.*', function () use($app, $router) {
+$router->beforeMiddleware('GET|POST', '/.*', function () {
     /*
     Before middleware
     Set up your website security here such as session etc....
@@ -23,7 +23,7 @@ $router->beforeMiddleware('GET|POST', '/.*', function () use($app, $router) {
 });
 
 $router->get('/', function() use ($app) {
-    return $app->render("index")->view(["title" => "Your optional website title"]);
+    return $app->render("index")->view();
 });
 
 $router->get('/hello', 'HelloWorld@show');
