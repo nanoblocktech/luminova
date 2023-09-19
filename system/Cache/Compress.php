@@ -43,10 +43,14 @@ use Luminova\Config\BaseConfig;
 	*  ignore User Abort
 	* @var bool $ignoreUserAbort
 	*/
+
+    /** @var bool */
 	private $ignoreUserAbort = true;
 
+    /** @var bool */
     private $ignoreCodeblock = false;
 
+    /** @var mixed */
     private $compressedContent;
 
 	/** 
@@ -180,7 +184,7 @@ use Luminova\Config\BaseConfig;
 	/**
      * sets file path
      *
-     * @param string|dir|path $cacheDir path to save cache
+     * @param string $cacheDir path to save cache
      * @return Compress Returns the class instance for method chaining.
      */
 	public function setOptimizerCachePath(string $cacheDir): Compress 
@@ -245,7 +249,7 @@ use Luminova\Config\BaseConfig;
      */
 	public function withOptimizer(mixed $body): void 
     {
-		$optimizer = new Luminova\Cache\Optimizer($this->cacheExpiry, $this->cacheDir);
+		$optimizer = new \Luminova\Cache\Optimizer($this->cacheExpiry, $this->cacheDir);
 		$cacheFile = $optimizer->getCacheLocation();
 	
 		if ($optimizer->isCacheValid($cacheFile)) {

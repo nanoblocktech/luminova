@@ -1,0 +1,15 @@
+.DS_Store
+/test
+/log
+/system/log
+/dump
+.env
+meta.manifest.json
+composer.lock
+index.html
+git.ssh
+.fleet
+.idea
+.vscode
+.git
+/.git

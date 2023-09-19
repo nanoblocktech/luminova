@@ -64,6 +64,25 @@ class BaseConfig {
     public static function getRequestHost(): string {
         return self::url_protocol() . $_SERVER['HTTP_HOST'];
     }
+
+    public static function isProduction(){
+        return (self::getVariables("app.environment.mood") == "production");
+    }
+
+    private static function getDatabaseConfig(): array 
+    {
+        $config = [
+            "PORT" => self::getVariables("database.port"),
+            "HOST" => self::getVariables("database.hostname"),
+            "VERSION" => self::getVariables("database.version"),
+            "CHARSET" => self::getVariables("database.charset"),
+			"SQLITE_PATH" => self::getVariables("database.sqlite.path")
+        ];
+        $config["USERNAME"] = self::isProduction() ? self::getVariables("database.username") : self::getVariables("database.development.username");
+        $config["PASSWORD"] = self::isProduction() ? self::getVariables("database.password") : self::getVariables("database.development.password");
+        $config["NAME"] = self::isProduction() ? self::getVariables("database.name") : self::getVariables("database.development.name");
+        return $config;
+    }
    
     public static function getVariables(string $key, mixed $default = null): mixed 
     {

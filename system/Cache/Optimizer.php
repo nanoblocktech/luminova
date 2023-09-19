@@ -79,7 +79,7 @@ class Optimizer {
     /**
      * Get current page url
      *
-     * @param string $url The content to be saved to the cache file.
+     * @return string The content to be saved to the cache file.
      */
     private function getUrl(): string {
         $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';

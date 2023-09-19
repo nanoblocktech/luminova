@@ -12,7 +12,7 @@ class FileCache extends \Peterujah\NanoBlock\Cache{
         return ($_SERVER['SERVER_NAME'] == "localhost");
     }
 
-    public static function storage(string $name, string $sub = '', string $user = '', int $count = 2): array{
+    public static function storage(string $name, ?string $sub = null, ?string $user = null, int $count = 2): array{
        
         $cachePath = (!empty($user) ? "{$user}/{$name}" : $name);
         $cachePath .= (!empty($sub) ? "/{$sub}/" : "/");

@@ -4,7 +4,13 @@ namespace Luminova\Composer;
 use Luminova\Config\BaseConfig;
 class BaseComposer extends BaseConfig
 {
-    public static function progress(int $totalSteps, callable $taskCallback, ?callable $onCompleteCallback, string $completionMessage): void
+    /**
+     * @param int $totalSteps
+     * @param callable $taskCallback
+     * @param callable|null $onCompleteCallback
+     * @param string $completionMessage
+    */
+    public static function progress(int $totalSteps, callable $taskCallback, ?callable $onCompleteCallback = null, ?string $completionMessage = null): void
     {
         $results = [];
         //$total = 0;
@@ -20,8 +26,10 @@ class BaseComposer extends BaseConfig
         
         sleep(1);
         
-        echo "\033[32m$completionMessage\033[0m\n";
-        //echo "Build operations: $total copied\n";
+        if($completionMessage !== null){
+            echo "\033[32m$completionMessage\033[0m\n";
+            //echo "Build operations: $total copied\n";
+        }
         
         if ($onCompleteCallback !== null) {
             $onCompleteCallback($results[0], $results);

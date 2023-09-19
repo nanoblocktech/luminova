@@ -1,0 +1,32 @@
+{
+    "name": "peterujah/cache",
+    "type": "library",
+    "description": "Cache - a simple php caching.",
+     "keywords": [
+        "library",
+        "cache",
+        "php file cache",
+        "web cache",
+         "php cache library"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ujah Chigozie",
+            "email": "ujahchigozie@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^7.0 || ^8.0"
+    },
+     "extra": {
+        "branch-alias": {
+            "dev-master": "1.3-dev"
+        }
+    },
+    "autoload": {
+        "psr-4": { 
+            "Peterujah\\NanoBlock\\": "src/" 
+        }
+    }
+}

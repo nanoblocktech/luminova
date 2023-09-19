@@ -87,7 +87,7 @@ class Template extends Compress{
     /** 
     * Initialize class construct
     */
-    public function __construct(string $dir =__DIR__, bool $debug = false){
+    public function __construct(string $dir =__DIR__){
         $this->baseTemplateDir = dirname($dir);
         //$compress = new Compress();
         parent::__construct();
@@ -282,7 +282,7 @@ class Template extends Compress{
     * @param array $options additional parameters to pass in the template file
     */
     public function renderViewContent(string $relativePath, array $options = []): void {
-        $root =  (parent::getVariables("app.production.mood") == 0 ? $relativePath : $this->ds);
+        $root =  (parent::isProduction() ? $this->ds : $relativePath);
         $base =  rtrim($root . $this->appPublicFolder, "/") . "/";
  
         if(empty($options["active"])){

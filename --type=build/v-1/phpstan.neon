@@ -1,0 +1,25 @@
+includes:
+	- phpstan.includes.php
+
+parameters:
+	phpVersion: 80100
+	tmpDir: build/phpstan
+	level: 6
+	bootstrapFiles:
+		- system/plugins/autoload.php
+	paths:
+		- app
+		- system
+	excludePaths:
+		- app/log/*
+		- system/log/*
+		- system/plugins/*
+	scanDirectories:
+		- samples/
+	checkMissingIterableValueType: false
+	checkGenericClassInNonGenericObjectType: false
+	checkMissingCallableSignature: true
+	treatPhpDocTypesAsCertain: false
+
+services:
+	- Luminova\Config\PHPStanRules

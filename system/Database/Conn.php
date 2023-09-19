@@ -6,16 +6,16 @@
  */
 namespace Luminova\Database;
 use Luminova\Config\DotEnv;
-use Luminova\Config\ConfigManager;
+use Luminova\Config\BaseConfig;
 
-class Conn extends ConfigManager{
+class Conn extends BaseConfig{
     public $db;
     private static $instance;
 
     public function __construct() 
     {
         $this->db = self::createDatabaseInstance();
-		$this->db->setDebug(!parent::getVariables("app.production.mood"));
+		$this->db->setDebug(!parent::isProduction());
     }
 
     public static function getInstance(): Conn 
@@ -30,26 +30,10 @@ class Conn extends ConfigManager{
     {
         switch (parent::getVariables("database.driver")) {
             case "MYSQLI":
-                return new Mysqli(self::getDatabaseConfig());
+                return new Mysqli(parent::getDatabaseConfig());
             case "PDO":
             default:
-                return new Pdo(self::getDatabaseConfig());
+                return new Pdo(parent::getDatabaseConfig());
         }
-    }
-
-    private static function getDatabaseConfig(): array 
-    {
-        $config = [
-            "PORT" => parent::getVariables("database.port"),
-            "HOST" => parent::getVariables("database.hostname"),
-            "VERSION" => parent::getVariables("database.version"),
-            "CHARSET" => parent::getVariables("database.charset"),
-			"SQLITE_PATH" => parent::getVariables("database.sqlite.path")
-        ];
-        $env = parent::getVariables("app.production.mood");
-        $config["USERNAME"] = $env ? parent::getVariables("database.username") : parent::getVariables("database.development.username");
-        $config["PASSWORD"] = $env ? parent::getVariables("database.password") : parent::getVariables("database.development.password");
-        $config["NAME"] = $env ? parent::getVariables("database.name") : parent::getVariables("database.development.name");
-        return $config;
     }
 }
