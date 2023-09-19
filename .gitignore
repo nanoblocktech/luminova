@@ -6,6 +6,7 @@
 .env
 meta.manifest.json
 composer.lock
+command.phar
 index.html
 git.ssh
 .fleet
