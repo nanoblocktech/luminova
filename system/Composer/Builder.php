@@ -88,7 +88,8 @@ class Builder extends BaseComposer
                     }
                     echo "\033[32mProject build completed successfully.\033[0m\n";
                     echo "To view your project, click the below link:\n";
-                    echo "\033]8;;$project_link\033\\$project_link\033]8;;\033\\";
+                    //echo "\033]8;;$project_link\033\\$project_link\033]8;;\033\\";
+                    echo "\033[34m" . $project_link . "\033[0m\n";
 
                 } else {
                     echo "\033[31mFail to build project failed.\033[0m\n"; 

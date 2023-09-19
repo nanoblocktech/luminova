@@ -21,6 +21,7 @@ return array(
     'Luminova\\Command\\Plugin' => $baseDir . '/system/Command/Plugin.php',
     'Luminova\\Command\\RebuildCommand' => $baseDir . '/system/Command/RebuildCommand.php',
     'Luminova\\Command\\Subscriber' => $baseDir . '/system/Command/Subscriber.php',
+    'Luminova\\Composer\\BaseComposer' => $baseDir . '/system/Composer/BaseComposer.php',
     'Luminova\\Composer\\Builder' => $baseDir . '/system/Composer/Builder.php',
     'Luminova\\Composer\\Updater' => $baseDir . '/system/Composer/Updater.php',
     'Luminova\\Config\\BaseConfig' => $baseDir . '/system/Config/BaseConfig.php',

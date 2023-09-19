@@ -147,6 +147,7 @@ class ComposerStaticInit9c155849e043191fc1df7e0b46712cd7
         'Luminova\\Command\\Plugin' => __DIR__ . '/../../..' . '/system/Command/Plugin.php',
         'Luminova\\Command\\RebuildCommand' => __DIR__ . '/../../..' . '/system/Command/RebuildCommand.php',
         'Luminova\\Command\\Subscriber' => __DIR__ . '/../../..' . '/system/Command/Subscriber.php',
+        'Luminova\\Composer\\BaseComposer' => __DIR__ . '/../../..' . '/system/Composer/BaseComposer.php',
         'Luminova\\Composer\\Builder' => __DIR__ . '/../../..' . '/system/Composer/Builder.php',
         'Luminova\\Composer\\Updater' => __DIR__ . '/../../..' . '/system/Composer/Updater.php',
         'Luminova\\Config\\BaseConfig' => __DIR__ . '/../../..' . '/system/Config/BaseConfig.php',

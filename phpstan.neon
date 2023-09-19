@@ -18,7 +18,7 @@ parameters:
 		- dump/*
 	scanDirectories:
 		- samples/
-		- resources/views/*
+		- resources/views/
 	checkMissingIterableValueType: false
 	checkGenericClassInNonGenericObjectType: false
 	checkMissingCallableSignature: true
