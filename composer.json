@@ -83,12 +83,16 @@
             "rector process --dry-run"
         ],
         "build-app": [
-            "php builder.phar"
+            "php builder.phar --type=build"
+        ],
+        "archive-app": [
+            "php builder.phar --type=zip"
         ]
     },
     "scripts-descriptions": {
         "analyze-app": "Run static analysis",
-        "build-app": "Export project production files"
+        "build-app": "Build project for production",
+        "archive-app": "Export project files as zip"
     },
     "minimum-stability": "stable",
     "prefer-stable": true

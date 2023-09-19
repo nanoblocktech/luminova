@@ -1,11 +1,20 @@
 #!/usr/bin/env php
 <?php
 require_once(__DIR__ . '/system/plugins/autoload.php');
-/*if ($argc < 2) {
-    echo "Usage: php builder.phar <output-filename>\n";
+
+$options = getopt(null, ["type:"]);
+
+if (!isset($options['type'])) {
+    echo "Usage: php builder.phar --type=<build/zip>\n";
+    echo "  - Build and package the application for production.\n";
+    echo "  - Example: php builder.phar --type=build\n";
+    echo "  - Archive the application into a zip file.\n";
+    echo "  - Example: php builder.phar --type=zip\n";
     exit(1);
-}*/
+}
 
-
-Luminova\Composer\Builder::buildProject(($argv[1]??"builds"));
-//Luminova\Composer\Builder::buildArchiveProject(($argv[1]??"my_project.zip"));
+if ($options['type'] === "build") {
+    Luminova\Composer\Builder::buildProject(($argv[1] ?? "builds"));
+} elseif ($options['type'] === "zip") {
+    Luminova\Composer\Builder::buildArchiveProject(($argv[1] ?? "my_project.zip"));
+}
