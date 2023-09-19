@@ -2,6 +2,6 @@
 
 // variadic-method-Luminova\Cache\FileCache-addConfig-/Applications/XAMPP/xamppfiles/htdocs/luminova.com/system/Cache/FileCache.php
 return \PHPStan\Cache\CacheItem::__set_state(array(
-   'variableKey' => '1694980714-v4',
+   'variableKey' => '1695083022-v4',
    'data' => false,
 ));

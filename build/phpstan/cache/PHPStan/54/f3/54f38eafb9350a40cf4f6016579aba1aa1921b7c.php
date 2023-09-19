@@ -2,6 +2,6 @@
 
 // variadic-method-Luminova\Database\Conn-__construct-/Applications/XAMPP/xamppfiles/htdocs/luminova.com/system/Database/Conn.php
 return \PHPStan\Cache\CacheItem::__set_state(array(
-   'variableKey' => '1694980714-v4',
+   'variableKey' => '1695083716-v4',
    'data' => false,
 ));

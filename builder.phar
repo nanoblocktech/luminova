@@ -14,7 +14,7 @@ if (!isset($options['type'])) {
 }
 
 if ($options['type'] === "build") {
-    Luminova\Composer\Builder::buildProject(($argv[1] ?? "builds"));
+    Luminova\Composer\Builder::buildProject("builds");
 } elseif ($options['type'] === "zip") {
-    Luminova\Composer\Builder::buildArchiveProject(($argv[1] ?? "my_project.zip"));
+    Luminova\Composer\Builder::buildArchiveProject("my_project.zip");
 }

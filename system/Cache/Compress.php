@@ -55,7 +55,7 @@ use Luminova\Config\BaseConfig;
 
 	/** 
 	* holds html expiry time offset 7 days
-	* @var string $cacheExpiry
+	* @var int $cacheExpiry
 	*/
 	private $cacheExpiry = 60 * 60 * 24 * 7;
 

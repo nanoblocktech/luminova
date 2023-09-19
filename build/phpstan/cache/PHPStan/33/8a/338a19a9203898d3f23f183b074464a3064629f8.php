@@ -2,6 +2,6 @@
 
 // variadic-method-Luminova\Composer\BaseComposer-progress-/Applications/XAMPP/xamppfiles/htdocs/luminova.com/system/Composer/BaseComposer.php
 return \PHPStan\Cache\CacheItem::__set_state(array(
-   'variableKey' => '1695078741-v4',
+   'variableKey' => '1695083235-v4',
    'data' => false,
 ));

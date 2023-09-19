@@ -70,7 +70,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     '/Applications/XAMPP/xamppfiles/htdocs/luminova.com/system/Database/Conn.php' => 
     array (
-      0 => '3df22867ae43452659971e950bcdf9da1f0b729d',
+      0 => '6145b7a68de7bd95c707a4a6071755dfc744c4a2',
       1 => 
       array (
         0 => 'luminova\\database\\conn',
@@ -80,7 +80,6 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
         0 => 'luminova\\database\\__construct',
         1 => 'luminova\\database\\getinstance',
         2 => 'luminova\\database\\createdatabaseinstance',
-        3 => 'luminova\\database\\getdatabaseconfig',
       ),
       3 => 
       array (
@@ -190,7 +189,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     '/Applications/XAMPP/xamppfiles/htdocs/luminova.com/system/Cache/FileCache.php' => 
     array (
-      0 => 'f1ba80ea5c873395962e52fc288b38aff18e5413',
+      0 => 'a20db8e0cd4158385be27903afa6741052b548a7',
       1 => 
       array (
         0 => 'luminova\\cache\\filecache',
@@ -213,7 +212,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     '/Applications/XAMPP/xamppfiles/htdocs/luminova.com/system/Cache/Compress.php' => 
     array (
-      0 => '743f0fc24131c6ba57f579158c6604fd5e062b99',
+      0 => 'e0e7c0113678e2e1725759eae52fc2a6d2e8bccf',
       1 => 
       array (
         0 => 'luminova\\cache\\compress',
@@ -248,7 +247,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     '/Applications/XAMPP/xamppfiles/htdocs/luminova.com/system/Cache/Optimizer.php' => 
     array (
-      0 => '4ade6399c5101a4009a5aa47d4543e8a47cd21ba',
+      0 => 'd6d904ca0ccf95276b8af0a3e288d3c2b389d567',
       1 => 
       array (
         0 => 'luminova\\cache\\optimizer',
@@ -301,7 +300,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     '/Applications/XAMPP/xamppfiles/htdocs/luminova.com/system/Config/BaseConfig.php' => 
     array (
-      0 => 'ed210ed9731378680f3b5517982570f0ce14c498',
+      0 => '08a07984928d0e7d8170bd511b28e9766cafb465',
       1 => 
       array (
         0 => 'luminova\\config\\baseconfig',
@@ -320,7 +319,9 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
         9 => 'luminova\\config\\url_protocol',
         10 => 'luminova\\config\\getfullurl',
         11 => 'luminova\\config\\getrequesthost',
-        12 => 'luminova\\config\\getvariables',
+        12 => 'luminova\\config\\isproduction',
+        13 => 'luminova\\config\\getdatabaseconfig',
+        14 => 'luminova\\config\\getvariables',
       ),
       3 => 
       array (
@@ -369,7 +370,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     '/Applications/XAMPP/xamppfiles/htdocs/luminova.com/system/Composer/BaseComposer.php' => 
     array (
-      0 => '3833b3dc5e145f394576e49b33fb86549cc50bb4',
+      0 => '5fc665124f4168b13383cecb53cce03f475581af',
       1 => 
       array (
         0 => 'luminova\\composer\\basecomposer',
@@ -407,7 +408,7 @@ return \PHPStan\Cache\CacheItem::__set_state(array(
     ),
     '/Applications/XAMPP/xamppfiles/htdocs/luminova.com/system/Template/Template.php' => 
     array (
-      0 => 'a8b851b7d8604d74e50dadafbea6a9ce169b74b9',
+      0 => '84a452b7b9f01ede31d7977978c158db07d366d3',
       1 => 
       array (
         0 => 'luminova\\template\\template',
