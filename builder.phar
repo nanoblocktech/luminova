@@ -6,5 +6,6 @@ require_once(__DIR__ . '/system/plugins/autoload.php');
     exit(1);
 }*/
 
-$filename = ($argv[1]??"my_project.zip");
-Luminova\ComposerBuilder::zipProjectFolder($filename);
+
+Luminova\Composer\Builder::buildProject(($argv[1]??"builds"));
+//Luminova\Composer\Builder::buildArchiveProject(($argv[1]??"my_project.zip"));

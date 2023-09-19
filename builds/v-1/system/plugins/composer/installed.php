@@ -1,0 +1,41 @@
+<?php return array(
+    'root' => array(
+        'name' => 'nanoblocktech/luminova',
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => 'd5cd99c8d8f455daa1f506263d8d8f5f8b6122a3',
+        'type' => 'project',
+        'install_path' => __DIR__ . '/../../../',
+        'aliases' => array(),
+        'dev' => false,
+    ),
+    'versions' => array(
+        'nanoblocktech/luminova' => array(
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => 'd5cd99c8d8f455daa1f506263d8d8f5f8b6122a3',
+            'type' => 'project',
+            'install_path' => __DIR__ . '/../../../',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'peterujah/cache' => array(
+            'pretty_version' => '1.3',
+            'version' => '1.3.0.0',
+            'reference' => '4034e7f7ee8b697a3262bdb01ae0916addb030d3',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../peterujah/cache',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'psr/log' => array(
+            'pretty_version' => '1.1.4',
+            'version' => '1.1.4.0',
+            'reference' => 'd49695b909c3b7628b6289db5479a1c204601f11',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../psr/log',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+    ),
+);
