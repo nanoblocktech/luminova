@@ -3,7 +3,7 @@
         'name' => 'nanoblocktech/luminova',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '465585d26e296e3ff2b53e7f82a164963347d8cb',
+        'reference' => 'eef43918c3e866d692b8fbcb4d111edca0c8d3be',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'nanoblocktech/luminova' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '465585d26e296e3ff2b53e7f82a164963347d8cb',
+            'reference' => 'eef43918c3e866d692b8fbcb4d111edca0c8d3be',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../../',
             'aliases' => array(),
@@ -72,6 +72,15 @@
             'install_path' => __DIR__ . '/../psr/log',
             'aliases' => array(),
             'dev_requirement' => false,
+        ),
+        'rector/rector' => array(
+            'pretty_version' => '0.18.3',
+            'version' => '0.18.3.0',
+            'reference' => 'ba7988e3e028e68e07191d75b0d5473ac320c5e7',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../rector/rector',
+            'aliases' => array(),
+            'dev_requirement' => true,
         ),
     ),
 );

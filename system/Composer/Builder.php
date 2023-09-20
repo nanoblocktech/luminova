@@ -53,7 +53,7 @@ class Builder extends BaseComposer
 
     public static function buildProject(string $destinationDir = "build"): void
     {
-        DotEnv::register(dirname(dirname(__DIR__)) . DIRECTORY_SEPARATOR . '.env');
+        DotEnv::register(dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . '.env');
 
         self::$systemIgnoreFiles[] = $destinationDir;
         $destinationDir = "{$destinationDir}/v-" . parent::appVersion();
@@ -70,8 +70,9 @@ class Builder extends BaseComposer
         function($dir, $results){
             if (chdir($dir)) {
                 $project_link = "http://" . strtolower(gethostname());
-                $project_link .= "/" . basename(dirname(dirname(__DIR__)));
+                $project_link .= "/" . basename(dirname(__DIR__, 2));
                 $project_link .= "/" . $dir . "/public";
+                $envFilePath = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR  . '.env';
                 //$project_link = urlencode($project_link);
 
                 exec('LM_DEBUG_MODE=1 composer install --no-dev', $output, $returnCode);
@@ -85,6 +86,17 @@ class Builder extends BaseComposer
                     echo "\033[32mDumping project development files...\033[0m\n";
                     foreach ($output as $line) {
                         echo $line . "\n";
+                    }
+         
+                    echo "Updating environment variables...\n";
+
+                    $envFile = file_get_contents($envFilePath);
+                    if ($envFile === false) {
+                        echo "\033[31mFailed to read the .env file.\033[0m\n"; 
+                    }
+                    $updatedEnvFile = preg_replace('/^app\.environment\.mood\s*=\s*development/m', 'app.environment.mood = production', $envFile);
+                    if (file_put_contents($envFilePath, $updatedEnvFile) === false) {
+                        echo "\033[31mFailed to write to the .env file.\033[0m\n"; 
                     }
                     echo "\033[32mProject build completed successfully.\033[0m\n";
                     echo "To view your project, click the below link:\n";
@@ -110,7 +122,7 @@ class Builder extends BaseComposer
 
     public static function buildArchiveProject(string $zipFileName, string $buildDir = "builds"): void
     {
-        DotEnv::register(dirname(dirname(__DIR__)) . DIRECTORY_SEPARATOR . '.env');
+        DotEnv::register(dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . '.env');
 
         self::$systemIgnoreFiles[] = $zipFileName;
         $zip = new \ZipArchive();
