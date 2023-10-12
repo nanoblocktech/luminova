@@ -8,7 +8,7 @@
  * @license See LICENSE file
  */
 
-namespace Luminova\Notification;
+namespace Luminova\Notifications;
 use \Kreait\Firebase\Factory;
 use \Kreait\Firebase\Messaging\CloudMessage;
 use \Kreait\Firebase\Messaging\Notification;

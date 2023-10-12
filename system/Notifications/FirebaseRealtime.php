@@ -8,7 +8,7 @@
  * @license See LICENSE file
  */
 
-namespace Luminova\Notification;
+namespace Luminova\Notifications;
 use \Kreait\Firebase\Factory;
 class FirebaseRealtime {
 	protected $database;

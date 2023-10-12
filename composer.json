@@ -20,7 +20,7 @@
         "phpstan/phpstan": "^1.10.2",
         "nikic/php-parser": "^4.17.1",
         "rector/rector": "0.18.3",
-        "firebase/php-jwt": "^5.2",
+        "firebase/php-jwt": "6.0.0",
         "kreait/firebase-php": "^6.8"
     },
     "suggest": {
