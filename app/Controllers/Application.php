@@ -16,11 +16,9 @@ class Application extends BaseApplication  {
     public function __construct(string $dir = __DIR__){
         /**
          *  Initialize session manager if you want to make use of sessions
-         *  @example  Session::initializeSessionManager();
+         *  @example  $session = new Session(new SessionManager());
+         *  @example $session->start();
         */
-        $ssid = new Session(new SessionManager());
-        $ssid->start();
-
        
 
         /**
