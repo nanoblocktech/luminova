@@ -1,92 +1,219 @@
-<?php 
+<?php
+/**
+ * Luminova Framework
+ *
+ * @package Luminova
+ * @author Ujah Chigozie Peter
+ * @copyright (c) Nanoblock Technology Ltd
+ * @license See LICENSE file
+ */
 namespace Luminova\Config;
 
 class BaseConfig {
-    
-    public function __construct(){
-  
+    protected static array $allowPreviews = ['system', 'app', 'resources', 'writable'];
+
+    /**
+     * Magic method to retrieve session properties.
+     *
+     * @param string $propertyName The name of the property to retrieve.
+     * @return mixed
+     */
+    public function __get(string $propertyName): mixed {
+        $data = self::getVariables($propertyName);
+
+        if ($data === null) {
+            $data = self::getVariables(self::variableToNotation($propertyName, ".")) ?? self::getVariables(self::variableToNotation($propertyName, "_")) ?? "";
+        }
+
+        return $data;
     }
 
-	public static function appName(): string 
+
+    /**
+     * Get the application name.
+     *
+     * @return string
+     */
+    public static function appName(): string 
     {
         return self::getVariables("app.name");
     }
 
+    /**
+     * Get the host name.
+     *
+     * @return string
+     */
     public static function hostName(): string 
     {
         return self::getVariables("app.hostname");
     }
 
+    /**
+     * Get the base URL.
+     *
+     * @return string
+     */
     public static function baseUrl(): string 
     {
-        return self::url_protocol() . self::getVariables("app.hostname");
+        return self::getVariables("app.base.url");
     }
 
-    public static function base_www_url(): string 
+    /**
+     * Get the base www URL.
+     *
+     * @return string
+     */
+    public static function baseWwwUrl(): string 
     {
-        return self::url_protocol() . "www." . self::getVariables("app.hostname");
+        return self::getVariables("app.base.www.url");
     }
 
+    /**
+     * Get the application version.
+     *
+     * @return string
+     */
     public static function appVersion(): string 
     {
-        return (string) self::getVariables("app.version");
+        return (string)self::getVariables("app.version");
     }
 
+    /**
+     * Get the file version.
+     *
+     * @return string
+     */
     public static function fileVersion(): string 
     {
-        return (string) self::getVariables("app.file.version");
+        return (string)self::getVariables("app.file.version");
     }
 
+    /**
+     * Check if minification is enabled.
+     *
+     * @return int
+     */
     public static function shouldMinify(): int 
     {
-        return (int) self::getVariables("build.minify");
+        return (int)self::getVariables("build.minify");
     }
 
+    /**
+     * Get the PHP script path.
+     *
+     * @return string
+     */
     public static function phpScript(): string 
     {
-        return "/usr/bin/php"; ///etc/alternatives/php
+        return "/usr/bin/php"; // /etc/alternatives/php
     }
 
-    public static function url_protocol(): string 
+    /**
+     * Get the URL protocol (http or https).
+     *
+     * @return string
+     */
+    public static function urlProtocol(): string 
     {
         return isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https://" : "http://";
     }
 
     /**
-     * Get current page url
+     * Get the full URL.
      *
-     * @param string $url The content to be saved to the cache file.
+     * @return string
      */
     public static function getFullUrl(): string {
-        return self::url_protocol() . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+        return self::urlProtocol() . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
     }
 
+    /**
+     * Get the request host.
+     *
+     * @return string
+     */
     public static function getRequestHost(): string {
-        return self::url_protocol() . $_SERVER['HTTP_HOST'];
+        return self::urlProtocol() . $_SERVER['HTTP_HOST'];
     }
 
-    public static function isProduction(){
+    /**
+     * Check if the application is in production mode.
+     *
+     * @return bool
+     */
+    public static function isProduction(): bool
+    {
         return (self::getVariables("app.environment.mood") == "production");
     }
 
-    private static function getDatabaseConfig(): array 
+    /**
+     * Check if the application is running locally.
+     *
+     * @return bool
+     */
+    public static function isLocal(): bool
     {
-        $config = [
-            "PORT" => self::getVariables("database.port"),
-            "HOST" => self::getVariables("database.hostname"),
-            "VERSION" => self::getVariables("database.version"),
-            "CHARSET" => self::getVariables("database.charset"),
-			"SQLITE_PATH" => self::getVariables("database.sqlite.path")
-        ];
-        $config["USERNAME"] = self::isProduction() ? self::getVariables("database.username") : self::getVariables("database.development.username");
-        $config["PASSWORD"] = self::isProduction() ? self::getVariables("database.password") : self::getVariables("database.development.password");
-        $config["NAME"] = self::isProduction() ? self::getVariables("database.name") : self::getVariables("database.development.name");
-        return $config;
+        return ($_SERVER['SERVER_NAME'] === "localhost");
     }
-   
+
+    /**
+     * Get the root directory.
+     *
+     * @param string $directory The directory to start searching for composer.json.
+     * @return string|null
+     */
+    public static function getRootDirectory(string $directory)
+    {
+        $currentDirectory = $directory;
+
+        while (!file_exists($currentDirectory . '/composer.json')) {
+            $parentDirectory = dirname($currentDirectory);
+
+            if ($parentDirectory === $currentDirectory) {
+                return null; 
+            }
+
+            $currentDirectory = $parentDirectory;
+        }
+
+        return $currentDirectory;
+    }
+
+    /**
+     * Filter the path to match allowed directories.
+     *
+     * @param string $path The path to be filtered.
+     * @return string
+     */
+    public static function filterPath(string $path): string {
+        $matchingDirectory = '';
+
+        foreach (self::$allowPreviews as $directory) {
+            $directoryWithSlash = $directory . '/';
+            if (strpos($path, $directoryWithSlash) !== false) {
+                $matchingDirectory = $directoryWithSlash;
+                break;
+            }
+        }
+
+        if ($matchingDirectory) {
+            $resultingPath = substr($path, strpos($path, $matchingDirectory));
+            return $resultingPath;
+        } else {
+            return basename($path);
+        }
+    }
+
+    /**
+     * Get configuration variables.
+     *
+     * @param string $key The key to retrieve.
+     * @param mixed $default The default value to return if the key is not found.
+     * @return mixed
+     */
     public static function getVariables(string $key, mixed $default = null): mixed 
     {
-        //$underscoreProperty = str_replace('.', '_', $property);
         if (getenv($key) !== false) {
             return getenv($key);
         }
@@ -100,5 +227,34 @@ class BaseConfig {
         }
 
         return $default;
+    }
+
+    /**
+     * Convert variable to dot or underscore notation.
+     *
+     * @param string $input The input string .
+     * @param string $notation The conversion notion
+     * @return string
+     */
+
+    public static function variableToNotation(string $input, string $notation = "."): string {
+        if ($notation === ".") {
+            $output = str_replace('_', '.', $input);
+        } elseif ($notation === "_") {
+            $output = str_replace('.', '_', $input);
+        } else {
+            return $input; 
+        }
+    
+        if ($notation === ".") {
+            $output = preg_replace('/([a-z0-9])([A-Z])/', '$1.$2', $output);
+        } elseif ($notation === "_") {
+            $output = preg_replace('/([a-z0-9])([A-Z])/', '$1_$2', $output);
+        }
+    
+        // Remove leading dot or underscore (if any)
+        $output = ltrim($output, $notation);
+    
+        return $notation === "_" ? strtoupper($output) : strtolower($output);
     }
 }

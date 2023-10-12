@@ -1,4 +1,12 @@
 <?php
+/**
+ * Luminova Framework
+ *
+ * @package Luminova
+ * @author Ujah Chigozie Peter
+ * @copyright (c) Nanoblock Technology Ltd
+ * @license See LICENSE file
+ */
 require_once(__DIR__ . '/plugins/autoload.php');
 use \Luminova\DatabaseManager\Query;
 use \Luminova\Config\DotEnv;

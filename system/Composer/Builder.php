@@ -1,5 +1,12 @@
 <?php
-
+/**
+ * Luminova Framework
+ *
+ * @package Luminova
+ * @author Ujah Chigozie Peter
+ * @copyright (c) Nanoblock Technology Ltd
+ * @license See LICENSE file
+ */
 namespace Luminova\Composer;
 use Luminova\Composer\BaseComposer;
 use Luminova\Config\DotEnv;
@@ -10,6 +17,7 @@ class Builder extends BaseComposer
         "/system",
         "/public",
         "/resources",
+        "/writeable",
         ".env",
         ".gitkeep",
         "composer.json",
@@ -18,15 +26,17 @@ class Builder extends BaseComposer
     
     private static $systemIgnoreFiles = [
         "/system/log",
+        "/writeable/caches",
         /*"/system/plugins/phpstan",
         "/system/plugins/bin/php-parse",
         "/system/plugins/bin/phpstan",
         "/system/plugins/bin/phpstan.phar",
         "/system/plugins/nikic",
-        "/system/plugins/peterujah/php-functions",
+        "/system/plugins/peterujah/php-functions",*/
         "/phpstan.includes.php",
-        "/phpstan.neon",*/
+        "/phpstan.neon",
         "/builder.phar",
+        "/rector.php",
         "/command.phar",
         "/composer.lock",
         "/git.ssh",

@@ -1,4 +1,12 @@
 <?php 
+/**
+ * Luminova Framework
+ *
+ * @package Luminova
+ * @author Ujah Chigozie Peter
+ * @copyright (c) Nanoblock Technology Ltd
+ * @license See LICENSE file
+ */
 namespace Luminova\Functions;
 class Functions{
 	public const INT = "int";
@@ -209,6 +217,29 @@ class Functions{
 	}
 
 	/**
+	 * Check if timestamp has passed certain minutes
+	 *
+	 * @param mixed|string|int $timestamp stored timestamp
+	 * @param int $minutes expiry minutes
+	 * @return bool 
+	 */
+	public static function timeHasPassed(mixed $timestamp, int $minutes): bool {
+		if (is_numeric($timestamp)) {
+			$timestamp = (int)$timestamp;
+		} else {
+			$timestamp = strtotime($timestamp);
+			if ($timestamp === false) {
+				return false;
+			}
+		}
+	
+		$timeDifference = time() - $timestamp;
+		$minutesDifference = $timeDifference / 60;
+		return $minutesDifference >= $minutes;
+	}
+	
+
+	/**
 	 * Get the suffix for a given day (e.g., 1st, 2nd, 3rd, 4th).
 	 *
 	 * @param int $day The day for which to determine the suffix.
@@ -258,6 +289,10 @@ class Functions{
     	return (bool) preg_match($pattern, $uuid);
 	}
 
+	function uuidToKey(string $uuid): string {
+		return hash('sha256', $uuid);
+	}
+
 	/** 
 	* Checks if string is a valid email address
 	* @param string|email $email email address to validate
@@ -274,6 +309,110 @@ class Functions{
 	}
 
 	/** 
+	* Checks if string is a valid phone number
+	* @param mixed $phoneNumber phone address to validate
+	* @return bool true or false
+	*/
+	public static function is_phone(mixed $phoneNumber): bool 
+	{
+		$phoneNumber = preg_replace("/[^0-9]/", "", $phoneNumber);
+        if (strlen($phoneNumber) >= 11) {
+            return true; 
+        }
+		return false;
+	}
+
+	/** 
+	* Checks if string is a valid ip address
+	* @param string $ipAddress to validate
+	* @return bool true or false
+	*/
+	public static function is_ip(string $ipAddress, int $version = 0): bool 
+	{
+		if ($version == 4 && filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+			return true;
+		} elseif ($version == 6 && filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+			return true;
+		}elseif ($version == 0 && filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6)) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Check if an IP address is valid.
+	 *
+	 * @param string $ipAddress The IP address to validate.
+	 * @param int    $version   The IP version to validate (4 for IPv4, 6 for IPv6).
+	 *
+	 * @return bool True if the IP address is valid, false otherwise.
+	 */
+	public static function isValidIpAddress(string $ipAddress, int $version): bool 
+	{
+		switch ($version) {
+			case 4:
+				return filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false;
+
+			case 6:
+				return filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) !== false;
+
+			default:
+				return filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6) !== false;
+		}
+	}
+
+	/**
+	 * Convert an IP address to its numeric representation (IPv4 or IPv6).
+	 *
+	 * @param string $ipAddress The IP address to convert.
+	 *
+	 * @return int|string Numeric IP address or empty string on error.
+	 */
+	public static function ipAddressToNumeric(string $ipAddress)
+	{
+		if (self::isValidIpAddress($ipAddress, 4)) {
+			return ip2long($ipAddress);
+		} elseif (self::isValidIpAddress($ipAddress, 6)) {
+			return inet_pton($ipAddress);
+		}
+
+		return '';
+	}
+
+	/**
+	 * Convert a numeric IP address to its string representation (IPv4 or IPv6).
+	 *
+	 * @param int|string $ipAddress The numeric IP address to convert.
+	 *
+	 * @return string IP address in string format or empty string on error.
+	 */
+	public static function numericToIpAddress($numericIp)
+	{
+		// Check if it's binary (IPv6) or numeric (IPv4).
+		if (is_string($numericIp)) {
+			// Convert binary (IPv6) to human-readable IPv6 address.
+			return inet_ntop($numericIp);
+		} elseif (is_numeric($numericIp)) {
+			// Convert numeric (IPv4) to human-readable IPv4 address.
+			return long2ip($numericIp);
+		}
+		return '';
+	}
+
+	/*	public static function numericToIpAddress($ipAddress) 
+	{
+		if (is_numeric($ipAddress)) {
+			if (filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+				return long2ip($ipAddress);
+			} elseif (filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+				return inet_ntop($ipAddress);
+			}
+		}
+
+		return '';
+	}*/
+
+	/** 
 	 * Determine password strength, if it meet all rules
 	 * @param string $password password to check
 	 * @param int $minLength minimum allowed password length
@@ -285,26 +424,25 @@ class Functions{
 	{
 	    $passed = 0;
 	    if (strlen($password) < $minLength) {
-		return false;
+			return false;
 	    }
 	    // Does string contain numbers?
 	    if(preg_match("/\d/", $password) > 0) {
-		$passed++;
+			$passed++;
 	    }
 		// Does string contain big letters?
 	    if(preg_match("/[A-Z]/", $password) > 0) {
-		$passed++;
+			$passed++;
 	    }
 		// Does string contain small letters?
 	    if(preg_match("/[a-z]/", $password) > 0) {
-		$passed++;
+			$passed++;
 	    }
 	    // Does string contain special characters?
 	    if(preg_match("/[^a-zA-Z\d]/", $password) > 0) {
-		$passed++;
+			$passed++;
 	    }
-
-	    return ($passed >= ($complexity > 4 ? 4 :  $ComplexityCount));
+		return ($passed >= ($complexity > 4 ? 4 : $complexity));
 	}
 
 	/** 
@@ -312,7 +450,7 @@ class Functions{
 	* @param string $password password string
 	* @return int 
 	*/
-	public static function hashPassword(string $password, int $cost = 12): int 
+	public static function hashPassword(string $password, int $cost = 12): string 
 	{
 		return password_hash($password, PASSWORD_BCRYPT, [
 			'cost' => $cost
@@ -401,15 +539,14 @@ class Functions{
 		return (string) $number;
 	}
 
-
 	/**
 	 * Calculate the discounted amount.
 	 *
-	 * @param float|int|string $total The total amount you want to discount.
-	 * @param int $rate The discount rate (percentage).
+	 * @param mixed|float|int|string $total The total amount you want to discount.
+	 * @param int $rate The discount rate (percentage) as an integer.
 	 * @return float The discounted amount.
 	 */
-	public static function discount($total, int $rate = 0): float 
+	public static function discount(mixed $total, int $rate = 0): float 
 	{
 		$total = is_numeric($total) ? (float) $total : 0.0;
 		return $total * ((100 - $rate) / 100);
@@ -418,15 +555,16 @@ class Functions{
 	/**
 	 * Calculate the total amount after adding interest.
 	 *
-	 * @param float $total The amount to which interest will be added.
-	 * @param float $rate The interest rate as a percentage.
+	 * @param mixed|float|int|string $total The amount to which interest will be added.
+	 * @param int $rate The interest rate as a percentage (float).
 	 * @return float The total amount after adding interest.
 	 */
-	public static function addInterest(float $total, float $rate = 0): float 
+	public static function addInterest(mixed $total, int $rate = 0): float 
 	{
-		//($total * ((100 + $rate) / 100));
+		$total = is_numeric($total) ? (float) $total : 0.0;
 		return $total * (1 + ($rate / 100));
 	}
+
 
 
 	/**
@@ -580,6 +718,8 @@ class Functions{
 		switch ($type) {
 			case 'int':
 				return preg_replace("/[^0-9]+/", $symbol, $string);
+			case 'digit':
+				return preg_replace("/[^-0-9.]+/", $symbol, $string);
 			case 'key':
 				return preg_replace("/[^a-zA-Z0-9_-]/", $symbol, $string);
 			case 'pass':

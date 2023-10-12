@@ -1,11 +1,15 @@
 <?php 
 /**
- * This file is part of Luminova framework.
- * For the full copyright and license information, please view
- * the LICENSE file that was distributed with this source code.
+ * Luminova Framework
+ *
+ * @package Luminova
+ * @author Ujah Chigozie Peter
+ * @copyright (c) Nanoblock Technology Ltd
+ * @license See LICENSE file
  */
 namespace Luminova\Database;
 use Luminova\Exceptions\DatabaseException;
+use \Luminova\Cache\FileCache;
 
 class Query extends Conn {  
     /**
@@ -19,6 +23,24 @@ class Query extends Conn {
     *@var string $databaseTable 
     */
     protected $databaseTable;
+
+    /**
+    *Table name to join query
+    *@var string $databaseJoinTable 
+    */
+    protected $databaseJoinTable;
+
+    /**
+    *Table join query type
+    *@var string $databaseJoinType 
+    */
+    protected $databaseJoinType;
+
+    /**
+    *Table join bind parameters
+    *@var string $databaseJoinSeed 
+    */
+    protected array $databaseJoinSeed;
 
     /**
     *Table query order limit offset and count query 
@@ -52,22 +74,63 @@ class Query extends Conn {
 
     /**
     *Table query and query column
-    *@var string $queryWhereAnd 
+    *@var array $queryWhereConditions 
     */
-    private $queryWhereAnd = "";
+    private $queryWhereConditions = [];
 
     /**
-    *Table query and value
-    *@var string $queryWhereValueAnd 
+    *Table query update set values
+    *@var array $querySetValues 
     */
-    private $queryWhereValueAnd = "";
+    private $querySetValues = [];
+
+    /**
+    *Cache flag u
+    *@var string $hasCache 
+    */
+    private $hasCache = "NO_CACHE";
+
+    /**
+    *Cache class instance
+    *@var BaseCache $cacheInstance 
+    */
+    private $cacheInstance;
+
+    /**
+    *Cache key
+    *@var string $cacheKey 
+    */
+    private $cacheKey = "default";
+
+    /**
+    *Cache enable flag
+    *@var bool $useCacheStorage 
+    */
+    private $useCacheStorage = false;
+
 
     /*
         Class Constructor
     */
 	public function __construct(){
+        $this->cacheInstance = new FileCache();
+        $this->cacheInstance->setEnableCache(false);
 		parent::__construct();
 	}
+
+     /*
+        Class cloning
+    */
+    private function __clone() {
+        $this->resetDefaults();
+    }
+    
+    /*
+        Prevent unserialization of the singleton instance
+    */
+    public function __wakeup() {
+        
+    }
 
     /**
     * Class Singleton
@@ -90,6 +153,53 @@ class Query extends Conn {
     public function table(string $table): Query
     {
         $this->databaseTable = $table;
+        return $this;
+    }
+
+     /**
+     * Sets join table name and method
+     * @param string $table The table name
+     * @param string $type The join type
+     * @return Query $this Class instance.
+     */
+    public function join(string $table, string $type = "INNER"): Query
+    {
+        $this->databaseJoinType = $type;
+        $this->databaseJoinTable = $table;
+        return $this;
+    }
+
+    /**
+     * Sets join table on clause
+     * @param array $seeds Join seed
+     * @return Query $this Class instance.
+     */
+    public function on(array $seeds): Query
+    {
+        $this->databaseJoinSeed = $seeds;
+        return $this;
+    }
+
+    /**
+     * Sets join table inner
+     * @param string $table The table name
+     * @return Query $this Class instance.
+     */
+    public function innerJoin(string $table): Query
+    {
+        $this->join($table, "INNER");
+        return $this;
+    }
+
+
+    /**
+     * Sets join table left
+     * @param string $table The table name
+     * @return Query $this Class instance.
+     */
+    public function leftJoin(string $table): Query
+    {
+        $this->join($table, "LEFT");
         return $this;
     }
 
@@ -150,10 +260,130 @@ class Query extends Conn {
      */
     public function and(string $column, string $key): Query
     {
-        $this->queryWhereAndValue = $key;
-        $this->queryWhereAnd = " AND {$column} = :and_column";
+        $this->queryWhereConditions[] = ["type" => "AND", "column" => $column, "key" => $key];
         return $this;
     }
+
+    /**
+     * Set update columns and values
+     * @param string $column column name
+     * @param string|int $key column key value
+     * @return Query class instance.
+     */
+    public function set(string $column, mixed $value): Query
+    {
+        $this->querySetValues[] = [ "column" => $column, "value" => $value];
+        return $this;
+    }
+
+    /**
+     * Set query where or | and or
+     * @param string $column column name
+     * @param string $key column key value
+     * @return Query class instance.
+     */
+    public function or(string $column, string $key): Query
+    {
+        $this->queryWhereConditions[] = ["type" => "OR", "column" => $column, "key" => $key];
+        return $this;
+    }
+    
+     /**
+     * Set query AND (? OR ?)
+     * @param string $column column name
+     * @param string $key column key value
+     * @param string $columnOr column name
+     * @param string $keyOr column key value
+     * @return Query class instance.
+     */
+    public function andOr(string $column, string $key, string $columnOr, string $keyOr): Query
+    {
+        $this->queryWhereConditions[] = [
+            "type" => "AND_OR", 
+            "column" => $column, 
+            "key" => $key,
+            "columnOr" => $columnOr, 
+            "keyOr" => $keyOr
+        ];
+        return $this;
+    }
+
+
+     /**
+     * Set query where IN () expression
+     * @param string $column column name
+     * @param array $list of values
+     * @return Query class instance.
+     */
+    public function in(string $column, array $list): Query
+    {
+        if (!empty($list)) {
+            $values = implode(', ', array_map(function($item) {
+                return is_string($item) ? "'$item'" : $item;
+            }, $list));
+
+            $this->queryWhereConditions[] = ["type" => "IN", "column" => $column, "values" => $values];
+        }
+
+        return $this;
+    }
+
+     /**
+     * Set query where FIND_IN_SET () expression
+     * @param string $search search value
+     * @param array $list of values
+     * @param string $method allow specifying the method for matching (e.g., > or =)
+     * @return Query class instance.
+     */
+    public function inset(string $search, array $list, string $method = '='): Query
+    {
+        $values = implode(',', $list);
+        $this->queryWhereConditions[] = ["type" => "IN_SET", "list" => $values, "search" => $search, "method" => $method];
+        return $this;
+    }
+
+    /**
+     * Cache the query result using a specified storage.
+     *
+     * @param string $storage The name of the cache storage.
+     * @param string $key The cache key (optional).
+     * @param string $uid Private storage dir for user id (optional).
+     * @param int $expiry The cache expiry time in seconds (default: 7 days).
+     * @return $this  Query class instance.
+     */
+    public function cache(string $storage, ?string $key = '', ?string $uid = '', int $expiry = 7 * 24 * 60 * 60): Query
+    {
+        // Set up the cache instance and configure caching parameters
+        if(!empty($uid)){
+            $storage  .= DIRECTORY_SEPARATOR . $uid;
+        }
+        $this->cacheInstance = $this->cacheInstance->storage("database", $storage);
+        $this->cacheInstance->setEnableCache(true);
+        $this->cacheInstance->setExpire($expiry);
+        $this->useCacheStorage = true;
+
+        // Calculate the cache key based on input or query conditions
+        if (empty($key)) {
+            $hashKey = $this->queryWhere . $this->queryWhereValue;
+            $hashKey .= implode('', $this->queryWhereConditions);
+            $this->cacheKey = md5($hashKey);
+        } else {
+            $this->cacheKey = md5($key);
+        }
+
+        //03796292f86c7289481389e46195ca45
+        // Check if the cache exists and handle expiration
+        if ($this->cacheInstance->hasCached($this->cacheKey)) {
+            $this->hasCache = "HAS_CACHE";
+            if ($this->cacheInstance->hasExpired($this->cacheKey)) {
+                $this->cacheInstance->remove($this->cacheKey);
+                $this->hasCache = "NO_CACHE";
+            }
+        }
+
+        return $this;
+    }
+
 
     /**
      * Insert into table
@@ -178,11 +408,11 @@ class Query extends Conn {
         $columns = array_keys($values[0]);
         try {
             if($bind){
-                return $this->executePrepared($columns, $values);
+                return $this->executeInsertPrepared($columns, $values);
             }
             return $this->executeInsertQuery($columns, $values);
         } catch (DatabaseException $e) {
-            print($e->getMessage());
+            $e->handle(parent::isProduction());
         }
         return 0;
     }
@@ -194,35 +424,64 @@ class Query extends Conn {
      */
     public function select(array $columns = ["*"]): mixed 
     {
-        try {
+        if($this->useCacheStorage && $this->hasCache == "HAS_CACHE"){
+            $this->resetDefaults();
+            $response = $this->cacheInstance->retrieveCache($this->cacheKey);
+            $this->cacheKey = '';
+            return $response;
+        }else{
             $columns = implode(", ", $columns);
             $selectQuery = "SELECT {$columns} FROM {$this->databaseTable}";
-            if (!empty($this->queryWhere)) {
-                if (empty($this->queryWhereValue)) {
-                    return null;
-                }
-                $selectQuery .= $this->queryWhere;
-                if(!empty($this->queryWhereAnd)){
-                    $selectQuery .= $this->queryWhereAnd;
-                }
-                $selectQuery .= $this->queryGroup;
-                $selectQuery .= $this->queryOrder;
-                $selectQuery .= $this->queryLimit;
-                $this->db->prepare($selectQuery);
-                $this->db->bind(":where_column", $this->queryWhereValue);
-                if(!empty($this->queryWhereAndValue)){
-                    $this->db->bind(":and_column", $this->queryWhereAndValue);
-                }
-            }else{
-                $selectQuery .= $this->queryGroup;
-                $selectQuery .= $this->queryOrder;
-                $selectQuery .= $this->queryLimit;
-                $this->db->prepare($selectQuery);
+            if (!empty($this->databaseJoinTable)) {
+                $selectQuery .= " {$this->databaseJoinType} JOIN {$this->databaseJoinTable}";
+                if (!empty($this->databaseJoinSeed)) {
+                    $selectQuery .= " ON {$this->databaseJoinSeed[0]}";
+                    if(count($this->databaseJoinSeed) > 1){
+                        for ($i = 1; $i < count($this->databaseJoinSeed); $i++) {
+                            $selectQuery .= " AND {$this->databaseJoinSeed[$i]}";
+                        }
+                    }
+                } 
             }
-            $this->db->execute();
-            return $this->db->getAll();
-        } catch (DatabaseException $e) {
-            print($e->getMessage());
+
+            $isBided = false;
+            if (empty($this->queryWhere) || empty($this->queryWhereValue)) {
+                $this->buildSearchConditions($selectQuery);
+            }else{
+                $isBided = true;
+                $selectQuery .= $this->queryWhere;
+                $this->buildWhereConditions($selectQuery);
+            }
+
+            $selectQuery .= $this->queryGroup;
+            $selectQuery .= $this->queryOrder;
+            $selectQuery .= $this->queryLimit;
+            try {
+                return $this->cacheInstance->onExpired($this->cacheKey, function() use($isBided, $selectQuery) {
+                    if($isBided){
+                        $this->db->prepare($selectQuery);
+                        $this->db->bind(":where_column", $this->queryWhereValue);
+                        if (!empty($this->queryWhereConditions)) {
+                            foreach ($this->queryWhereConditions as $bindings) {
+                                if (in_array($bindings['type'], ["AND", "OR"])) {
+                                    $this->db->bind(":{$bindings['column']}", $bindings['key']);
+                                } elseif ($bindings['type'] === "AND_OR") {
+                                    $this->db->bind(":{$bindings['column']}", $bindings['key']);
+                                    $this->db->bind(":{$bindings['columnOr']}", $bindings['keyOr']);
+                                }
+                            }
+                        }
+                        $this->db->execute();
+                    }else{
+                        $this->db->query($selectQuery);
+                    }
+                    $return = $this->db->getAll();
+                    $this->resetDefaults();
+                    return $return;
+                });
+            } catch (DatabaseException $e) {
+                $e->handle(parent::isProduction());
+            }
         }
         return null;
     }
@@ -234,111 +493,186 @@ class Query extends Conn {
      */
     public function find(array $columns = ["*"]): mixed 
     {
-        try {
-            $columns = implode(", ", $columns);
-            $selectQuery = "SELECT {$columns} FROM {$this->databaseTable}";
-            if (!empty($this->queryWhere)) {
-                if (empty($this->queryWhereValue)) {
-                    return null;
+
+        if (empty($this->queryWhere) || empty($this->queryWhereValue)) {
+            throw new DatabaseException("Find operation without a WHERE condition is not allowed.");
+        }else{
+            if($this->useCacheStorage && $this->hasCache == "HAS_CACHE"){
+                $this->resetDefaults();
+                $response = $this->cacheInstance->retrieveCache($this->cacheKey);
+                $this->cacheKey = '';
+                return $response;
+            }else{
+                $columns = implode(", ", $columns);
+                $selectQuery = "SELECT {$columns} FROM {$this->databaseTable}";
+                if (!empty($this->databaseJoinTable)) {
+                    $selectQuery .= " {$this->databaseJoinType} JOIN {$this->databaseJoinTable}";
+                    if (!empty($this->databaseJoinSeed)) {
+                        $selectQuery .= " ON {$this->databaseJoinSeed[0]}";
+                        if(count($this->databaseJoinSeed) > 1){
+                            for ($i = 1; $i < count($this->databaseJoinSeed); $i++) {
+                                $selectQuery .= " AND {$this->databaseJoinSeed[$i]}";
+                            }
+                        }
+                    } 
                 }
                 $selectQuery .= $this->queryWhere;
-                if(!empty($this->queryWhereAnd)){
-                    $selectQuery .= $this->queryWhereAnd;
-                }
+                $this->buildWhereConditions($selectQuery);
                 $selectQuery .= " LIMIT 1";
-                $this->db->prepare($selectQuery);
-                $this->db->bind(":where_column", $this->queryWhereValue);
-                if(!empty($this->queryWhereAndValue)){
-                    $this->db->bind(":and_column", $this->queryWhereAndValue);
+                try {
+                    return $this->cacheInstance->onExpired($this->cacheKey, function() use($selectQuery) {
+                        $this->db->prepare($selectQuery);
+                        $this->db->bind(":where_column", $this->queryWhereValue);
+                        if (!empty($this->queryWhereConditions)) {
+                            foreach ($this->queryWhereConditions as $bindings) {
+                                if (in_array($bindings['type'], ["AND", "OR"])) {
+                                    $this->db->bind(":{$bindings['column']}", $bindings['key']);
+                                } elseif ($bindings['type'] === "AND_OR") {
+                                    $this->db->bind(":{$bindings['column']}", $bindings['key']);
+                                    $this->db->bind(":{$bindings['columnOr']}", $bindings['keyOr']);
+                                }
+                            }
+                        }
+                        $this->db->execute();
+                        $return = $this->db->getOne();
+                        $this->resetDefaults();
+                        return $return;
+                    });
+                } catch (DatabaseException $e) {
+                    $e->handle(parent::isProduction());
                 }
-                $this->db->execute();
-                return $this->db->getOne();
             }
-        } catch (DatabaseException $e) {
-            print($e->getMessage());
         }
         return null;
     }
 
+    public function default(array $columns): int {
+
+    }
+
     /**
      * Update table with columns and values
-     * @param array $columns associative array of columns and values to update
+     * @param array $sets associative array of columns and values to update
      * @return int returns affected row counts.
      */
-    public function update(array $columns): int 
+    public function update(?array $sets = null): int 
     {
-        try {
-            if (empty($columns)) {
-                return 0;
-            }
+        if (empty($sets) && empty($this->querySetValues)) {
+            self::error("Update operation without SET values is not allowed.");
+        }
+        if (empty($this->queryWhere) || empty($this->queryWhereValue)) {
+            self::error("Update operation without a WHERE condition is not allowed.");
+        }else{
+            $columns = !empty($sets) ? $sets : $this->querySetValues;
             $updateColumns = array_map(function ($column) {
                 return "$column = :$column";
             }, array_keys($columns));
+
     
             $updateQuery = "UPDATE {$this->databaseTable} SET " . implode(", ", $updateColumns);
-            if (!empty($this->queryWhere)) {
-                if (empty($this->queryWhereValue)) {
-                    return 0;
-                }
-                $updateQuery .= $this->queryWhere;
-                if(!empty($this->queryWhereAnd)){
-                    $updateQuery .= $this->queryWhereAnd;
-                }
-    
+            $updateQuery .= $this->queryWhere;
+            $this->buildWhereConditions($updateQuery);
+            try {
                 $this->db->prepare($updateQuery);
                 foreach ($columns as $key => $value) {
                     $this->db->bind(":$key", $value);
                 }
                 $this->db->bind(":where_column", $this->queryWhereValue);
-                if(!empty($this->queryWhereAndValue)){
-                    $this->db->bind(":and_column", $this->queryWhereAndValue);
+                if (!empty($this->queryWhereConditions)) {
+                    foreach ($this->queryWhereConditions as $bindings) {
+                        if (in_array($bindings['type'], ["AND", "OR"])) {
+                            $this->db->bind(":{$bindings['column']}", $bindings['key']);
+                        } elseif ($bindings['type'] === "AND_OR") {
+                            $this->db->bind(":{$bindings['column']}", $bindings['key']);
+                            $this->db->bind(":{$bindings['columnOr']}", $bindings['keyOr']);
+                        }
+                    }
                 }
+                
                 $this->db->execute();
-                return $this->db->rowCount();
+                $return = $this->db->rowCount();
+                $this->resetDefaults();
+                return $return;
+            } catch (DatabaseException $e) {
+                $e->handle(parent::isProduction());
             }
-        } catch (DatabaseException $e) {
-            print($e->getMessage());
         }
         return 0;
-    }    
+    }
 
     /**
-     * Delete from table, leaving parameters unset will result query deleting all records from table
-     * And alter table auto increment to 1
+     * Delete from table
      * @param int $limit row limit
      * @return int returns affected row counts.
      */
-    public function delete(int $limit = 1): int 
+
+    public function delete(int $limit = 0): int
     {
-        try {
-            $rowCount = 0;
+         if (!empty($this->queryWhere) && !empty($this->queryWhereValue)) {
             $deleteQuery = "DELETE FROM {$this->databaseTable}";
-            if (!empty($this->queryWhere)) {
-                if (empty($this->queryWhereValue)) {
-                    return 0;
-                }
-                $deleteQuery .= $this->queryWhere;
-                if(!empty($this->queryWhereAnd)){
-                    $deleteQuery .= $this->queryWhereAnd;
-                }
+            $deleteQuery .= $this->queryWhere;
+            $this->buildWhereConditions($deleteQuery);
+
+            if($limit > 0){
                 $deleteQuery .= " LIMIT {$limit}";
+            }
+
+            try {
                 $this->db->prepare($deleteQuery);
                 $this->db->bind(":where_column", $this->queryWhereValue);
-                if(!empty($this->queryWhereAndValue)){
-                    $this->db->bind(":and_column", $this->queryWhereAndValue);
+                if (!empty($this->queryWhereConditions)) {
+                    foreach ($this->queryWhereConditions as $bindings) {
+                        if (in_array($bindings['type'], ["AND", "OR"])) {
+                            $this->db->bind(":{$bindings['column']}", $bindings['key']);
+                        } elseif ($bindings['type'] === "AND_OR") {
+                            $this->db->bind(":{$bindings['column']}", $bindings['key']);
+                            $this->db->bind(":{$bindings['columnOr']}", $bindings['keyOr']);
+                        }
+                    }
                 }
                 $this->db->execute();
-                $rowCount = $this->rowCount();
-            }else{
-                if($this->db->exec($deleteQuery)){
-                    $rowCount = $this->db->exec("ALTER TABLE {$this->databaseTable} AUTO_INCREMENT = 1");
-                }
+                $rowCount = $this->db->rowCount();
+                $this->resetDefaults();
+                return $rowCount;
+            } catch (DatabaseException $e) {
+                $e->handle(parent::isProduction());
             }
-            return $rowCount;
-        } catch (DatabaseException $e) {
-            print($e->getMessage());
+        } else {
+            self::error("Delete operation without a WHERE condition is not allowed.");
         }
         return 0;
+    }
+
+
+     /**
+     * Delete all records in a table 
+     * And alter table auto increment to 1
+     * @param bool $transaction row limit
+     * @return bool returns true if completed
+     */
+
+    public function truncate(bool $transaction = true): bool {
+        try {
+            if ($transaction) {
+                $this->db->beginTransaction();
+            }
+            $deleteSuccess = $this->db->exec("DELETE FROM {$this->databaseTable}");
+            $resetSuccess = $this->db->exec("ALTER TABLE {$this->databaseTable} AUTO_INCREMENT = 1");
+
+            if ($transaction) {
+                if ($deleteSuccess && $resetSuccess) {
+                    $this->db->commit();
+                    return true;
+                } else {
+                    $this->db->rollback();
+                    return false;
+                }
+            } else {
+                return $deleteSuccess && $resetSuccess;
+            }
+        } catch (DatabaseException $e) {
+            $e->handle(parent::isProduction());
+        }
     }
 
     /**
@@ -348,9 +682,11 @@ class Query extends Conn {
     public function drop(): int 
     {
         try {
-            return $this->db->exec("DROP TABLE IF EXISTS {$this->databaseTable}");
+            $return = $this->db->exec("DROP TABLE IF EXISTS {$this->databaseTable}");
+            $this->resetDefaults();
+            return $return;
         } catch (DatabaseException $e) {
-            print($e->getMessage());
+            $e->handle(parent::isProduction());
         }
         return 0;
     }
@@ -363,9 +699,11 @@ class Query extends Conn {
     public function createTable(array $columns): int 
     {
         try {
-            return $this->db->exec("CREATE TABLE IF NOT EXISTS {$this->databaseTable} ($columns)");
+            $return = $this->db->exec("CREATE TABLE IF NOT EXISTS {$this->databaseTable} ($columns)");
+            $this->resetDefaults();
+            return $return;
         } catch (DatabaseException $e) {
-            print($e->getMessage());
+            $e->handle(parent::isProduction());
         }
         return 0;
     }
@@ -384,7 +722,7 @@ class Query extends Conn {
             }
             return $this->exec($query);
         } catch (DatabaseException $e) {
-            print($e->getMessage());
+            $e->handle(parent::isProduction());
         }
         return 0;
     }
@@ -417,9 +755,11 @@ class Query extends Conn {
     
         $insertQuery = "INSERT INTO {$this->databaseTable} (" . implode(", ", $columns) . ")
         VALUES " . implode(", ", $insertQuery);
-    
+
         $this->db->query($insertQuery);
-        return $this->db->rowCount();
+        $return = $this->db->rowCount();
+        $this->resetDefaults();
+        return $return;
     }
 
     /**
@@ -428,19 +768,17 @@ class Query extends Conn {
      * @param array $values array of values to insert
      * @return int returns affected row counts.
      */
-    private function executePrepared(array $columns, array $values): int 
+    private function executeInsertPrepared(array $columns, array $values): int 
     {
   
         $placeholders = implode(', ', array_map(function ($col) {
             return ":$col";
         }, $columns));
     
-        $insertQuery = "
-            INSERT INTO {$this->databaseTable} (" . implode(", ", $columns) . ")
-            VALUES ($placeholders)
-        ";
+        $insertQuery = "INSERT INTO {$this->databaseTable} (" . implode(", ", $columns) . ")
+            VALUES ($placeholders)";
     
-        $this->prepare($insertQuery);
+        $this->db->prepare($insertQuery);
     
         foreach ($values as $row) {
             foreach ($row as $key => $value) {
@@ -448,7 +786,109 @@ class Query extends Conn {
             }
             $this->db->execute();
         }
-    
-        return $this->db->rowCount();
+        $return = $this->db->rowCount();
+        $this->resetDefaults();
+        return $return;
     } 
+
+    /**
+     * Build query conditions.
+     *
+     * @param string $query The SQL query string to which conditions are added.
+     */
+    protected function buildWhereConditions(string &$query): void
+    {
+        if (!empty($this->queryWhereConditions)) {
+            foreach ($this->queryWhereConditions as $condition) {
+                switch ($condition["type"]) {
+                    case "AND":
+                        $query .= " AND {$condition['column']} = :{$condition['column']}";
+                        break;
+                    case "OR":
+                        $query .= " OR {$condition['column']} = :{$condition['column']}";
+                        break;
+                    case "AND_OR":
+                        $query .= " AND ({$condition['column']} = :{$condition['column']} OR {$condition['columnOr']} = :{$condition['columnOr']})";
+                        break;
+                    case "IN":
+                        $query .= " AND {$condition['column']} IN ({$condition['values']})";
+                        break;
+                    case "IN_SET":
+                        if ($condition['method'] === '>') {
+                            $query .= " AND FIND_IN_SET('{$condition['search']}', '{$condition['list']}') > 0";
+                        } else {
+                            $query .= " AND FIND_IN_SET('{$condition['search']}', '{$condition['list']}')";
+                        }
+                    case "LIKE":
+                        $query .= " AND {$condition['column']} LIKE ?";
+                        break;
+                    default: 
+                        $query .= "";
+                    break;
+                }
+            }
+        }
+    }
+
+   /**
+     * Build query search conditions.
+     *
+     * @param string $query The SQL query string to which search conditions are added.
+    */
+    protected function buildSearchConditions(string &$query): void
+    {
+        if (!empty($this->queryWhereConditions)) {
+            $query .= " WHERE";
+            $firstCondition = true;
+            foreach ($this->queryWhereConditions as $condition) {
+                if (!$firstCondition) {
+                    $query .= " AND";
+                }
+                switch ($condition["type"]) {
+                    case "IN":
+                        $query .= " {$condition['column']} IN ({$condition['values']})";
+                        break;
+                    case "IN_SET":
+                        if ($condition['method'] === '>') {
+                            $query .= " FIND_IN_SET('{$condition['search']}', '{$condition['list']}') > 0";
+                        } else {
+                            $query .= " FIND_IN_SET('{$condition['search']}', '{$condition['list']}')";
+                        }
+                    default: 
+                        $query .= "";
+                    break;
+                }
+                $firstCondition = false;
+            }
+        }
+    }
+
+    /**
+     * Throw an exception 
+     * @param string $message
+     */
+    private static function error(string $message) {
+        DatabaseException::throwException($message, parent::isProduction());
+    }
+
+    /**
+     * Reset query conditions
+     */
+    private function resetDefaults(): void {
+        $this->databaseTable = null; 
+        $this->databaseJoinTable = null;
+        $this->databaseJoinType = null;
+        $this->databaseJoinSeed = [];
+        $this->queryLimit = "";
+        $this->queryOrder = "";
+        $this->queryGroup = "";
+        $this->queryWhere = "";
+        $this->queryWhereValue = "";
+        $this->queryWhereConditions = [];
+        $this->querySetValues = [];
+        $this->hasCache = "NO_CACHE";
+        $this->useCacheStorage = false;
+        $this->db->free();
+        //$this->db->close();
+    }
 }

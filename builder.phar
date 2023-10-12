@@ -1,5 +1,13 @@
 #!/usr/bin/env php
 <?php
+/**
+ * Luminova Framework
+ *
+ * @package Luminova
+ * @author Ujah Chigozie Peter
+ * @copyright (c) Nanoblock Technology Ltd
+ * @license See LICENSE file
+ */
 require_once(__DIR__ . '/system/plugins/autoload.php');
 
 $options = getopt(null, ["type:"]);

@@ -1,4 +1,4 @@
-<?php ALLOW_ACCESS or die("Access Denied"); ?>
+<?php ALLOW_ACCESS || die("Access Denied"); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>

@@ -1,9 +1,11 @@
 <?php
 /**
- * Compress - A simple php class to compress output buffer
- * @author      Peter Chigozie(NG) peterujah
- * @copyright   Copyright (c), 2021 Peter(NG) peterujah
- * @license     MIT public license
+ * Luminova Framework
+ *
+ * @package Luminova
+ * @author Ujah Chigozie Peter
+ * @copyright (c) Nanoblock Technology Ltd
+ * @license See LICENSE file
  */
 namespace Luminova\Cache;
 use Luminova\Config\BaseConfig;
@@ -31,13 +33,13 @@ use Luminova\Config\BaseConfig;
 	* Array to hold response headers
 	* @var array $headers
 	*/
-    private $headers;
+    private array $headers;
 
     /** 
 	*  Gzip compression status
 	* @var bool $gzip
 	*/
-    private $gzip; 
+    private bool $gzip; 
 
 	/** 
 	*  ignore User Abort
@@ -45,50 +47,43 @@ use Luminova\Config\BaseConfig;
 	*/
 
     /** @var bool */
-	private $ignoreUserAbort = true;
+	private bool $ignoreUserAbort = true;
 
     /** @var bool */
-    private $ignoreCodeblock = false;
+    private bool $ignoreCodeblock = false;
 
     /** @var mixed */
-    private $compressedContent;
+    private mixed $compressedContent;
 
 	/** 
 	* holds html expiry time offset 7 days
 	* @var int $cacheExpiry
 	*/
-	private $cacheExpiry = 60 * 60 * 24 * 7;
-
-	/** 
-	* holds path to save php to html cached files
-	* @var string $cacheDir
-	*/
-	private $cacheDir = __DIR__ . "/../ob_optimizer_caches";
-
+	private int $cacheExpiry = 60 * 60 * 24 * 7;
 
     // Regular expression patterns for content stripping
-    private const OPTIONS = array(
-        "find" => array(
+    private const OPTIONS = [
+        "find" => [
             '/\>[^\S ]+/s',          // Strip whitespace after HTML tags
             '/[^\S ]+\</s',          // Strip whitespace before HTML tags
             '/(\s)+/s',              // Strip excessive whitespace
             '/<!--(.*)-->/Uis',      // Strip HTML comments
             '/[[:blank:]]+/'         // Strip blank spaces
-        ),
-        "replace" => array(
+        ],
+        "replace" => [
             '>',
             '<',
             '\\1',
             '',
             ' '
-        ),
-        "line" => array(
+        ],
+        "line" =>[
             //'/[\n\r\t]+/'
             "\n",
             "\r",
             "\t"
-        )
-    );
+        ]
+    ];
     
  
     /**
@@ -112,6 +107,7 @@ use Luminova\Config\BaseConfig;
         );
         $this->gzip = true;
     }
+
     /**
      * Enable or disable Gzip compression.
      *
@@ -181,18 +177,6 @@ use Luminova\Config\BaseConfig;
 		return $this;
 	}
 
-	/**
-     * sets file path
-     *
-     * @param string $cacheDir path to save cache
-     * @return Compress Returns the class instance for method chaining.
-     */
-	public function setOptimizerCachePath(string $cacheDir): Compress 
-    {
-        $this->cacheDir = $cacheDir;
-		return $this;
-    }
-
     public function getCompressed(): mixed {
 		return $this->compressedContent;
     }
@@ -242,27 +226,6 @@ use Luminova\Config\BaseConfig;
         }
     }
 
-    /**
-     * Minify and save output as html, and serve html on next request
-     *
-     * @param string|array|object $body The content body to be sent in the response.
-     */
-	public function withOptimizer(mixed $body): void 
-    {
-		$optimizer = new \Luminova\Cache\Optimizer($this->cacheExpiry, $this->cacheDir);
-		$cacheFile = $optimizer->getCacheLocation();
-	
-		if ($optimizer->isCacheValid($cacheFile)) {
-			$optimizer->loadFromCache($cacheFile);
-			return;
-		}
-	
-        $minifiedContent = $this->ignoreCodeblock ? self::minifyIgnoreCodeblock($body) : self::minify($body);
-		set_time_limit(0);
-		ignore_user_abort($this->ignoreUserAbort);
-		echo $optimizer->saveToCache($cacheFile, $minifiedContent);
-		ob_end_flush();
-	}
 
     /**
      * Send the output in HTML format.

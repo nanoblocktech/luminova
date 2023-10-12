@@ -1,32 +1,47 @@
 <?php
+/**
+ * Luminova Framework
+ *
+ * @package Luminova
+ * @author Ujah Chigozie Peter
+ * @copyright (c) Nanoblock Technology Ltd
+ * @license See LICENSE file
+ */
 namespace Luminova\Router;
+use Luminova\Http\Header;
 use Luminova\Router\BaseRouter;
+use Luminova\Exceptions\ClassException;
+use Luminova\Exceptions\ErrorException;
+use Luminova\Errors\Codes;
+use Luminova\Languages\Translator;
+use \ReflectionMethod;
+use \ReflectionException;
 
-class Router extends BaseRouter{
+class Router extends Header {
     /**
-     * @var array The route patterns and their handling functions
+     * @var array Route patterns and handling functions
      */
-    private $afterRoutes = array();
+    private array $afterRoutes = [];
 
     /**
-     * @var array The before middleware route patterns and their handling functions
+     * @var array before middleware route patterns and handling functions
      */
-    private $beforeRoutes = array();
+    private array $beforeRoutes = [];
 
     /**
-     * @var array [object|callable] The function to be executed when no route has been matched
+     * @var array Callable functions to be executed when no matched route was found
      */
-    protected $notFoundCallback = [];
+    protected array $errorsCallback = [];
 
     /**
      * @var string Current base route, used for (sub)route mounting
      */
-    private $baseRoute = '';
+    private string $baseRoute = '';
 
     /**
      * @var string The Request Method that needs to be handled
      */
-    private $requestedMethod = '';
+    private string $requestedMethod = '';
 
     /**
      * @var string The Server Base Path for Router Execution
@@ -34,18 +49,18 @@ class Router extends BaseRouter{
     private $serverBasePath;
 
     /**
-     * @var string Default Controllers Namespace
+     * @var array Application registered controllers namespace
      */
-    private $namespace = '';
+    private array $namespace = [];
 
     /**
-     * Store a before middleware route and a handling function to be executed when accessed using one of the specified methods.
+     * Before middleware route, executes the callback function before other routing will be executed
      *
-     * @param string          $methods Allowed methods, | delimited
-     * @param string          $pattern A route pattern such as /about/system
-     * @param object|callable $callback      The handling function to be executed
+     * @param string  $methods  Allowed methods, can be serrated with | pipe symbol
+     * @param string  $pattern A route pattern or template view name
+     * @param callable $callback Callback function to execute
      */
-    public function beforeMiddleware(string $methods, string $pattern, mixed $callback): void
+    public function before(string $methods, string $pattern, mixed $callback): void
     {
         $pattern = $this->baseRoute . '/' . trim($pattern, '/');
         $pattern = $this->baseRoute ? rtrim($pattern, '/') : $pattern;
@@ -59,11 +74,11 @@ class Router extends BaseRouter{
     }
 
     /**
-     * Store a route and a handling function to be executed when accessed using one of the specified methods.
+     * Capture front controller request method and pattern and execute callback
      *
-     * @param string          $methods Allowed methods, | delimited
-     * @param string          $pattern A route pattern such as /about/system
-     * @param object|callable $callback      The handling function to be executed
+     * @param string  $methods Allowed methods, can be serrated with | pipe symbol
+     * @param string  $pattern A route pattern or template view name
+     * @param callable $callback Callback function to execute
      */
     public function capture(string $methods, string $pattern, mixed $callback): void
     {
@@ -79,10 +94,10 @@ class Router extends BaseRouter{
     }
 
     /**
-     * Shorthand for a route accessed using any method.
+     * Capture any method
      *
-     * @param string          $pattern A route pattern such as /about/system
-     * @param object|callable $callback      The handling function to be executed
+     * @param string $pattern A route pattern or template view name
+     * @param callable $callback Handle callback for router
      */
     public function any(string $pattern, mixed $callback): void
     {
@@ -92,8 +107,8 @@ class Router extends BaseRouter{
     /**
      * Shorthand for a route accessed using GET.
      *
-     * @param string          $pattern A route pattern such as /about/system
-     * @param object|callable $callback      The handling function to be executed
+     * @param string pattern A route pattern or template view name
+     * @param callable $callback  Handle callback for router
      */
     public function get(string $pattern, mixed $callback): void
     {
@@ -101,10 +116,10 @@ class Router extends BaseRouter{
     }
 
     /**
-     * Shorthand for a route accessed using POST.
+     * Post shorthand for a route capture
      *
-     * @param string          $pattern A route pattern such as /about/system
-     * @param object|callable $callback      The handling function to be executed
+     * @param string  $pattern A route pattern or template view name
+     * @param callable $callback Callback function to execute
      */
     public function post(string $pattern, mixed $callback): void
     {
@@ -112,10 +127,10 @@ class Router extends BaseRouter{
     }
 
     /**
-     * Shorthand for a route accessed using PATCH.
+     * Patch shorthand for a route capture
      *
-     * @param string          $pattern A route pattern such as /about/system
-     * @param object|callable $callback      The handling function to be executed
+     * @param string  $pattern A route pattern or template view name
+     * @param callable $callback Handle callback for router
      */
     public function patch(string $pattern, mixed $callback): void
     {
@@ -123,10 +138,10 @@ class Router extends BaseRouter{
     }
 
     /**
-     * Shorthand for a route accessed using DELETE.
+     * Delete shorthand for a route capture
      *
-     * @param string          $pattern A route pattern such as /about/system
-     * @param object|callable $callback      The handling function to be executed
+     * @param string $pattern A route pattern or template view name
+     * @param callable $callback Callback function to execute
      */
     public function delete(string $pattern, mixed $callback): void
     {
@@ -134,10 +149,10 @@ class Router extends BaseRouter{
     }
 
     /**
-     * Shorthand for a route accessed using PUT.
+     * Put shorthand for a route capture
      *
-     * @param string          $pattern A route pattern such as /about/system
-     * @param object|callable $callback      The handling function to be executed
+     * @param string $pattern A route pattern or template view name
+     * @param callable $callback Callback function to execute
      */
     public function put(string $pattern, mixed $callback): void
     {
@@ -145,10 +160,10 @@ class Router extends BaseRouter{
     }
 
     /**
-     * Shorthand for a route accessed using OPTIONS.
+     * Options shorthand for a route capture
      *
-     * @param string          $pattern A route pattern such as /about/system
-     * @param object|callable $callback      The handling function to be executed
+     * @param string $pattern A route pattern or template view name
+     * @param callable $callback Callback function to execute
      */
     public function options(string $pattern, mixed $callback): void
     {
@@ -156,76 +171,69 @@ class Router extends BaseRouter{
     }
 
     /**
-     * Mounts a collection of callbacks onto a base route.
+     * Binds a collection of routes in a single base route.
      *
      * @param string   $baseRoute The route sub pattern to bind the callbacks on
-     * @param callable $callback        The callback method
+     * @param callable $callback Callback function to execute
      */
     public function bind(string $baseRoute, mixed $callback): void
     {
-        // Track current base route
         $curBaseRoute = $this->baseRoute;
-
-        // Build new base route string
         $this->baseRoute .= $baseRoute;
-
-        // Call the callable
         call_user_func($callback);
-
-        // Restore original base route
         $this->baseRoute = $curBaseRoute;
     }
 
 
     /**
-     * Set a Default Lookup Namespace for Callable methods.
+     * Register a class namespace to use across the application
      *
-     * @param string $namespace A given namespace
+     * @param string $namespace Class namespace
+     * @throws ErrorException
      */
-    public function setNamespace(string $namespace): void
+    public function addNamespace(string $namespace): void
     {
         if (is_string($namespace)) {
-            $this->namespace = $namespace;
+            $this->namespace[] = $namespace;
+        }else{
+            throw new ErrorException('Invalid argument $namespace: requires string, ' . typeof($namespace) . ', is given instead.');
         }
     }
 
     /**
-     * Get the given Namespace before.
+     * Get list of registered namespace
      *
-     * @return string The given Namespace if exists
+     * @return array List of registered namespaces
      */
-    public function getNamespace(): string
+    public function getNamespaces(): array
     {
         return $this->namespace;
     }
 
     /**
-     * Execute the router: Loop all defined before middleware's and routes, and execute the handling function if a match was found.
+     * Run the router and application: Loop all defined before middleware's and routes
+     * Execute callback function if method and view match was found.
      *
-     * @param object|callable $callback Function to be executed after a matching route was handled (= after router middleware)
+     * @param callable $callback Final callback function to execute after run
      *
      * @return bool
      */
     public function run(mixed $callback = null): bool
     {
-        // Define which method we need to handle
-        $this->requestedMethod = parent::getRequestMethod();
+        $this->requestedMethod = parent::getRoutingMethod();
 
-        // Handle all before middleware
         if (isset($this->beforeRoutes[$this->requestedMethod])) {
             $this->handle($this->beforeRoutes[$this->requestedMethod]);
         }
 
-        // Handle all routes
         $numHandled = 0;
         if (isset($this->afterRoutes[$this->requestedMethod])) {
             $numHandled = $this->handle($this->afterRoutes[$this->requestedMethod], true);
         }
 
-        // If no route was handled, trigger the error (if any)
         if ($numHandled === 0) {
             $this->triggerError($this->afterRoutes[$this->requestedMethod]);
-        } // If a route was handled, perform the finish callback (if any)
+        } 
         else {
             if ($callback && is_callable($callback)) {
                 $callback();
@@ -237,62 +245,47 @@ class Router extends BaseRouter{
             ob_end_clean();
         }
 
-        // Return true if a route was handled, false otherwise
         return $numHandled !== 0;
     }
 
     /**
      * Set the error handling function.
      *
-     * @param object|callable|string $match_callback The function to be executed
-     * @param object|callable $callback The function to be executed
+     * @param callable $match_callback Matching callback function to be executed
+     * @param callable $callback The function to be executed
      */
     public function setErrorHandler(mixed $match_callback, mixed $callback = null): void
     {
       if (!is_null($callback)) {
-        $this->notFoundCallback[$match_callback] = $callback;
+        $this->errorsCallback[$match_callback] = $callback;
       } else {
-        $this->notFoundCallback['/'] = $match_callback;
+        $this->errorsCallback['/'] = $match_callback;
       }
     }
     
     /**
      * Triggers error response
      *
-     * @param string $match A route pattern such as /about/system
+     * @param string $match A route pattern or template view name
      */
     public function triggerError(?array $match = null, int $code = 404): void{
 
-        // Counter to keep track of the number of routes we've handled
         $numHandled = 0;
 
-        // handle error pattern
-        if (count($this->notFoundCallback) > 0)
+        if (count($this->errorsCallback) > 0)
         {
-            // loop fallback-routes
-            foreach ($this->notFoundCallback as $route_pattern => $route_callable) {
-
-              // matches result
+            foreach ($this->errorsCallback as $route_pattern => $route_callable) {
               $matches = [];
-
-              // check if there is a match and get matches as $matches (pointer)
-              $is_match = $this->patternMatches($route_pattern, $this->getCurrentUri(), $matches, PREG_OFFSET_CAPTURE);
-
-              // is fallback route match?
+              $is_match = $this->patternMatches($route_pattern, $this->getViewUri(), $matches, PREG_OFFSET_CAPTURE);
               if ($is_match) {
-
-                // Rework matches to only contain the matches, not the orig string
                 $matches = array_slice($matches, 1);
-
-                // Extract the matched URL parameters (and only the parameters)
                 $params = array_map(function ($match, $index) use ($matches) {
 
-                  // We have a following parameter: take the substring from the current param position until the next one's position (thank you PREG_OFFSET_CAPTURE)
                   if (isset($matches[$index + 1]) && isset($matches[$index + 1][0]) && is_array($matches[$index + 1][0])) {
                     if ($matches[$index + 1][0][1] > -1) {
                       return trim(substr($match[0][0], 0, $matches[$index + 1][0][1] - $match[0][1]), '/');
                     }
-                  } // We have no following parameters: return the whole lot
+                  } 
 
                   return isset($match[0][0]) && $match[0][1] != -1 ? trim($match[0][0], '/') : null;
                 }, $matches, array_keys($matches));
@@ -303,13 +296,89 @@ class Router extends BaseRouter{
               }
             }
         }
-        if (($numHandled == 0) && (isset($this->notFoundCallback['/']))) {
-            $this->execute($this->notFoundCallback['/']);
+        if (($numHandled == 0) && (isset($this->errorsCallback['/']))) {
+            $this->execute($this->errorsCallback['/']);
         } elseif ($numHandled == 0) {
-            header($_SERVER['SERVER_PROTOCOL'] . ' ' . parent::ERRORS[$code]??parent::ERRORS[404]);
+            header($_SERVER['SERVER_PROTOCOL'] . ' ' . (new Translator("en"))->get($code??Codes::ERROR_404));
         }
     }
 
+    /**
+     * Handle a set of routes: if a match is found, execute the relating handling function.
+     *
+     * @param array $routes  Collection of route patterns and their handling functions
+     * @param bool  $quitAfterRun Does the handle function need to quit after one route was matched?
+     *
+     * @return int The number of routes handled
+     */
+    private function handle(array $routes, bool $quitAfterRun = false): int
+    {
+        $numHandled = 0;
+        $uri = $this->getViewUri();
+        foreach ($routes as $route) {
+            $is_match = $this->patternMatches($route['pattern'], $uri, $matches, PREG_OFFSET_CAPTURE);
+            if ($is_match) {
+                $matches = array_slice($matches, 1);
+                $params = array_map(function ($match, $index) use ($matches) {
+
+                    if (isset($matches[$index + 1]) && isset($matches[$index + 1][0]) && is_array($matches[$index + 1][0])) {
+                        if ($matches[$index + 1][0][1] > -1) {
+                            return trim(substr($match[0][0], 0, $matches[$index + 1][0][1] - $match[0][1]), '/');
+                        }
+                    } 
+
+                    return isset($match[0][0]) && $match[0][1] != -1 ? trim($match[0][0], '/') : null;
+                }, $matches, array_keys($matches));
+
+                $this->execute($route['callback'], $params);
+
+                ++$numHandled;
+
+                if ($quitAfterRun) {
+                    break;
+                }
+            }
+        }
+        return $numHandled;
+    }
+
+
+    /**
+     * Execute the class method with the given parameters using reflection
+    * @param callable $callback Class public callback method eg: UserController:update()
+    * @param array $arguments Method arguments to pass to callback method
+    * @return void 
+    * @throws ErrorException if method is not callable or doesn't exist
+    */
+    private function execute(mixed $callback, array $arguments = []): void
+    {
+        if (is_callable($callback)) {
+            call_user_func_array($callback, $arguments);
+        } elseif (stripos($callback, '::') !== false) {
+            [$controller, $method] = explode('::', $callback);
+            $namespaces = $this->getNamespaces(); 
+
+            foreach ($namespaces as $namespace) {
+                $fullController = $namespace . '\\' . $controller;
+                try {
+                    $reflectedMethod = new ReflectionMethod($fullController, $method);
+                    if ($reflectedMethod->isPublic() && (!$reflectedMethod->isAbstract())) {
+                        if ($reflectedMethod->isStatic()) {
+                            forward_static_call_array([$fullController, $method], $arguments);
+                        } else {
+                            $controllerInstance = new $fullController();
+                            call_user_func_array([$controllerInstance, $method], $arguments);
+                        }
+                        return;
+                    }
+                } catch (ReflectionException $reflectionException) {
+                    continue;
+                }
+            }
+            throw new ErrorException("The method '$method' is not callable in any of the provided namespaces.");
+        }
+    }
+    
     /**
     * Replace all curly braces matches {} into word patterns (like Laravel)
     * Checks if there is a routing match
@@ -322,114 +391,21 @@ class Router extends BaseRouter{
     */
     private function patternMatches(string $pattern, string $uri, mixed &$matches): bool
     {
-      // Replace all curly braces matches {} into word patterns (like Laravel)
       $pattern = preg_replace('/\/{(.*?)}/', '/(.*?)', $pattern);
-
-      // we may have a match!
       return boolval(preg_match_all('#^' . $pattern . '$#', $uri, $matches, PREG_OFFSET_CAPTURE));
     }
 
     /**
-     * Handle a a set of routes: if a match is found, execute the relating handling function.
-     *
-     * @param array $routes       Collection of route patterns and their handling functions
-     * @param bool  $quitAfterRun Does the handle function need to quit after one route was matched?
-     *
-     * @return int The number of routes handled
-     */
-    private function handle(array $routes, bool $quitAfterRun = false): int
-    {
-        // Counter to keep track of the number of routes we've handled
-        $numHandled = 0;
-
-        // The current page URL
-        $uri = $this->getCurrentUri();
-
-        // Loop all routes
-        foreach ($routes as $route) {
-
-            // get routing matches
-            $is_match = $this->patternMatches($route['pattern'], $uri, $matches, PREG_OFFSET_CAPTURE);
-
-            // is there a valid match?
-            if ($is_match) {
-
-                // Rework matches to only contain the matches, not the orig string
-                $matches = array_slice($matches, 1);
-
-                // Extract the matched URL parameters (and only the parameters)
-                $params = array_map(function ($match, $index) use ($matches) {
-
-                    // We have a following parameter: take the substring from the current param position until the next one's position (thank you PREG_OFFSET_CAPTURE)
-                    if (isset($matches[$index + 1]) && isset($matches[$index + 1][0]) && is_array($matches[$index + 1][0])) {
-                        if ($matches[$index + 1][0][1] > -1) {
-                            return trim(substr($match[0][0], 0, $matches[$index + 1][0][1] - $match[0][1]), '/');
-                        }
-                    } // We have no following parameters: return the whole lot
-
-                    return isset($match[0][0]) && $match[0][1] != -1 ? trim($match[0][0], '/') : null;
-                }, $matches, array_keys($matches));
-
-                // Call the handling function with the URL parameters if the desired input is callable
-                $this->execute($route['callback'], $params);
-
-                ++$numHandled;
-
-                // If we need to quit, then quit
-                if ($quitAfterRun) {
-                    break;
-                }
-            }
-        }
-
-        // Return the number of routes handled
-        return $numHandled;
-    }
-
-    private function execute(mixed $callback, array $params = []): void
-    {
-        if (is_callable($callback)) {
-            call_user_func_array($callback, $params);
-        }elseif (stripos($callback, '@') !== false) {
-            list($controller, $method) = explode('@', $callback);
-            if ($this->getNamespace() !== '') {
-                $controller = $this->getNamespace() . '\\' . $controller;
-            }
-
-            try {
-                $reflectedMethod = new \ReflectionMethod($controller, $method);
-                // Make sure it's callable
-                if ($reflectedMethod->isPublic() && (!$reflectedMethod->isAbstract())) {
-                    if ($reflectedMethod->isStatic()) {
-                        forward_static_call_array(array($controller, $method), $params);
-                    } else {
-                        if (\is_string($controller)) {
-                            $controller = new $controller();
-                        }
-                        call_user_func_array(array($controller, $method), $params);
-                    }
-                }
-            } catch (\ReflectionException $reflectionException) {
-                // The controller class is not available or the class does not have the method $method
-            }
-        }
-    }
-
-    /**
-     * Define the current relative URI.
+     * Get the current view relative URI.
      *
      * @return string
      */
-    public function getCurrentUri(): string
+    public function getViewUri(): string
     {
         $uri = substr(rawurldecode($_SERVER['REQUEST_URI']), strlen($this->getBasePath()));
-
-        // Don't take query params into account on the URL
         if (strstr($uri, '?')) {
             $uri = substr($uri, 0, strpos($uri, '?'));
         }
-
-        // Remove trailing slash + enforce a slash at the start
         return '/' . trim($uri, '/');
     }
 
@@ -440,7 +416,6 @@ class Router extends BaseRouter{
      */
     public function getBasePath(): string
     {
-        // Check if server base path is defined, if not define it.
         if ($this->serverBasePath === null) {
             $this->serverBasePath = implode('/', array_slice(explode('/', $_SERVER['SCRIPT_NAME']), 0, -1)) . '/';
         }
@@ -448,8 +423,8 @@ class Router extends BaseRouter{
         return $this->serverBasePath;
     }
     
-
     /**
+     * Set application router base path
      * @param string
      */
     public function setBasePath($serverBasePath): string

@@ -1,8 +1,16 @@
 <?php
+/**
+ * Luminova Framework
+ *
+ * @package Luminova
+ * @author Ujah Chigozie Peter
+ * @copyright (c) Nanoblock Technology Ltd
+ * @license See LICENSE file
+ */
 namespace Luminova\Arrays;
 class ArrayInput
 {
-    private $parameters = [];
+    private array $parameters = [];
 
     public function __construct(array $parameters = [])
     {

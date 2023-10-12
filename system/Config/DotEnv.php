@@ -1,19 +1,32 @@
-<?php 
+<?php
 /**
- * This file is part of Luminova framework.
- * For the full copyright and license information, please view
- * the LICENSE file that was distributed with this source code.
+ * Luminova Framework
+ *
+ * @package Luminova
+ * @author Ujah Chigozie Peter
+ * @copyright (c) Nanoblock Technology Ltd
+ * @license See LICENSE file
  */
 namespace Luminova\Config;
-use Luminova\Exceptions\FileNotFoundException;
-class DotEnv {
-    public static function register(string $path): void 
+
+use Luminova\Exceptions\FileException;
+use SplFileObject;
+
+class DotEnv
+{
+    /**
+     * Register environment variables from a .env file.
+     *
+     * @param string $path The path to the .env file.
+     * @throws FileException If the .env file is not found.
+     */
+    public static function register(string $path): void
     {
         if (!file_exists($path)) {
-            throw new FileNotFoundException("DotEnv file not found: $path");
+            throw new FileException("DotEnv file not found: $path");
         }
 
-        $file = new \SplFileObject($path, 'r');
+        $file = new SplFileObject($path, 'r');
         while (!$file->eof()) {
             $line = trim($file->fgets());
             if (strpos($line, '#') === 0 || strpos($line, ';') === 0) {
@@ -30,10 +43,15 @@ class DotEnv {
         }
     }
 
-
-    protected static function setVariable(string $name, string $value): void 
+    /**
+     * Set an environment variable if it doesn't already exist.
+     *
+     * @param string $name The name of the environment variable.
+     * @param string $value The value of the environment variable.
+     */
+    protected static function setVariable(string $name, string $value): void
     {
-        if (! getenv($name, true)) {
+        if (!getenv($name, true)) {
             putenv("{$name}={$value}");
         }
 

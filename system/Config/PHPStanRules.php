@@ -1,4 +1,12 @@
 <?php
+/**
+ * Luminova Framework
+ *
+ * @package Luminova
+ * @author Ujah Chigozie Peter
+ * @copyright (c) Nanoblock Technology Ltd
+ * @license See LICENSE file
+ */
 declare(strict_types=1);
 namespace Luminova\Config;
 

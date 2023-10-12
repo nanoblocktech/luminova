@@ -1,8 +1,11 @@
 <?php 
 /**
- * This file is part of Luminova framework.
- * For the full copyright and license information, please view
- * the LICENSE file that was distributed with this source code.
+ * Luminova Framework
+ *
+ * @package Luminova
+ * @author Ujah Chigozie Peter
+ * @copyright (c) Nanoblock Technology Ltd
+ * @license See LICENSE file
  */
 namespace Luminova\Database;
 class Columns {

@@ -1,32 +1,30 @@
 <?php 
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
-/**!
- * @url - https://github.com/peterujah/
- * @author - Peter (NG)
- * @company - Nanoblock Technology Nigeria Limited
- * @Url - https://github.com/nanoblocktech/luminova
- * @copyright 
+/**
+ * Luminova Framework
+ *
+ * @package Luminova
+ * @author Ujah Chigozie Peter
+ * @copyright (c) Nanoblock Technology Ltd
+ * @license See LICENSE file
  */
 require_once(__DIR__ . '/../system/plugins/autoload.php');
 use \App\Controllers\Application;
-use \Luminova\AppControllers;
 $app = new Application(__DIR__);
 
 $router = $app->getRouterInstance();
 
-$router->beforeMiddleware('GET|POST', '/.*', function () {
-    /*
-    Before middleware
-    Set up your website security here such as session etc....
-    */
+$router->before('GET|POST', '/.*', function () use($app, $router) {
+    // Middleware security check
 });
 
 $router->get('/', function() use ($app) {
-    return $app->render("index")->view();
+    return $app->render("index")->view(["title" => "Your optional website title"]);
 });
 
-$router->get('/hello', 'HelloWorld@show');
+$router->get('/hello', 'HelloWorld::show');
+$router->get('/profile/(.*)', 'UserController::profile');
+$router->post('/profile', 'UserController::update');
+
 
 $router->bind('/user', function() use ($router, $app) {
 
