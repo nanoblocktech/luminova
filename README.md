@@ -475,8 +475,7 @@ You can extend the `Conn` class or initialize the class to grab the connection i
 
 ```php 
 namespace Luminova\Database;
-use Luminova\Exceptions\DatabaseException;
-use \Luminova\Cache\FileCache;
+use \Luminova\Database\Conn;
 
 class MyConn extends Conn {  
     public function __construct(){
@@ -507,8 +506,7 @@ You can extend the `Query` class or initialize the class to grab the connection 
 
 ```php 
 namespace Luminova\Database;
-use Luminova\Exceptions\DatabaseException;
-use \Luminova\Cache\FileCache;
+use \Luminova\Database\Query;
 
 class MyQuery extends Query {  
     public function __construct(){
