@@ -3,7 +3,4 @@
   <IfModule mod_autoindex.c>
       Options -Indexes
   </IfModule>
-  
-  RewriteEngine On
-
 </IfModule>
