@@ -6,20 +6,4 @@
   
   RewriteEngine On
 
-  #RewriteCond %{HTTP_HOST} ^localhost$ [NC,OR]
-  #RewriteCond %{HTTP_HOST} ^www.localhost.ng$
-  #RewriteCond %{REQUEST_URI} !luminova.com/public/
-  #RewriteRule (.*) /luminova.com/public/$1 [L]
-  
-  # Check if the request is coming from localhost
-  #RewriteCond %{HTTP_HOST} ^localhost$ [NC,OR]
-  
-  # Add additional localhost hostnames here if needed
-  #RewriteCond %{HTTP_HOST} ^127.0.0.1$ [NC]
-  
-  # Check if the request is not already in the 'public' directory
-  #RewriteCond %{REQUEST_URI} !^/public/
-  
-  # Rewrite the request to the 'public' directory
-  #RewriteRule (.*) public/$1 [L]
 </IfModule>
