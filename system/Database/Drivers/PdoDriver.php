@@ -116,7 +116,8 @@ class PdoDriver implements DatabaseInterface {
             $this->createSQLiteConnection($options);
         } else {
             // Handle the case when no valid database driver is found for the specified version.
-            $this->log("No database driver found for version '{$this->config->version}'");
+            DatabaseException::throwException("No database driver found for version '{$this->config->version}'", $this->config->production);
+            
         }
     }
 
@@ -131,7 +132,7 @@ class PdoDriver implements DatabaseInterface {
         try {
             $this->connection = new PDO($connectionDsn, $this->config->username, $this->config->password, $options);
         } catch (PDOException $e) {
-            $this->log($this->config->production);
+            DatabaseException::throwException($e->getMessage(), $this->config->production);
         }
     }
 
@@ -147,7 +148,7 @@ class PdoDriver implements DatabaseInterface {
         try {
             $this->connection = new PDO($connectionDsn, null, null, $options);
         } catch (PDOException $e) {
-            $this->log($this->config->production);
+            DatabaseException::throwException($e->getMessage(), $this->config->production);
         }
     }
 
@@ -161,27 +162,10 @@ class PdoDriver implements DatabaseInterface {
         try {
             $this->connection = new PDO("sqlite:/" . $this->config->sqlite_path, null, null, $options);
         } catch (PDOException $e) {
-            $this->log($this->config->production);
+            DatabaseException::throwException($e->getMessage(), $this->config->production);
         }
     }
 
-     /**
-     * Log a message to a file.
-     *
-     * @param string $message The log message.
-     * @param array $context Additional context data to log (optional).
-     * @throws DatabaseException 
-     * @return void
-     */
-    public function log(string $message, array $context = []): void 
-    {
-        // Append context data if provided
-        if (!empty($context)) {
-            $message .= "Context: " . json_encode($context, JSON_PRETTY_PRINT) . PHP_EOL;
-        }
-
-        DatabaseException::throwException($message, $this->config->production);
-    }
 
     /**
      * Returns the error information for the last statement execution.
@@ -271,7 +255,7 @@ class PdoDriver implements DatabaseInterface {
      *
      * @return int The parameter type.
      */
-    public function getType(mixed $value, mixed $type) : mixed 
+    public function getType(mixed $value, ?int $type = null) : mixed 
     {
         if (is_null($type)) {
             switch (true) {
@@ -322,7 +306,7 @@ class PdoDriver implements DatabaseInterface {
         try {
             $this->stmt->execute($values);
         } catch (PDOException $e) {
-            $this->log($this->config->production);
+            DatabaseException::throwException($e->getMessage(), $this->config->production);
         }
     }
 

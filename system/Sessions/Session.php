@@ -9,61 +9,92 @@
  */
 namespace Luminova\Sessions;
 use Luminova\Sessions\SessionInterface;
-use Luminova\Exceptions\ErrorException;
 use App\Controllers\Config\SessionConfig;
-use Psr\Log\LoggerAwareTrait;
-use Psr\Log\LoggerInterface;
+use Luminova\Logger\LoggerInterface;
 class Session 
 {
-    use LoggerAwareTrait;
-    protected $manager;
+    /**
+     * @var SessionInterface $manager session interface
+    */
+    protected SessionInterface $manager;
+
+    /**
+     * @var LoggerInterface $logger logger interface
+    */
+    protected LoggerInterface $logger;
+
+    /**
+     * @var static $instance static class instance
+    */
     protected static $instance;
+
+    /**
+     * @var SessionConfig $config session config instance
+    */
     protected SessionConfig $config;
 
+    /**
+     * Initializes session constructor
+     *
+     * @param SessionInterface $manager The session manager.
+    */
     public function __construct(SessionInterface $manager)
     {
         $this->config = new SessionConfig();
         $this->manager = $manager;
     }
 
-   /**
-     * Set the logger for this session.
-     *
-     * @param LoggerInterface $logger The logger to set.
-    */
-    public function setLoggerInterface(LoggerInterface $logger): void
-    {
-        $this->setLogger($logger);
-    }
-
-    /**
-     * Magic method to retrieve session properties.
-     *
-     * @param string $propertyName The name of the property to retrieve.
-     * @return mixed
-     * @throws ErrorException If the property does not exist.
-     */
-    public function __get(string $propertyName): mixed
-    {
-        $data = $this->manager->__toArray($propertyName);
-        if (empty($data)) {
-            throw new ErrorException("Invalid property name: $propertyName is not found.");
-        } 
-        return $data;
-    }
-
     /**
      * Get an instance of the Session class.
      *
      * @param SessionInterface $manager The session manager.
-     * @return self
-     */
+     * @return static self instance
+    */
+    public static function getInstance(SessionInterface $manager): static
+    {
+        if (static::$instance === null) {
+            static::$instance = new static($manager);
+        }
+        return static::$instance;
+    }
+
+    /*
     public static function getInstance(SessionInterface $manager): self
     {
         if (self::$instance === null) {
             self::$instance = new self($manager);
         }
         return self::$instance;
+    }*/
+
+   /**
+     * Set the logger for this session.
+     *
+     * @param LoggerInterface $logger The logger to set.
+    */
+    public function setLogger(LoggerInterface $logger): void
+    {
+        $this->logger = $logger;
+    }
+
+    /** 
+     * Get data as array from current session storage 
+     * @param string $index optional key to get
+     * @return array
+    */
+    public function toArray(string $index = ''): array
+    {
+        return $this->manager->toArray($index);
+    }
+
+    /** 
+     * Get data as object from current session storage
+     * @param string $index optional key to get
+     * @return object
+    */
+    public function toObject(string $index = ''): object
+    {
+        return $this->manager->toObject($index);
     }
 
     /**
@@ -81,9 +112,10 @@ class Session
      *
      * @param string $storage The storage key to set.
      */
-    public function setStorage(string $storage): void
+    public function setStorage(string $storage): self
     {
         $this->manager->setStorage($storage);
+        return $this;
     }
 
     /**
@@ -95,6 +127,40 @@ class Session
     public function get(string $key): mixed
     {
         return $this->manager->get($key);
+    }
+
+    /** 
+     * Get data from specified storage instance
+     * @param string $index value key to get
+     * @param string $storage Storage key name
+     * @return mixed
+    */
+    public function getFrom(string $index, string $storage): mixed
+    {
+        return $this->manager->getFrom($index, $storage);
+    }
+
+    /** 
+     * Get data from specified storage instance
+     * @param string $index value key to get
+     * @param mixed $data data to set
+     * @param string $storage Storage key name
+     * @return self
+    */
+    public function setTo(string $index, mixed $data, string $storage): self
+    {
+        $this->manager->setTo($index, $data, $storage);
+        return $this;
+    }
+
+    /** 
+     * Check if session user is online from any storage instance
+     * @param string $storage optional storage instance key
+     * @return bool
+    */
+    public function online(string $storage = ''): bool
+    {
+        return $this->manager->online($storage);
     }
 
     /**
@@ -170,10 +236,24 @@ class Session
         }
         
         if (session_status() === PHP_SESSION_NONE) {
-            //session_set_cookie_params(365 * 24 * 60 * 60, $path, ".{$_SERVER['SERVER_NAME']}", true, false);
             $this->sessionConfigure();
             session_start();
         }
+    }
+
+    /**
+     * Start an online session with an optional IP address.
+     *
+     * @param string $ip The IP address.
+     * @return self
+     */
+    public function goOnline(string $ip = ''): self
+    {
+        $this->manager->set("_online", "YES");
+        if($ip !== ''){
+            $this->manager->set("_online_session_id", $ip);
+        }
+        return $this;
     }
 
     /**
@@ -181,28 +261,25 @@ class Session
     *
     * @return void
     */
-    protected function sessionConfigure()
+    protected function sessionConfigure(): void
     {
-      
-        $sameSite = "Lax";
-        $params = [
+        $cookieParams = [
             'lifetime' => $this->config->expiration,
             'path'     => $this->config->sessionPath,
-            'domain'   => ".{$_SERVER['SERVER_NAME']}",
+            'domain'   => $this->config->sessionDomain,
             'secure'   => true,
             'httponly' => true,
-            'samesite' => $sameSite,
+            'samesite' => $this->config->sameSite,
         ];
-
         ini_set('session.name', $this->config->cookieName);
-        ini_set('session.cookie_samesite', $sameSite);
-        session_set_cookie_params($params);
+        ini_set('session.cookie_samesite', $this->config->sameSite);
+        session_set_cookie_params($cookieParams);
 
         if ($this->config->expiration > 0) {
             ini_set('session.gc_maxlifetime', (string) $this->config->expiration);
         }
 
-        if (! empty($this->config->savePath)) {
+        if (!empty($this->config->savePath)) {
             ini_set('session.save_path', $this->config->savePath);
         }
 

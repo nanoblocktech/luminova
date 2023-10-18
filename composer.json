@@ -21,7 +21,8 @@
         "nikic/php-parser": "^4.17.1",
         "rector/rector": "0.18.3",
         "firebase/php-jwt": "6.0.0",
-        "kreait/firebase-php": "^6.8"
+        "kreait/firebase-php": "^6.8",
+        "phpunit/phpunit": "^9.1"
     },
     "suggest": {
         "ext-curl": "Needed if you use CURLRequest class",
@@ -105,13 +106,15 @@
         "archive-app": [
             "Composer\\Config::disableProcessTimeout",
             "php builder.phar --type=zip"
-        ]
+        ],
+        "test": "phpunit"
     },
     "scripts-descriptions": {
         "analyze-app": "Run static analysis",
         "analyze-code": "Analyze coding style",
         "build-app": "Build project for production",
-        "archive-app": "Export project files as zip"
+        "archive-app": "Export project files as zip",
+        "test": "Run unit tests"
     },
     "minimum-stability": "stable",
     "prefer-stable": true

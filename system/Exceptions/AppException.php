@@ -48,12 +48,19 @@ class AppException extends Exception
     public function handle(bool $production = false)
     {
         if ($production) {
-            error_log("Exception: {$this->getMessage()}");
-            echo "An unexpected error occurred. Please contact the administrator.";
+            $logDirectory = BaseConfig::getRootDirectory(__DIR__) . "writable/log/";
+            $logFile = $logDirectory . "exception.log";
+
+            if (!is_dir($logDirectory)) {
+                mkdir($logDirectory, 0755, true);
+            }
+            file_put_contents($logFile, "Exception: {$this->getMessage()}" . PHP_EOL, FILE_APPEND);
         } else {
             throw $this;
         }
     }
+
+
 
     /**
      * Create and handle a Exception.

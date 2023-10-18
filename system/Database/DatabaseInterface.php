@@ -19,16 +19,6 @@ interface DatabaseInterface  {
      */
     public function setDebug(bool $debug): self;
 
-     /**
-     * Log a message to a file.
-     *
-     * @param string $message The log message.
-     * @param array $context Additional context data to log (optional).
-     * @throws DatabaseException 
-     * @return void
-     */
-    public function log(string $message, array $context = []): void;
-
     /**
      * Returns the error information for the last statement execution.
      *
@@ -92,11 +82,11 @@ interface DatabaseInterface  {
      * Returns the appropriate parameter type based on the value and type.
      *
      * @param mixed       $value The parameter value.
-     * @param null|int    $type  The parameter type.
+     * @param ?int    $type  The parameter type.
      *
      * @return int The parameter type.
      */
-    public function getType(mixed $value, mixed $type) : mixed;
+    public function getType(mixed $value, ?int $type = null) : mixed;
 
     /**
      * Binds a value to a parameter.

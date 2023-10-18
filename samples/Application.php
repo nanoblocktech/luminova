@@ -8,17 +8,24 @@
  * @license See LICENSE file
  */
 namespace App\Controllers;
-use \Luminova\BaseApplication;
+use Luminova\BaseApplication;
+use Luminova\Sessions\Session;
+use Luminova\Sessions\SessionManager;
+
 class Application extends BaseApplication  {
     public function __construct(string $dir = __DIR__){
         /**
          *  Initialize session manager if you want to make use of sessions
-         *  @example  Session::initializeSessionManager();
+         *  @example $session = new Session(new SessionManager());
+         *  @example $session->setStorage("my_storage");
+         *  @example $session->start();
         */
+       
 
         /**
         * Register global classes to use across your application life cycle
         * You must register classes before initializing parent __construct
+        * @example $this->registerClass($session); 
         * @example $this->registerClass(MyClass::class); 
         * @example $this->registerClass("MyClass", new MyClass(arguments));
         * @example this->registerClass(new MyClass(arguments));
@@ -26,6 +33,7 @@ class Application extends BaseApplication  {
 
 
         parent::__construct($dir);
+        //parent::__construct(parent::getRootDirectory($dir));
 
         /**
         * Set the template engine 

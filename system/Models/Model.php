@@ -1,4 +1,4 @@
-<?php 
+<?php
 /**
  * Luminova Framework
  *
@@ -8,49 +8,123 @@
  * @license See LICENSE file
  */
 namespace Luminova\Models;
+
 use Luminova\Database\Query;
 
 class Model extends Query
 {
-    protected $table = ''; // Table name should be specified in child models.
-    protected $primaryKey = 'uid'; // Default primary key column.
-    protected $allowedFields = []; // Fields that can be inserted or updated.
-    protected $validationRules = [];
-    protected $validationMessages = [];
+    /**
+     *  Table name should be specified in child models.
+     * @var string $table
+    */
+    protected string $table = ''; 
 
+    /**
+     *  Default primary key column.
+     * @var string $primaryKey
+    */
+    protected string $primaryKey = 'uid'; 
 
+    /**
+     * Fields that can be inserted or updated.
+     * @var array $allowedFields
+    */
+    protected array $allowedFields = []; 
+
+    /**
+     * Input validation rules for
+     * @var array $validationRules
+    */
+    protected array $validationRules = [];
+
+    /**
+     * Input validation message for rules
+     * @var array $validationMessages
+    */
+    protected array $validationMessages = [];
+
+    /**
+     * Constructor for the Model class.
+     */
     public function __construct()
     {
         parent::__construct();
     }
 
-    public function insertRecord(array $data)
+    /**
+     * Insert a new record into the database.
+     *
+     * @param array $data The data to be inserted.
+     * @return bool True if the insertion was successful, false otherwise.
+     */
+    public function insertRecord(array $data): bool
     {
         return $this->insert($this->table, $data);
     }
 
-    public function updateRecord(string $key, array $data){
+    /**
+     * Update a record in the database.
+     *
+     * @param string $key The primary key value for the record to be updated.
+     * @param array $data The data to be updated.
+     * @return bool True if the update was successful, false otherwise.
+     */
+    public function updateRecord(string $key, array $data): bool
+    {
         return $this->table($this->table)->where($this->primaryKey, $key)->update($data);
     }
 
-    public function getRecord(string $key, array $fields = ["*"]){
+    /**
+     * Get a record from the database.
+     *
+     * @param string $key The primary key value for the record to retrieve.
+     * @param array $fields The fields to retrieve (default is all).
+     * @return mixed An associative array representing the record, or null if not found.
+     */
+    public function getRecord(string $key, array $fields = ["*"]): mixed
+    {
         return $this->table($this->table)->where($this->primaryKey, $key)->find($fields);
     }
 
-    public function selectRecord(string $key, array $data){
+    /**
+     * Select records from the database.
+     *
+     * @param string $key The primary key value for the record to start the selection from.
+     * @param array $fields Additional selection criteria.
+     * @return mixed An array of records matching the criteria.
+     */
+    public function selectRecords(string $key, array $fields): mixed
+    {
         return $this->table($this->table)->where($this->primaryKey, $key)->select($fields);
     }
 
-    public function deleteRecord(string $key, array $data){
-        
+    /**
+     * Delete a record from the database.
+     *
+     * @param string $key The primary key value for the record to be deleted.
+     * @return bool True if the deletion was successful, false otherwise.
+     */
+    public function deleteRecord(string $key): bool
+    {
+        return $this->table($this->table)->where($this->primaryKey, $key)->delete();
     }
 
-    public function getTable()
+    /**
+     * Get the name of the database table associated with this model.
+     *
+     * @return string The name of the database table.
+     */
+    public function getTable(): string
     {
         return $this->table;
     }
 
-    public function getKey()
+    /**
+     * Get the primary key field name for this model.
+     *
+     * @return string The primary key field name.
+     */
+    public function getKey(): string
     {
         return $this->primaryKey;
     }

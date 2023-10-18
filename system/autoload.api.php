@@ -14,9 +14,9 @@ use \Luminova\Sessions\Session;
 use \Luminova\Sessions\SessionManager;
 // Get the Singleton instance with the desired type
 $session = Session::getInstance(new SessionManager());
+$session->setStorage("my_session_storage");
 // Initialize start session manager
 $session->start();
-
 /*
 Register dot environment variables
 */

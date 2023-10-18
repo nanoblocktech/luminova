@@ -9,7 +9,9 @@
  */
 namespace Luminova\Database;
 use Luminova\Exceptions\DatabaseException;
-use \Luminova\Cache\FileCache;
+use \Luminova\Cache\FileSystemCache;
+use \Luminova\Config\BaseConfig;
+use \Luminova\Exceptions\InvalidException; 
 
 class Query extends Conn {  
     /**
@@ -92,9 +94,9 @@ class Query extends Conn {
 
     /**
     *Cache class instance
-    *@var BaseCache $cacheInstance 
+    *@var FileSystemCache $cache 
     */
-    private $cacheInstance;
+    private $cache = null;
 
     /**
     *Cache key
@@ -113,9 +115,9 @@ class Query extends Conn {
         Class Constructor
     */
 	public function __construct(){
-        $this->cacheInstance = new FileCache();
-        $this->cacheInstance->setEnableCache(false);
 		parent::__construct();
+         $this->cache = FileSystemCache::getInstance();
+         $this->cache->setEnableCache(false);
 	}
 
      /*
@@ -211,8 +213,6 @@ class Query extends Conn {
      */
     public function limit(int $offset = 0, int $count = 50): Query
     {
-        //$limit = ($count - $offset + 1);
-        //$this->queryLimit = " LIMIT {$offset}, {$limit}";
         $this->queryLimit = " LIMIT {$offset},{$count}";
         return $this;
     }
@@ -308,6 +308,23 @@ class Query extends Conn {
         return $this;
     }
 
+    /**
+     * Convert an object to an array.
+     *
+     * @param mixed $object The object to convert to an array.
+     * @return mixed The resulting array representation of the object.
+     * @return array Finalized array representation of the object
+     */
+    public function toArray(mixed $input): mixed {
+        if (is_object($input) || is_array($input)) {
+            $array = [];
+            foreach ($input as $key => $value) {
+                $array[$key] = $this->toArray($value);
+            }
+            return $array;
+        }
+        return $input;
+    }
 
      /**
      * Set query where IN () expression
@@ -342,48 +359,46 @@ class Query extends Conn {
         return $this;
     }
 
+     /**
+     * Get the storage location and configuration.
+     * @return string path
+     */
+    private function getFilepath(): string {
+        return  BaseConfig::getRootDirectory(__DIR__) . DIRECTORY_SEPARATOR . "writeable" . DIRECTORY_SEPARATOR . "caches" . DIRECTORY_SEPARATOR . "database" . DIRECTORY_SEPARATOR;
+     }
+ 
+     
+
     /**
      * Cache the query result using a specified storage.
      *
      * @param string $storage The name of the cache storage.
      * @param string $key The cache key (optional).
-     * @param string $uid Private storage dir for user id (optional).
+     * @param string $filename Private storage filename hash name (optional).
      * @param int $expiry The cache expiry time in seconds (default: 7 days).
      * @return $this  Query class instance.
      */
-    public function cache(string $storage, ?string $key = '', ?string $uid = '', int $expiry = 7 * 24 * 60 * 60): Query
+    public function cache(string $key, string $filename = 'database', int $expiry = 7 * 24 * 60 * 60): Query
     {
-        // Set up the cache instance and configure caching parameters
-        if(!empty($uid)){
-            $storage  .= DIRECTORY_SEPARATOR . $uid;
-        }
-        $this->cacheInstance = $this->cacheInstance->storage("database", $storage);
-        $this->cacheInstance->setEnableCache(true);
-        $this->cacheInstance->setExpire($expiry);
+        $this->cache->setEnableCache(true);
+        $this->cache->setExpire($expiry);
+        $this->cache->setFilename($filename);
+        $this->cache->setCacheLocation(self::getFilepath());
+        $this->cache->create();
         $this->useCacheStorage = true;
+        $this->cacheKey = md5($key);
 
-        // Calculate the cache key based on input or query conditions
-        if (empty($key)) {
-            $hashKey = $this->queryWhere . $this->queryWhereValue;
-            $hashKey .= implode('', $this->queryWhereConditions);
-            $this->cacheKey = md5($hashKey);
-        } else {
-            $this->cacheKey = md5($key);
-        }
-
-        //03796292f86c7289481389e46195ca45
         // Check if the cache exists and handle expiration
-        if ($this->cacheInstance->hasCached($this->cacheKey)) {
+        if ($this->cache->hasCached($this->cacheKey)) {
             $this->hasCache = "HAS_CACHE";
-            if ($this->cacheInstance->hasExpired($this->cacheKey)) {
-                $this->cacheInstance->remove($this->cacheKey);
+            if ($this->cache->hasExpired($this->cacheKey)) {
+                $this->cache->remove($this->cacheKey);
                 $this->hasCache = "NO_CACHE";
             }
         }
 
         return $this;
     }
-
 
     /**
      * Insert into table
@@ -426,7 +441,7 @@ class Query extends Conn {
     {
         if($this->useCacheStorage && $this->hasCache == "HAS_CACHE"){
             $this->resetDefaults();
-            $response = $this->cacheInstance->retrieveCache($this->cacheKey);
+            $response = $this->cache->retrieveCache($this->cacheKey);
             $this->cacheKey = '';
             return $response;
         }else{
@@ -444,20 +459,19 @@ class Query extends Conn {
                 } 
             }
 
-            $isBided = false;
-            if (empty($this->queryWhere) || empty($this->queryWhereValue)) {
-                $this->buildSearchConditions($selectQuery);
-            }else{
-                $isBided = true;
-                $selectQuery .= $this->queryWhere;
-                $this->buildWhereConditions($selectQuery);
-            }
-
-            $selectQuery .= $this->queryGroup;
-            $selectQuery .= $this->queryOrder;
-            $selectQuery .= $this->queryLimit;
             try {
-                return $this->cacheInstance->onExpired($this->cacheKey, function() use($isBided, $selectQuery) {
+                return $this->cache->onExpired($this->cacheKey, function() use($selectQuery) {
+                    $isBided = false;
+                    if (empty($this->queryWhere) || empty($this->queryWhereValue)) {
+                        $this->buildSearchConditions($selectQuery);
+                    }else{
+                        $isBided = true;
+                        $selectQuery .= $this->queryWhere;
+                        $this->buildWhereConditions($selectQuery);
+                    }
+                    $selectQuery .= $this->queryGroup;
+                    $selectQuery .= $this->queryOrder;
+                    $selectQuery .= $this->queryLimit;
                     if($isBided){
                         $this->db->prepare($selectQuery);
                         $this->db->bind(":where_column", $this->queryWhereValue);
@@ -493,13 +507,12 @@ class Query extends Conn {
      */
     public function find(array $columns = ["*"]): mixed 
     {
-
         if (empty($this->queryWhere) || empty($this->queryWhereValue)) {
             throw new DatabaseException("Find operation without a WHERE condition is not allowed.");
         }else{
             if($this->useCacheStorage && $this->hasCache == "HAS_CACHE"){
                 $this->resetDefaults();
-                $response = $this->cacheInstance->retrieveCache($this->cacheKey);
+                $response = $this->cache->retrieveCache($this->cacheKey);
                 $this->cacheKey = '';
                 return $response;
             }else{
@@ -516,11 +529,12 @@ class Query extends Conn {
                         }
                     } 
                 }
-                $selectQuery .= $this->queryWhere;
-                $this->buildWhereConditions($selectQuery);
-                $selectQuery .= " LIMIT 1";
+               
                 try {
-                    return $this->cacheInstance->onExpired($this->cacheKey, function() use($selectQuery) {
+                    return $this->cache->onExpired($this->cacheKey, function() use($selectQuery) {
+                        $selectQuery .= $this->queryWhere;
+                        $this->buildWhereConditions($selectQuery);
+                        $selectQuery .= " LIMIT 1";
                         $this->db->prepare($selectQuery);
                         $this->db->bind(":where_column", $this->queryWhereValue);
                         if (!empty($this->queryWhereConditions)) {
@@ -546,24 +560,83 @@ class Query extends Conn {
         return null;
     }
 
+
+     /**
+     * Select on record from table,
+     * @param array $rows select columns
+     * @return int returns selected row.
+     */
+    public function total(string $column = "*"): int 
+    {
+        if($this->useCacheStorage && $this->hasCache == "HAS_CACHE"){
+            $this->resetDefaults();
+            $response = $this->cache->retrieveCache($this->cacheKey);
+            $this->cacheKey = '';
+            return $response;
+        }else{
+            $selectQuery = "SELECT COUNT({$column}) FROM {$this->databaseTable}";
+            if (!empty($this->databaseJoinTable)) {
+                $selectQuery .= " {$this->databaseJoinType} JOIN {$this->databaseJoinTable}";
+                if (!empty($this->databaseJoinSeed)) {
+                    $selectQuery .= " ON {$this->databaseJoinSeed[0]}";
+                    if(count($this->databaseJoinSeed) > 1){
+                        for ($i = 1; $i < count($this->databaseJoinSeed); $i++) {
+                            $selectQuery .= " AND {$this->databaseJoinSeed[$i]}";
+                        }
+                    }
+                } 
+            }
+        
+            try {
+                return $this->cache->onExpired($this->cacheKey, function() use($selectQuery) {
+                    if (empty($this->queryWhere) || empty($this->queryWhereValue)) {
+                        $this->db->query($selectQuery);
+                    }else{
+                        $selectQuery .= $this->queryWhere;
+                        $this->buildWhereConditions($selectQuery);
+                        $this->db->prepare($selectQuery);
+                        $this->db->bind(":where_column", $this->queryWhereValue);
+                        if (!empty($this->queryWhereConditions)) {
+                            foreach ($this->queryWhereConditions as $bindings) {
+                                if (in_array($bindings['type'], ["AND", "OR"])) {
+                                    $this->db->bind(":{$bindings['column']}", $bindings['key']);
+                                } elseif ($bindings['type'] === "AND_OR") {
+                                    $this->db->bind(":{$bindings['column']}", $bindings['key']);
+                                    $this->db->bind(":{$bindings['columnOr']}", $bindings['keyOr']);
+                                }
+                            }
+                        }
+                        $this->db->execute();
+                    }
+                    $total = $this->db->getInt();
+                    $this->resetDefaults();
+                    return $total;
+                });
+            } catch (DatabaseException $e) {
+                $e->handle(parent::isProduction());
+            }
+        }
+        return 0;
+    }
+
     public function default(array $columns): int {
 
     }
 
     /**
      * Update table with columns and values
-     * @param array $sets associative array of columns and values to update
+     * @param array $setValues associative array of columns and values to update
      * @return int returns affected row counts.
      */
-    public function update(?array $sets = null): int 
+    public function update(?array $setValues = null): int 
     {
-        if (empty($sets) && empty($this->querySetValues)) {
+        if (empty($setValues) && empty($this->querySetValues)) {
             self::error("Update operation without SET values is not allowed.");
         }
         if (empty($this->queryWhere) || empty($this->queryWhereValue)) {
             self::error("Update operation without a WHERE condition is not allowed.");
         }else{
-            $columns = !empty($sets) ? $sets : $this->querySetValues;
+            $columns = !empty($setValues) ? $setValues : $this->querySetValues;
             $updateColumns = array_map(function ($column) {
                 return "$column = :$column";
             }, array_keys($columns));

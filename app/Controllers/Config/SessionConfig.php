@@ -34,4 +34,17 @@ class SessionConfig {
      * @var string $sessionPath;
      */
     public string $sessionPath = "/"; 
+
+    /**
+     * The domain to use for the session cookie.
+     * @var string $sessionDomain;
+     */
+    public string $sessionDomain = ".localhost";
+
+     /**
+     * Set the session cookie security level.
+     * None, Lax, Strict
+     * @var string $sameSite;
+     */
+    public string $sameSite = "Lax";
 }

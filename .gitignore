@@ -1,5 +1,6 @@
 .DS_Store
 /test
+/tests
 /log
 /system/log
 /dump
@@ -9,6 +10,7 @@ composer.lock
 command.phar
 index.html
 git.ssh
+http.md
 .fleet
 .idea
 .vscode

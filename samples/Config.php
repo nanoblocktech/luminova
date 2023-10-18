@@ -7,10 +7,8 @@
  * @copyright (c) Nanoblock Technology Ltd
  * @license See LICENSE file
  */
-namespace App\Controllers;
+namespace App\Controllers\Config;
 use Luminova\Config\BaseConfig;
 class Config extends BaseConfig{
-    public function __construct(){
-        
-	}
+
 }

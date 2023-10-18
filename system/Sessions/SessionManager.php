@@ -32,9 +32,17 @@ class SessionManager implements SessionInterface {
      * @param string $storage The session storage key.
      * @return self
     */
-    public function setStorage($storage): self{
+    public function setStorage(string $storage): self {
         $this->storage = $storage;
         return $this;
+    }
+
+    /**
+     * Get storage key
+     * @return string
+    */
+    public function getStorage(): string {
+        return $this->storage;
     }
   
     /**
@@ -128,21 +136,6 @@ class SessionManager implements SessionInterface {
         return $this;
     }
 
-     /**
-     * Start an online session with an optional IP address.
-     *
-     * @param string $ip The IP address.
-     * @return self
-     */
-    public function goOnline(string $ip = ''): self
-    {
-        $_SESSION[$this->storage]["_online"] = "YES";
-        if($ip !== ''){
-            $_SESSION[$this->storage]["_online_session_id"] = $ip;
-        }
-        return $this;
-    }
-
     /** 
      * Get data as array from storage 
      * @param string $storage optional storage key 
@@ -162,7 +155,7 @@ class SessionManager implements SessionInterface {
      * @param string $index optional key to get
      * @return array
     */
-    public function __toArray(string $index = ''): array
+    public function toArray(string $index = ''): array
     {
         if( empty($index)){
             if(isset($_SESSION[$this->storage])){
@@ -185,7 +178,7 @@ class SessionManager implements SessionInterface {
      * @param string $index optional key to get
      * @return object
     */
-    public function __toObject(string $index = ''): object
+    public function toObject(string $index = ''): object
     {
         if( empty($index)){
             if(isset($_SESSION[$this->storage])){

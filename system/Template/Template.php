@@ -143,7 +143,6 @@ class Template extends Compress{
     * @param string $dir template base directory
     */
     public function __construct(string $dir =__DIR__){
-        //$this->baseTemplateDir = dirname($dir);
         $this->baseTemplateDir = parent::getRootDirectory($dir);
         parent::__construct();
     }
@@ -232,7 +231,7 @@ class Template extends Compress{
     * @throws InvalidException
     * @return Template $this
     */
-    public function addIgnoreOptimizer(mixed $viewName): Template{
+    public function addIgnoreOptimizer(array|string $viewName): Template{
         if(is_array($viewName)){
             $this->ignoreViewOptimizer = $viewName;
         }else if(is_string($viewName)){
@@ -288,7 +287,7 @@ class Template extends Compress{
      * @throws ClassException If the class does not exist.
      * @throws InvalidObjectException If an invalid object is provided.
      */
-    public function registerClass(mixed $classNameOrInstance, ?object $classInstance = null): Template {
+    public function registerClass(string|object $classNameOrInstance, ?object $classInstance = null): Template {
         if (empty($classNameOrInstance)) {
             throw new ErrorException("Error: Empty class name or invalid input.");
         }
@@ -361,12 +360,12 @@ class Template extends Compress{
      *
      * Accepts an instantiated object to use when handling requests.
      *
-     * @param mixed $param
+     * @param object $param
      * @return self
      * @throws InvalidObjectException|ErrorException
      */
-    public function setParam(mixed $param): Template{
-        if (empty($param) OR !is_object($param)) {
+    public function setParam(object $param): Template{
+        if (empty($param) || !is_object($param)) {
             throw new InvalidObjectException($param);
         }
 

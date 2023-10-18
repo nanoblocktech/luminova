@@ -16,7 +16,8 @@ class Application extends BaseApplication  {
     public function __construct(string $dir = __DIR__){
         /**
          *  Initialize session manager if you want to make use of sessions
-         *  @example  $session = new Session(new SessionManager());
+         *  @example $session = new Session(new SessionManager());
+         *  @example $session->setStorage("my_storage");
          *  @example $session->start();
         */
        
@@ -24,6 +25,7 @@ class Application extends BaseApplication  {
         /**
         * Register global classes to use across your application life cycle
         * You must register classes before initializing parent __construct
+        * @example $this->registerClass($session); 
         * @example $this->registerClass(MyClass::class); 
         * @example $this->registerClass("MyClass", new MyClass(arguments));
         * @example this->registerClass(new MyClass(arguments));

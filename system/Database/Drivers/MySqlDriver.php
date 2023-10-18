@@ -104,7 +104,7 @@ class MySqlDriver implements DatabaseInterface {
             );
 
             if ($this->connection->connect_error) {
-                $this->log($this->connection->connect_error);
+                DatabaseException::throwException($this->connection->connect_error, $this->config->production);
             } else {
                 $this->connection->set_charset($this->config->charset);
             }
@@ -121,27 +121,8 @@ class MySqlDriver implements DatabaseInterface {
      */
     public function error(): string 
     {
-        return $this->log($this->stmt->error);
+        return $this->stmt->error;
     }
-
-     /**
-     * Log a message to a file.
-     *
-     * @param string $message The log message.
-     * @param array $context Additional context data to log (optional).
-     * @throws DatabaseException 
-     * @return void
-     */
-    public function log(string $message, array $context = []): void 
-    {
-        // Append context data if provided
-        if (!empty($context)) {
-            $message .= "Context: " . json_encode($context, JSON_PRETTY_PRINT) . PHP_EOL;
-        }
-
-        DatabaseException::throwException($message, $this->config->production);
-    }
-
 
     /**
      * Dumps the debug information for the last statement execution.
@@ -232,7 +213,7 @@ class MySqlDriver implements DatabaseInterface {
      *
      * @return int The parameter type.
      */
-    public function getType(mixed $value, mixed $type) : mixed 
+    public function getType(mixed $value, ?int $type = null) : mixed 
     {
         return $type;
     }
@@ -290,7 +271,7 @@ class MySqlDriver implements DatabaseInterface {
     public function execute(): void 
     {
         if(!$this->stmt){
-            $this->log("Database operation error: Statement execution failed");
+            DatabaseException::throwException("Database operation error: Statement execution failed", $this->config->production);
             return;
         }
 
@@ -317,9 +298,9 @@ class MySqlDriver implements DatabaseInterface {
             }
             $this->stmt->execute();
         } catch (mysqli_sql_exception $e) {
-            $this->log($e->getMessage());
-        } catch (TypeError $e) {
-            $this->log($e->getMessage());
+            DatabaseException::throwException($e->getMessage(), $this->config->production);
+        } catch (TypeError $e) {;
+            DatabaseException::throwException($e->getMessage(), $this->config->production);
         }
     }
 
@@ -342,7 +323,7 @@ class MySqlDriver implements DatabaseInterface {
     public function getOne(): mixed 
     {
         if(!$this->stmt){
-            $this->log("Database operation error: Statement execution failed");
+            DatabaseException::throwException("Database operation error: Statement execution failed", $this->config->production);
             return null;
         }
         $result = $this->stmt->get_result();
@@ -387,7 +368,7 @@ class MySqlDriver implements DatabaseInterface {
 
         // Check if the query result is false, indicating an error
         if ($queryResult === false) {
-            $this->log("Database operation error: Statement execution failed. A boolean value was returned instead of a result object.");
+            DatabaseException::throwException("Database operation error: Statement execution failed. A boolean value was returned instead of a result object.", $this->config->production);
             return [];
         }
 

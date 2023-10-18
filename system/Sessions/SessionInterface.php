@@ -15,7 +15,13 @@ interface SessionInterface {
      * @param string $storage The session storage key.
      * @return self
     */
-    public function setStorage($storage): self;
+    public function setStorage(string $storage): self;
+
+     /**
+     * Get storage key
+     * @return string
+    */
+    public function getStorage(): string;
   
     /**
      * Add a key-value pair to the session data.
@@ -58,8 +64,9 @@ interface SessionInterface {
     */
     public function setTo(string $index, mixed $data, string $storage): self;
 
-    /** 
+   /** 
      * Check if session user is online from any storage instance
+     * @param string $online optional storage instance key
      * @return bool
     */
     public function online($storage = ''): bool;
@@ -78,14 +85,6 @@ interface SessionInterface {
     */
     public function remove(string $index): self;
 
-     /**
-     * Start an online session with an optional IP address.
-     *
-     * @param string $ip optional IP address.
-     * @return self
-     */
-    public function goOnline(string $ip = ''): self;
-
     /** 
      * Get data as array from storage 
      * @param string $storage optional storage key 
@@ -98,13 +97,13 @@ interface SessionInterface {
      * @param string $index optional key to get
      * @return array
     */
-    public function __toArray(string $index = ''): array;
+    public function toArray(string $index = ''): array;
 
     /** 
      * Get data as object from current session storage
      * @param string $index optional key to get
      * @return object
     */
-    public function __toObject(string $index = ''): object;
+    public function toObject(string $index = ''): object;
 
 }

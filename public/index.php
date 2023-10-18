@@ -7,38 +7,41 @@
  * @copyright (c) Nanoblock Technology Ltd
  * @license See LICENSE file
  */
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
+
+/**
+ * Import autoload
+*/
 require_once(__DIR__ . '/../system/plugins/autoload.php');
 use \App\Controllers\Application;
+
+/**
+ * Initializes your application instance
+*/
+
 $app = new Application(__DIR__);
 
+/**
+ * Grab router instance
+*/
 $router = $app->getRouterInstance();
 
+/**
+ * Register router global middleware security check
+*/
 $router->before('GET|POST', '/.*', function () use($app, $router) {
-    // Middleware security check
+
 });
 
+/**
+ * Register router main page view
+*/
 $router->get('/', function() use ($app) {
-    return $app->render("index")->view(["title" => "Your optional website title"]);
+    return $app->render("index")->view();
 });
 
-$router->get('/hello', 'HelloWorld::show');
-$router->get('/profile/(.*)', 'UserController::profile');
-$router->post('/profile', 'UserController::update');
+// Register more routes here
 
-
-$router->bind('/user', function() use ($router, $app) {
-
-    $router->get('/', function() use ($router, $app) {
-        return $app->render("user")->view();
-    });
-
-    $router->get('/([a-zA-Z0-9]+)', function($id) use ($app) {
-        return $app->render("user")->view([
-            "name" => $id
-        ]);
-    });
-});
-
+/**
+ * Run your application
+*/
 $router->run();

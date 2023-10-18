@@ -1015,12 +1015,16 @@ class Functions{
 		if (!file_exists($dir)) {
 			return false;
 		}
+		
+		if(is_dir($dir)){
+			if (substr($dir, -1) !== DIRECTORY_SEPARATOR) {
+				$dir .= DIRECTORY_SEPARATOR;
+			}
 
-		if (substr($dir, -1) !== DIRECTORY_SEPARATOR) {
-			$dir .= DIRECTORY_SEPARATOR;
+			$files = glob($dir . '*', GLOB_MARK);
+		}else{
+			$files = glob($dir . '*');
 		}
-
-		$files = glob($dir . '*', GLOB_MARK);
 
 		foreach ($files as $file) {
 			if (is_dir($file)) {
@@ -1034,119 +1038,5 @@ class Functions{
 			@rmdir($dir);
 		}
 		return true;
-	}
-
-	/**
-	 * Write a new log line.
-	 *
-	 * @param string $filepath   Log file path.
-	 * @param string $filename   Log file name.
-	 * @param string $data       Log content.
-	 * @param bool   $secure     Secure log content if the file type is .php (default is true).
-	 * @param bool   $serialize  Serialize log content (default is false).
-	 * @param bool   $replace    Replace the existing log file if it exists (default is false).
-	 */
-	public static function writeLog(
-		string $filepath,
-		string $filename,
-		string $data,
-		bool $secure = true,
-		bool $serialize = false,
-		bool $replace = false
-	): void {
-		if ($serialize) {
-			$data = serialize($data);
-		}
-
-		if ($replace && file_exists($filepath . $filename)) {
-			unlink($filepath . $filename);
-		}
-
-		if (!$replace && file_exists($filepath . $filename)) {
-			$file_handle = fopen($filepath . $filename, "a+");
-			fwrite($file_handle, PHP_EOL . $data);
-			fclose($file_handle);
-		} else {
-			if (!is_dir($filepath)) {
-				mkdir($filepath, 0777, true);
-				chmod($filepath, 0755);
-			}
-
-			if ($secure && pathinfo($filename, PATHINFO_EXTENSION) === "php") {
-				$data = '<?php header("Content-type: text/plain"); die("Access denied"); ?>' . PHP_EOL . $data;
-			}
-
-			$fp = fopen($filepath . $filename, 'w');
-			fwrite($fp, $data);
-			fclose($fp);
-		}
-	}
-
-	/**
-	 * Save a log and replace old content.
-	 *
-	 * @param string $filepath   Log file path.
-	 * @param string $filename   Log file name.
-	 * @param string $data       Log content.
-	 * @param bool   $secure     Secure log content if the file type is .php (default is true).
-	 * @param bool   $serialize  Serialize log content (default is false).
-	 */
-	public static function saveLog(
-		string $filepath,
-		string $filename,
-		string $data,
-		bool $secure = true,
-		bool $serialize = false
-	): void {
-		self::writeLog($filepath, $filename, $data, $secure, $serialize, false);
-	}
-
-
-	/**
-	 * Find a log file.
-	 *
-	 * @param string $filepath    Log file path.
-	 * @param bool   $unserialize Unserialize the log content if it was serialized (default is false).
-	 * @return mixed|null Log content or null if the file doesn't exist or couldn't be read.
-	 */
-	public static function findLog(string $filepath, bool $unserialize = false): mixed {
-		$data = null;
-
-		if (file_exists($filepath)) {
-			$file = @file_get_contents($filepath);
-
-			if ($file !== false && !empty($file)) {
-				$data = self::unlockLog($file);
-
-				if ($unserialize) {
-					$unsterilizedData = unserialize($data);
-
-					if ($unsterilizedData !== false) {
-						$data = $unsterilizedData;
-					} else {
-						unlink($filepath);
-						$data = null;
-					}
-				}
-			}
-		}
-
-		return $data;
-	}
-
-	/**
-	 * Remove security from a PHP log file content.
-	 *
-	 * @param string $str Log content.
-	 * @return string Unsecured log content.
-	 */
-	private static function unlockLog(string $str): string {
-		$position = strpos($str, "\n");
-
-		if ($position === false) {
-			return $str;
-		}
-
-		return substr($str, $position + 1);
 	}
 }

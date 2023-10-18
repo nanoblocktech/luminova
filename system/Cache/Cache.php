@@ -68,7 +68,7 @@ class Cache
      *
      * @param string $engine The cache engine to create (e.g., self::FILE or self::MEM).
      *
-     * @return FileCache|MemoryCache|object The cache engine instance.
+     * @return FileSystemCache|MemoryCache|object The cache engine instance.
      *
      * @throws ClassException When the Memcached class is not available for the MemoryCache.
      */
@@ -76,7 +76,7 @@ class Cache
     {
         switch ($engine) {
             case self::FILE:
-                return new FileCache();
+                return new FileSystemCache();
             case self::MEM:
                 if (class_exists('Memcached')) {
                     return new MemoryCache();

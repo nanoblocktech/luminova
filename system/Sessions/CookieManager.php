@@ -36,6 +36,15 @@ class CookieManager implements SessionInterface
     */
     public function setStorage($storage){
         $this->storage = $storage;
+        return $this;
+    }
+
+    /**
+     * Get storage key
+     * @return string
+    */
+    public function getStorage(){
+        return $this->storage;
     }
 
     /**
@@ -134,23 +143,6 @@ class CookieManager implements SessionInterface
         return $this;
     }
 
-    /**
-     * Start an online session with an optional IP address.
-     *
-     * @param string $ip optional IP address.
-     * @return self
-     */
-    public function goOnline(string $ip = ''): self
-    {
-        $storage = $this->getStorageData();
-        $storage["_online"] = "YES";
-        if ($ip !== '') {
-            $storage["_online_session_id"] = $ip;
-        }
-        $this->saveData($storage);
-        return $this;
-    }
-
     /** 
      * Get data as array from storage 
      * @param string $storage optional storage key 
@@ -170,7 +162,7 @@ class CookieManager implements SessionInterface
      * @param string $index optional key to get
      * @return array
     */
-    public function __toArray(string $index = ''): object
+    public function toArray(string $index = ''): object
     {
         $data = $this->getStorageData();
         if(empty($index)){
@@ -192,7 +184,7 @@ class CookieManager implements SessionInterface
      * @param string $index optional key to get
      * @return object
     */
-    public function __toObject(string $index = ''): object
+    public function toObject(string $index = ''): object
     {
         $data = $this->getStorageData();
         if(empty($index)){

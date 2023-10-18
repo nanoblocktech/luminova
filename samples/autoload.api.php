@@ -8,18 +8,15 @@
  * @license See LICENSE file
  */
 require_once(__DIR__ . '/plugins/autoload.php');
-use \Luminova\DatabaseManager\Query;
+use \Luminova\Database\Query;
 use \Luminova\Config\DotEnv;
-use \Luminova\SessionManager\Session;
-// Initialize the session manager
-Session::initializeSessionManager();
-
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
-
+use \Luminova\Sessions\Session;
+use \Luminova\Sessions\SessionManager;
 // Get the Singleton instance with the desired type
-$session = Session::getInstance(Session::LIVE);
-
+$session = Session::getInstance(new SessionManager());
+$session->setStorage("my_session_storage");
+// Initialize start session manager
+$session->start();
 /*
 Register dot environment variables
 */

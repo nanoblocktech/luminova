@@ -26,7 +26,16 @@ class BaseController extends Application {
     public $validate;
     
     public function __construct() {
+        /**
+         * Register request
+         * @var Request $this->request request object
+        */
         $this->request = new Request();
+
+        /**
+         * Register input validation
+         * @var InputValidator $this->validate validation object
+        */
         $this->validate = new InputValidator();
     }
 }
