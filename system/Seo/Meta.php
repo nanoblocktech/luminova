@@ -10,19 +10,63 @@
 namespace Luminova\Seo;  
 use \DateTime;
 class Meta{
-    private $link;
-    private $manifest;
-    private $defaultConfig = [];
-    private $extendedConfig = [];
+    /**
+     * @var string $link application view link.
+    */
+    private string $link = '';
+
+    /**
+     * @var object $manifest meta object json.
+    */
+    private object $manifest;
+
+    /**
+     * @var array $defaultConfig default configuration
+    */
+    private array $defaultConfig = [];
+
+    /**
+     * @var array $extendedConfig user passed configurations
+    */
+    private array $extendedConfig = [];
+
+    /**
+     * @var string $appName application name
+    */
     private $appName = '';
-   /**
+
+     /**
+     * @var static $instance class static singleton instance
+    */
+    protected static $instance = null;
+
+    /**
      * Meta constructor.
+    */
+    public function __construct()
+    {
+    }
+
+    /**
+     * Singleton class
+     * @return static $instance 
+     */
+    public static function getInstance(): static
+    {
+        if (static::$instance === null) {
+            static::$instance = new static();
+        }
+        return static::$instance;
+    }
+
+    /**
+     * Create object
      *
      * @param string $appName The name of the application.
      * @param string $rootDir The root directory of the application.
      * @param string $baseUrl The base URL of the application.
      */
-    public function __construct(string $appName, string $rootDir, string $baseUrl)
+    public function create(string $appName, string $rootDir, string $baseUrl): void
     {
         $this->manifest = $this->readManifest($rootDir);
         $this->appName = $appName;
@@ -40,7 +84,6 @@ class Meta{
         $this->defaultConfig["link"] = $link;
         return $this;
     }
-
 
      /**
      * Sets the configuration for the Meta instance.
@@ -88,7 +131,6 @@ class Meta{
         $this->defaultConfig["canonical"] = $link . $view;
         $this->defaultConfig["link"] = $link . $view;
     }
-
 
      /**
      * Sets the page title for SEO purposes.
@@ -529,5 +571,6 @@ class Meta{
         if ($config === null) {
             return (object)[];
         }
+        return $config;
     }
 }
