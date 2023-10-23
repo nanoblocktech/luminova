@@ -15,7 +15,7 @@ return array(
     'Luminova\\Seo\\' => array($baseDir . '/system/Seo'),
     'Luminova\\Security\\Encryption\\' => array($baseDir . '/system/Security/Encryption'),
     'Luminova\\Security\\' => array($baseDir . '/system/Security'),
-    'Luminova\\Router\\' => array($baseDir . '/system/Router'),
+    'Luminova\\Routing\\' => array($baseDir . '/system/Routing'),
     'Luminova\\Notifications\\' => array($baseDir . '/system/Notifications'),
     'Luminova\\Models\\' => array($baseDir . '/system/Models'),
     'Luminova\\Logger\\' => array($baseDir . '/system/Logger'),

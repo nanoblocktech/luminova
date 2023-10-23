@@ -21,7 +21,7 @@ class ComposerStaticInit9c155849e043191fc1df7e0b46712cd7
             'Luminova\\Seo\\' => 13,
             'Luminova\\Security\\Encryption\\' => 29,
             'Luminova\\Security\\' => 18,
-            'Luminova\\Router\\' => 16,
+            'Luminova\\Routing\\' => 16,
             'Luminova\\Notifications\\' => 23,
             'Luminova\\Models\\' => 16,
             'Luminova\\Logger\\' => 16,
@@ -84,9 +84,9 @@ class ComposerStaticInit9c155849e043191fc1df7e0b46712cd7
         array (
             0 => __DIR__ . '/../../..' . '/system/Security',
         ),
-        'Luminova\\Router\\' => 
+        'Luminova\\Routing\\' => 
         array (
-            0 => __DIR__ . '/../../..' . '/system/Router',
+            0 => __DIR__ . '/../../..' . '/system/Routing',
         ),
         'Luminova\\Notifications\\' => 
         array (
@@ -239,7 +239,7 @@ class ComposerStaticInit9c155849e043191fc1df7e0b46712cd7
         'Luminova\\Models\\PushMessage' => __DIR__ . '/../../..' . '/system/Models/PushMessage.php',
         'Luminova\\Notifications\\FirebasePusher' => __DIR__ . '/../../..' . '/system/Notifications/FirebasePusher.php',
         'Luminova\\Notifications\\FirebaseRealtime' => __DIR__ . '/../../..' . '/system/Notifications/FirebaseRealtime.php',
-        'Luminova\\Router\\Router' => __DIR__ . '/../../..' . '/system/Router/Router.php',
+        'Luminova\\Routing\\Router' => __DIR__ . '/../../..' . '/system/Routing/Router.php',
         'Luminova\\Security\\Csrf' => __DIR__ . '/../../..' . '/system/Security/Csrf.php',
         'Luminova\\Security\\Encryption\\AES' => __DIR__ . '/../../..' . '/system/Security/Encryption/AES.php',
         'Luminova\\Security\\Encryption\\EncryptionInterface' => __DIR__ . '/../../..' . '/system/Security/Encryption/EncryptionInterface.php',

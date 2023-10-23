@@ -51,7 +51,7 @@
             "Luminova\\Command\\": "system/Command/",
             "Luminova\\Arrays\\": "system/Arrays/",
             "Luminova\\Composer\\": "system/Composer/",
-            "Luminova\\Router\\": "system/Router/",
+            "Luminova\\Routing\\": "system/Routing/",
             "Luminova\\Template\\": "system/Template/",
             "Luminova\\Time\\": "system/Time/",
             "Luminova\\Models\\": "system/Models/",

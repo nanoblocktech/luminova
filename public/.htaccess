@@ -4,16 +4,8 @@
         Options -MultiViews -Indexes
     </IfModule>
 
-    <IfModule mod_autoindex.c>
-      Options -Indexes
-    </IfModule>
-
     RewriteEngine On
     DirectoryIndex index.php
-
-    # Handle SSL Redirection
-    RewriteCond %{SERVER_PORT} !^443$
-    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
@@ -25,7 +17,7 @@
     RewriteRule ^ %1 [L,R=301]
 
     # Don't Redirect Api, Assets to Fron Controller
-    RewriteCond %{REQUEST_URI} !^/api/
+    #RewriteCond %{REQUEST_URI} !^/api/
     RewriteCond %{REQUEST_URI} !^/assets/
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^(.*)/$ /$1 [L,R=301]

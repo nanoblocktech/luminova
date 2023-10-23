@@ -11,6 +11,8 @@ command.phar
 index.html
 git.ssh
 http.md
+/git.ssh
+/http.md
 .fleet
 .idea
 .vscode

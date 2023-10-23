@@ -8,11 +8,8 @@
  * @license See LICENSE file
  */
 namespace App\Controllers;
-use App\Controllers\Application;
-class HelloWorld extends Application {
-    public function show(): void {
-        $this->render("hello")->view([
-            "subtitle" => "Hello World"
-        ]);
-    }
+use Luminova\BaseController;
+class HelloWorld extends BaseController {
+
+
 }

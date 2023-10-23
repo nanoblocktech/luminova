@@ -78,7 +78,7 @@ return array(
     'Luminova\\Models\\PushMessage' => $baseDir . '/system/Models/PushMessage.php',
     'Luminova\\Notifications\\FirebasePusher' => $baseDir . '/system/Notifications/FirebasePusher.php',
     'Luminova\\Notifications\\FirebaseRealtime' => $baseDir . '/system/Notifications/FirebaseRealtime.php',
-    'Luminova\\Router\\Router' => $baseDir . '/system/Router/Router.php',
+    'Luminova\\Routing\\Router' => $baseDir . '/system/Routing/Router.php',
     'Luminova\\Security\\Csrf' => $baseDir . '/system/Security/Csrf.php',
     'Luminova\\Security\\Encryption\\AES' => $baseDir . '/system/Security/Encryption/AES.php',
     'Luminova\\Security\\Encryption\\EncryptionInterface' => $baseDir . '/system/Security/Encryption/EncryptionInterface.php',

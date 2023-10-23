@@ -10,7 +10,7 @@
 
 namespace Luminova;
 
-use Luminova\Router\Router;
+use Luminova\Routing\Router;
 use Luminova\Config\DotEnv;
 use Luminova\Template\Template;
 
@@ -28,7 +28,7 @@ class BaseApplication extends Template {
      *
      * @var Router
      */
-    private $router;
+    public $router;
 
     /**
      * Initialize the base application constructor
@@ -65,9 +65,19 @@ class BaseApplication extends Template {
         $this->setBasePath($this->getBasePath());
 
         // Initialize the global error handler
-        $this->router->setErrorHandler(function() {
+        /*$this->router->setErrorHandler(function() {
             exit($this->render("404")->view(["error_url" => parent::baseUrl() . $this->getView()]));
-        });
+        });*/
+    }
+
+   /**
+     * Get the version number of the application.
+     *
+     * @return string
+     */
+    public function version()
+    {
+        return 'Luminova (1.5.4)';
     }
 
     /**

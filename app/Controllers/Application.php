@@ -9,8 +9,6 @@
  */
 namespace App\Controllers;
 use \Luminova\BaseApplication;
-use Luminova\Sessions\Session;
-use Luminova\Sessions\SessionManager;
 
 class Application extends BaseApplication  {
     public function __construct(string $dir = __DIR__){

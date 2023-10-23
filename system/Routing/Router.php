@@ -7,10 +7,8 @@
  * @copyright (c) Nanoblock Technology Ltd
  * @license See LICENSE file
  */
-namespace Luminova\Router;
+namespace Luminova\Routing;
 use Luminova\Http\Header;
-use Luminova\Router\BaseRouter;
-use Luminova\Exceptions\ClassException;
 use Luminova\Exceptions\ErrorException;
 use Luminova\Errors\Codes;
 use Luminova\Languages\Translator;
@@ -53,6 +51,8 @@ class Router extends Header {
      */
     private array $namespace = [];
 
+    private const METHOD_ALL = 'GET|POST|PUT|DELETE|OPTIONS|PATCH|HEAD';
+
     /**
      * Before middleware route, executes the callback function before other routing will be executed
      *
@@ -66,10 +66,10 @@ class Router extends Header {
         $pattern = $this->baseRoute ? rtrim($pattern, '/') : $pattern;
 
         foreach (explode('|', $methods) as $method) {
-            $this->beforeRoutes[$method][] = array(
+            $this->beforeRoutes[$method][] = [
                 'pattern' => $pattern,
                 'callback' => $callback,
-            );
+            ];
         }
     }
 
@@ -86,10 +86,10 @@ class Router extends Header {
         $pattern = $this->baseRoute ? rtrim($pattern, '/') : $pattern;
 
         foreach (explode('|', $methods) as $method) {
-            $this->afterRoutes[$method][] = array(
+            $this->afterRoutes[$method][] = [
                 'pattern' => $pattern,
                 'callback' => $callback,
-            );
+            ];
         }
     }
 
@@ -101,7 +101,7 @@ class Router extends Header {
      */
     public function any(string $pattern, mixed $callback): void
     {
-        $this->capture('GET|POST|PUT|DELETE|OPTIONS|PATCH|HEAD', $pattern, $callback);
+        $this->capture(self::METHOD_ALL, $pattern, $callback);
     }
 
     /**
@@ -176,14 +176,40 @@ class Router extends Header {
      * @param string   $baseRoute The route sub pattern to bind the callbacks on
      * @param callable $callback Callback function to execute
      */
-    public function bind(string $baseRoute, mixed $callback): void
+    public function bind(string $baseRoute, callable $callback): void
     {
         $curBaseRoute = $this->baseRoute;
         $this->baseRoute .= $baseRoute;
-        call_user_func($callback);
+        //call_user_func($callback);
+        $callback();
         $this->baseRoute = $curBaseRoute;
     }
 
+      /**
+     * Bootstrap a group 
+     *
+     * @param callable $webCallback Callback function to autoload web routes
+     * @param callable $apiCallback Callback function to autoload api routes
+     * @param callable $cliCallback Callback function to autoload cli routes
+     */
+    public function bootstrap(callable $webCallback, callable $apiCallback = null, callable $cliCallback = null): void
+    {
+        $methods = explode('|', self::METHOD_ALL);
+        if (in_array(parent::getRoutingMethod(), $methods)) {
+            $curBaseRoute = $this->baseRoute;
+            $uri = $this->getViewUri();
+            if (preg_match('#^/api#', $uri) && is_callable($apiCallback)) {
+                $this->baseRoute .= '/api';
+                $apiCallback($this);
+            } elseif (preg_match('#^/cli#', $uri) && is_callable($cliCallback) && php_sapi_name() === 'cli') {
+                $this->baseRoute .= '/cli';
+                $cliCallback($this);
+            } else {
+                $webCallback($this);
+            }
+            $this->baseRoute = $curBaseRoute;
+        }
+    }
 
     /**
      * Register a class namespace to use across the application
@@ -196,7 +222,7 @@ class Router extends Header {
         if (is_string($namespace)) {
             $this->namespace[] = $namespace;
         }else{
-            throw new ErrorException('Invalid argument $namespace: requires string, ' . typeof($namespace) . ', is given instead.');
+            throw new ErrorException('Invalid argument $namespace: requires string, ' . gettype($namespace) . ', is given instead.');
         }
     }
 
@@ -427,8 +453,9 @@ class Router extends Header {
      * Set application router base path
      * @param string
      */
-    public function setBasePath($serverBasePath): string
+    public function setBasePath(string $serverBasePath): void
     {
         $this->serverBasePath = $serverBasePath;
     }
+  
 }
