@@ -7,8 +7,6 @@
  * @copyright (c) Nanoblock Technology Ltd
  * @license See LICENSE file
  */
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
 
 /*
 | Get The Application Instance
