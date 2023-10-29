@@ -13,11 +13,6 @@
 | Get The Application Instance
 */
 
-=======
-*/
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
->>>>>>> 0ca3789 (New update and changes)
 $app = require_once __DIR__ . '/../bootstrap/load.php';
 use Luminova\Routing\Bootstrap;
 
