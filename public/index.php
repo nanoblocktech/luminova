@@ -50,7 +50,7 @@ $cliErrorHandler = function () {
 
 /**
 * bootstraps Load The Application Context
-* We register all our application context `WEB, API, and CLI` 
+* We register all our application contexts `WEB, API, and CLI` 
 * bootstraps the router and set the error handler based on context
 */
 $app->router->bootstraps(
@@ -70,9 +70,5 @@ $app->router->bootstraps(
 /*
 * Run Application Instance
 */
-<<<<<<< HEAD
 
 $app->router->run();
-=======
-$app->router->run();
->>>>>>> 0ca3789 (New update and changes)
