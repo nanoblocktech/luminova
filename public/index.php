@@ -7,11 +7,6 @@
  * @copyright (c) Nanoblock Technology Ltd
  * @license See LICENSE file
  */
-
-/*
-| Get The Application Instance
-*/
-
 $app = require_once __DIR__ . '/../bootstrap/load.php';
 use Luminova\Routing\Bootstrap;
 
@@ -70,5 +65,4 @@ $app->router->bootstraps(
 /*
 * Run Application Instance
 */
-
 $app->router->run();
