@@ -34,7 +34,7 @@ class CookieManager implements SessionInterface
      * @param string $storage The session storage key.
      * @return self
     */
-    public function setStorage($storage){
+    public function setStorage(string $storage): self{
         $this->storage = $storage;
         return $this;
     }
@@ -43,7 +43,7 @@ class CookieManager implements SessionInterface
      * Get storage key
      * @return string
     */
-    public function getStorage(){
+    public function getStorage(): string{
         return $this->storage;
     }
 
@@ -162,7 +162,7 @@ class CookieManager implements SessionInterface
      * @param string $index optional key to get
      * @return array
     */
-    public function toArray(string $index = ''): object
+    public function toArray(string $index = ''): array
     {
         $data = $this->getStorageData();
         if(empty($index)){
@@ -192,7 +192,8 @@ class CookieManager implements SessionInterface
                 return (object)$data;
             }
             if(isset($_COOKIE)){
-                return json_decode($_COOKIE, true);
+                //return json_decode(json_encode($_COOKIE));
+                return (object) $_COOKIE;
             }
         }
         if (isset($data[$index])) {

@@ -137,13 +137,14 @@ class FileSystemCache {
      * Get static Singleton Class.
      * @param string $filename cache filename to hash
      * @param string $filepath cache directory.
+     * @param self $instance Instance
      */
-    public static function getInstance(string $filename = '', string $filepath = ''): static 
+    public static function getInstance(string $filename = '', string $filepath = ''): self 
     {
-        if (static::$instance === null) {
-            static::$instance = new static($filename, $filepath);
+        if (self::$instance === null) {
+            self::$instance = new self($filename, $filepath);
         }
-        return static::$instance;
+        return self::$instance;
     }
 
     /**

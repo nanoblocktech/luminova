@@ -18,12 +18,12 @@ use Luminova\Cache\Compress;
 use Luminova\Cache\Optimizer;
 class Template extends Compress{ 
     /** Holds the default project template engine
-     * @var static|string DEFAULT_TEMPLATE 
+     * @var string DEFAULT_TEMPLATE 
     */
     public const DEFAULT_TEMPLATE = ".php";
 
     /** Holds the project template engine for smarty
-    * @var static|string SMARTY_TEMPLATE 
+    * @var string SMARTY_TEMPLATE 
     */
     public const SMARTY_TEMPLATE = ".tpl";
 
@@ -60,22 +60,22 @@ class Template extends Compress{
     /** Holds the view template optimize full file directory path
      * @var string $optimizerFile 
     */
-    private string $optimizerFile = "";
+    private string $optimizerFile = '';
 
     /** Holds the sub view template directory path
      * @var string $optimizerFile 
     */
-    private string $subViewFolder = "";
+    private string $subViewFolder = '';
 
     /** Holds template assets folder
-     * @var object $assetsFolder 
+     * @var string $assetsFolder 
     */
     public string $assetsFolder = "assets";
 
     /** Holds the router active page name
      * @var string $activeView 
     */
-    private string $activeView = "";
+    private string $activeView = '';
 
     /** Holds the array attributes
      * @var array $attributesMapper 
@@ -95,47 +95,56 @@ class Template extends Compress{
     /** Holds template project root
      * @var string $appPublicFolder 
     */
-    private string $appPublicFolder = "";
+    private string $appPublicFolder = '';
 
     /**
      * Holds router param value to share across
-     */
+     * @var mixed $paramAttributes 
+    */
     protected mixed $paramAttributes = null;
 
     /**
      * Holds template html content
+     * @var string $contents 
     */
-    protected string $contents = "";
+    protected string $contents = '';
+
     /**
      * Holds relative file position depth 
+     * @var int $calculateLevel 
     */
-    private int $calculateDepth = 0;
+    private int $calculateLevel = 0;
 
     /**
      * Holds current router request base
+     *  @var string $currentRequestBase 
     */
-    private string $currentRequestBase = "/";
+    private string $currentRequestBase = '/';
 
     /**
      * Holds directory separator
+     *  @var string $ds 
     */
-    private string $ds = DIRECTORY_SEPARATOR;
+    private static $ds = DIRECTORY_SEPARATOR;
 
 
     /**
      * Holds system keywords
+     * @var array SYSTEM_VARIABLES
     */
     private const SYSTEM_VARIABLES = [
-        "user",
-        "func",
-        "config",
+        "Template",
+        "Application",
+        "BaseApplication",
         "instance",
         "class",
         "function",
         "static",
         "object",
         "this",
-        "self"
+        "self",
+        "Compress",
+        "Optimizer"
     ];
 
     /** 
@@ -145,6 +154,7 @@ class Template extends Compress{
     public function __construct(string $dir =__DIR__){
         $this->baseTemplateDir = parent::getRootDirectory($dir);
         parent::__construct();
+        
     }
 
     /** 
@@ -154,7 +164,7 @@ class Template extends Compress{
     */
     public function __get(string $propertyName): mixed {
         $property = $this->getSafeProperties($propertyName);
-        if($property == null || empty($property)) {
+        if($property == null) {
             throw new NotFoundException("Property name: $propertyName is not found.");
         }
         return $property;
@@ -177,19 +187,19 @@ class Template extends Compress{
     /** 
     * Set view level 
     * @param int $level level
-    * @return Template $this
+    * @return self $this
     */
-    public function setDept(int $level): Template{
-        $this->calculateDepth = $level;
+    public function setLevel(int $level): self{
+        $this->calculateLevel = $level;
         return $this;
     }
 
     /** 
     * Set current view base folder
     * @param string $base the base directory
-    * @return Template $this
+    * @return self $this
     */
-    public function setBasePath(string $base): Template{
+    public function setBasePath(string $base): self{
         $this->currentRequestBase = $base;
         return $this;
     }
@@ -208,19 +218,29 @@ class Template extends Compress{
     /** 
     * Set the template directory path
     * @param string $path the file path directory
-    * @return Template $this
+    * @return self $this
     */
-    public function setTemplatePath(string $path): Template{
+    public function setTemplatePath(string $path): self{
         $this->templateFolder = trim( $path, "/" );
+        return $this;
+    }
+
+    /** 
+    * Set template engine 
+    * @param string $engin template engine name
+    * @return self $this
+    */
+    public function setTemplateEngin(string $engin): self{
+        $this->templateEngin = $engin;
         return $this;
     }
 
     /** 
     * Set sub view folder
     * @param string $path folder name
-    * @return Template $this
+    * @return self $this
     */
-    public function setFolder(string $path): Template{
+    public function setFolder(string $path): self{
         $this->subViewFolder =  trim( $path, "/" );
         return $this;
     }
@@ -229,9 +249,9 @@ class Template extends Compress{
     * Set optimizer ignore view
     * @param array|string $path folder name
     * @throws InvalidException
-    * @return Template $this
+    * @return self $this
     */
-    public function addIgnoreOptimizer(array|string $viewName): Template{
+    public function addIgnoreOptimizer(array|string $viewName): self{
         if(is_array($viewName)){
             $this->ignoreViewOptimizer = $viewName;
         }else if(is_string($viewName)){
@@ -242,31 +262,28 @@ class Template extends Compress{
         return $this;
     }
 
-    public function setTemplateEngin(string $engin){
-        $this->templateEngin = $engin;
-    }
 
     /** 
     * render render template view
     * @param string $viewName view name
-    * @return Template $this
+    * @return self $this
     */
-    public function render(string $viewName): Template {
-        $this->templateDir = "{$this->getRootDir()}{$this->ds}{$this->templateFolder}{$this->ds}";
-        //$this->templateFile = "{$this->getRootDir()}{$this->ds}{$this->templateFolder}{$this->ds}";
-        $this->optimizerFile = "{$this->getRootDir()}{$this->ds}{$this->optimizerFolder}{$this->ds}";
+    public function render(string $viewName): self {
+        $this->templateDir = "{$this->getRootDir()}" . self::$ds . "{$this->templateFolder}" . self::$ds;
+        $this->optimizerFile = "{$this->getRootDir()}" . self::$ds . "{$this->optimizerFolder}" . self::$ds;
         if($this->subViewFolder !== ''){
-            $this->templateDir .= $this->subViewFolder . $this->ds;
+            $this->templateDir .= $this->subViewFolder . self::$ds;
         }
         $this->templateFile = "{$this->templateDir}{$viewName}{$this->templateEngin}";
         $this->activeView = $viewName;
         return $this;
     }
 
+
     /** 
     * redirect to template view
     * @param string $viewName view name
-    * @return Template $this
+    * @return self $this
     */
     public function redirect(string $viewName = ''): void {
         $to = parent::baseUrl();
@@ -282,12 +299,12 @@ class Template extends Compress{
      *
      * @param string|object $classNameOrInstance The class name or instance to register.
      * @param object|null $classInstance The class instance (optional).
-     * @return Template $this
+     * @return self $this
      * @throws ErrorException If there is an error during registration.
      * @throws ClassException If the class does not exist.
      * @throws InvalidObjectException If an invalid object is provided.
      */
-    public function registerClass(string|object $classNameOrInstance, ?object $classInstance = null): Template {
+    public function registerClass(string|object $classNameOrInstance, ?object $classInstance = null): self {
         if (empty($classNameOrInstance)) {
             throw new ErrorException("Error: Empty class name or invalid input.");
         }
@@ -319,9 +336,9 @@ class Template extends Compress{
      * Set project application document root
      * public_html default
     * @param string $root base directory
-    * @return Template $this
+    * @return self $this
     */
-    public function setDocumentRoot(string $root): Template {
+    public function setDocumentRoot(string $root): self {
         $this->appPublicFolder = $root;
         return $this;
     }
@@ -333,7 +350,7 @@ class Template extends Compress{
      * @throws ErrorException
      */
    
-    public function setAttributes(array $attributes): Template{
+    public function setAttributes(array $attributes): self{
         if (!is_array($attributes)) {
             throw new ErrorException("Attributes must be an array");
         }
@@ -364,7 +381,7 @@ class Template extends Compress{
      * @return self
      * @throws InvalidObjectException|ErrorException
      */
-    public function setParam(object $param): Template{
+    public function setParam(object $param): self{
         if (empty($param) || !is_object($param)) {
             throw new InvalidObjectException($param);
         }
@@ -400,15 +417,16 @@ class Template extends Compress{
     * @throws ViewNotFoundException
     */
     public function renderViewContent(string $relativePath, array $options = []): void {
-        $root =  (parent::isProduction() ? $this->ds : $relativePath);
+        header('X-Powered-By: ' . parent::copyright());
+        $root =  (parent::isProduction() ? self::$ds : $relativePath);
         $base =  rtrim($root . $this->appPublicFolder, "/") . "/";
 
         if(empty($options["active"])){
             $options["active"] = $this->activeView;
         }
 
-        if(!isset($options["optimize"])){
-            $options["optimize"] = true;
+        if(isset($options["optimize"]) && !$options["optimize"]){
+            $this->ignoreViewOptimizer[] = $this->activeView;
         }
 
         if(empty($options["ContentType"])){
@@ -475,12 +493,12 @@ class Template extends Compress{
        
 
         if (!file_exists($this->templateFile)) {
+            echo $this->templateFile;
             throw new ViewNotFoundException($this->activeView);
         }
         
         $shouldSaveCache = false;
-        
-        if (parent::getVariables("enable.optimize.page") && $options["optimize"] && !in_array($this->activeView, $this->ignoreViewOptimizer)) {
+        if (parent::getVariables("enable.optimize.page") && !in_array($this->activeView, $this->ignoreViewOptimizer)) {
             $optimizer = new Optimizer(600, $this->optimizerFile);
             $optimizer->setKey($this->templateFile);
             if ($optimizer->hasCache() && $optimizer->getCache()) {
@@ -520,8 +538,8 @@ class Template extends Compress{
                 break;
             }
             $this->contents = $this->getCompressed();
+            exit(1);
         }else{
-            header('X-Powered-By: Luminova');
             exit($contents);
         }
     }
@@ -532,8 +550,8 @@ class Template extends Compress{
     * @param array $options additional parameters to pass in the template file
     */
     public function view(array $options = [], ?int $level = null): void {
-        $this->calculateDepth = ( !is_null($level) ? $level : $this->calculateDepth);
-        $this->renderViewContent(self::getRelativePath($this->calculateDepth), $options);
+        $this->calculateLevel = ( !is_null($level) ? $level : $this->calculateLevel);
+        $this->renderViewContent(self::getRelativePath($this->calculateLevel), $options);
     }
 
     /** 

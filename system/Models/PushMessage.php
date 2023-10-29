@@ -25,6 +25,11 @@ class PushMessage
 
     /**
      * @var array
+    */
+    private $tokens = [];
+
+    /**
+     * @var array
      */
     private $data = [];
 
@@ -191,6 +196,16 @@ class PushMessage
     public function getBody(): string
     {
         return $this->notification["body"];
+    }
+
+    /**
+     * Get the data of the notification.
+     *
+     * @return array
+     */
+    public function getData(): array
+    {
+        return $this->data;
     }
 
     /**

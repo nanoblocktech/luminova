@@ -8,9 +8,8 @@
  * @license See LICENSE file
  */
 namespace Luminova\Cache;
-use Luminova\Config\BaseConfig;
- class Compress extends BaseConfig{
-    // Constants for content types
+use Luminova\Config\Configuration;
+ class Compress extends Configuration{
     /**
 	* holds json content type
 	* @var string JSON
@@ -41,25 +40,35 @@ use Luminova\Config\BaseConfig;
 	*/
     private bool $gzip; 
 
-	/** 
-	*  ignore User Abort
-	* @var bool $ignoreUserAbort
-	*/
-
-    /** @var bool */
+    /** 
+     * Ignore user abort
+     * @var bool $ignoreUserAbort
+     */
 	private bool $ignoreUserAbort = true;
 
-    /** @var bool */
+    /** 
+     * Ignore html code block tag <code></code>
+     * @var bool $ignoreCodeblock
+     */
     private bool $ignoreCodeblock = false;
 
-    /** @var mixed */
+    /** 
+	*  Compressed content
+	* @var mixed $compressedContent
+	*/
     private mixed $compressedContent;
 
 	/** 
-	* holds html expiry time offset 7 days
-	* @var int $cacheExpiry
+	*  Maximin execution time 
+	* @var int $scriptExecutionLimit
 	*/
-	private int $cacheExpiry = 60 * 60 * 24 * 7;
+    private int $scriptExecutionLimit = 60;
+
+    /** 
+	* Compression level  
+	* @var int $compressionLevel
+	*/
+    private int $compressionLevel = 6; //9
 
     // Regular expression patterns for content stripping
     private const OPTIONS = [
@@ -93,21 +102,21 @@ use Luminova\Config\BaseConfig;
     public function __construct() {
         $this->headers = array(
             'Content-Encoding' => '',
-            'Content-Type' => 'charset=utf-8',
-            'Cache-Control' => 'no-store',
-            'Expires' => gmdate("D, d M Y H:i:s", time() + 60 * 60 * 30) . ' GMT',
+            'Content-Type' => 'charset=UTF-8',
+            'Cache-Control' => 'no-store, max-age=0, no-cache',
+            'Expires' => gmdate("D, d M Y H:i:s", time()) . ' GMT',
             'Content-Length' => 0,
             'Content-Language' => 'en',
             'X-Content-Type-Options' => 'nosniff',
-            'X-Frame-Options' => 'deny',
+            'X-Frame-Options' => 'SAMEORIGIN', //'deny',
             'X-XSS-Protection' => '1; mode=block',
-            'X-Powered-By' => 'Luminova',
+            'X-Firefox-Spdy' => 'h2',
             'Vary' => 'Accept-Encoding',
             'Connection' => 'close',
         );
         $this->gzip = true;
     }
-
+   
     /**
      * Enable or disable Gzip compression.
      *
@@ -165,6 +174,31 @@ use Luminova\Config\BaseConfig;
 		return $this;
 	}
 
+
+	/**
+     * sets ignore user abort
+     *
+     * @param int $limit Set script maximin execution limit
+     * @return Compress Returns the class instance for method chaining.
+     */
+	public function setExecutionLimit(int $limit): Compress 
+    {
+		$this->scriptExecutionLimit = $limit;
+		return $this;
+	}
+
+    /**
+     * sets compression level
+     *
+     * @param int $level Level
+     * @return Compress $this
+     */
+	public function setCompressionLevel(int $level): Compress 
+    {
+		$this->compressionLevel = min(9, $level);
+		return $this;
+	}
+    
     /**
      * sets ignore user code block
      *
@@ -177,6 +211,10 @@ use Luminova\Config\BaseConfig;
 		return $this;
 	}
 
+    /**
+     * Get compressed content
+     * @return mixed compressed content $compressedContent
+     */
     public function getCompressed(): mixed {
 		return $this->compressedContent;
     }
@@ -191,9 +229,11 @@ use Luminova\Config\BaseConfig;
     public function compress(mixed $data, string $contentType): string {
         $content = ($contentType === self::JSON) ? json_encode($data, true) : $data;
         $minifiedContent = $this->ignoreCodeblock ? self::minifyIgnoreCodeblock($content) : self::minify($content);
+       
         if ($this->gzip && !empty($_SERVER['HTTP_ACCEPT_ENCODING']) && strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false) {
             $this->headers['Content-Encoding'] = 'gzip';
-            $minifiedContent = gzencode($minifiedContent, 9);
+            $minifiedContent = gzencode($minifiedContent, $this->compressionLevel);
+            //$minifiedContent = gzencode($minifiedContent, 9, FORCE_GZIP);
         }
         $this->headers['Content-Length'] = strlen($minifiedContent);
         $this->headers['Content-Type'] = $contentType . ' ' . $this->headers['Content-Type'];
@@ -214,7 +254,7 @@ use Luminova\Config\BaseConfig;
      */
     private function withViewContent(mixed $body, int $statusCode, string $contentType): void 
     {
-        set_time_limit(0);
+        set_time_limit($this->scriptExecutionLimit);
         ignore_user_abort($this->ignoreUserAbort);
         ob_end_clean();
         echo $this->compress($body, $contentType);
@@ -307,7 +347,7 @@ use Luminova\Config\BaseConfig;
     }
 
     /**
-     * @deprecated This method is deprecated. Use the start() method instead.
+     * @deprecated This method start() is deprecated. Use ob_start() method instead.
      * Call ob_start(), ob_start(['\Peterujah\NanoBlock\Compress', 'minify']); 
      * or ob_start(['\Peterujah\NanoBlock\Compress', 'minifyIgnoreCodeblock']);
      * Start output buffering and minify the content by removing unwanted tags and whitespace.

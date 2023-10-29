@@ -139,7 +139,7 @@ interface DatabaseInterface  {
     /**
      * Fetches all rows as a 2D array of integers.
      *
-     * @return array The 2D array of integers.
+     * @return int The 2D array of integers.
      */
     public function getInt(): int;
 

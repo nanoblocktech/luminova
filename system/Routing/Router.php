@@ -12,6 +12,7 @@ use Luminova\Http\Header;
 use Luminova\Exceptions\ErrorException;
 use Luminova\Errors\Codes;
 use Luminova\Languages\Translator;
+use Luminova\Routing\Bootstrap;
 use \ReflectionMethod;
 use \ReflectionException;
 
@@ -51,16 +52,16 @@ class Router extends Header {
      */
     private array $namespace = [];
 
-    private const METHOD_ALL = 'GET|POST|PUT|DELETE|OPTIONS|PATCH|HEAD';
+    private const ALL_METHODS = 'GET|POST|PUT|DELETE|OPTIONS|PATCH|HEAD';
 
     /**
      * Before middleware route, executes the callback function before other routing will be executed
      *
      * @param string  $methods  Allowed methods, can be serrated with | pipe symbol
      * @param string  $pattern A route pattern or template view name
-     * @param callable $callback Callback function to execute
+     * @param callable|string $callback Callback function to execute
      */
-    public function before(string $methods, string $pattern, mixed $callback): void
+    public function before(string $methods, string $pattern, callable|string $callback): void
     {
         $pattern = $this->baseRoute . '/' . trim($pattern, '/');
         $pattern = $this->baseRoute ? rtrim($pattern, '/') : $pattern;
@@ -78,9 +79,9 @@ class Router extends Header {
      *
      * @param string  $methods Allowed methods, can be serrated with | pipe symbol
      * @param string  $pattern A route pattern or template view name
-     * @param callable $callback Callback function to execute
+     * @param callable|string $callback Callback function to execute
      */
-    public function capture(string $methods, string $pattern, mixed $callback): void
+    public function capture(string $methods, string $pattern, callable|string $callback): void
     {
         $pattern = $this->baseRoute . '/' . trim($pattern, '/');
         $pattern = $this->baseRoute ? rtrim($pattern, '/') : $pattern;
@@ -97,20 +98,20 @@ class Router extends Header {
      * Capture any method
      *
      * @param string $pattern A route pattern or template view name
-     * @param callable $callback Handle callback for router
+     * @param callable|string $callback Handle callback for router
      */
-    public function any(string $pattern, mixed $callback): void
+    public function any(string $pattern, callable|string $callback): void
     {
-        $this->capture(self::METHOD_ALL, $pattern, $callback);
+        $this->capture(self::ALL_METHODS, $pattern, $callback);
     }
 
     /**
      * Shorthand for a route accessed using GET.
      *
      * @param string pattern A route pattern or template view name
-     * @param callable $callback  Handle callback for router
+     * @param callable|string $callback  Handle callback for router
      */
-    public function get(string $pattern, mixed $callback): void
+    public function get(string $pattern, callable|string $callback): void
     {
         $this->capture('GET', $pattern, $callback);
     }
@@ -119,9 +120,9 @@ class Router extends Header {
      * Post shorthand for a route capture
      *
      * @param string  $pattern A route pattern or template view name
-     * @param callable $callback Callback function to execute
+     * @param callable|string $callback Callback function to execute
      */
-    public function post(string $pattern, mixed $callback): void
+    public function post(string $pattern, callable|string $callback): void
     {
         $this->capture('POST', $pattern, $callback);
     }
@@ -130,9 +131,9 @@ class Router extends Header {
      * Patch shorthand for a route capture
      *
      * @param string  $pattern A route pattern or template view name
-     * @param callable $callback Handle callback for router
+     * @param callable|string $callback Handle callback for router
      */
-    public function patch(string $pattern, mixed $callback): void
+    public function patch(string $pattern, callable|string $callback): void
     {
         $this->capture('PATCH', $pattern, $callback);
     }
@@ -141,9 +142,9 @@ class Router extends Header {
      * Delete shorthand for a route capture
      *
      * @param string $pattern A route pattern or template view name
-     * @param callable $callback Callback function to execute
+     * @param callable|string $callback Callback function to execute
      */
-    public function delete(string $pattern, mixed $callback): void
+    public function delete(string $pattern, callable|string $callback): void
     {
         $this->capture('DELETE', $pattern, $callback);
     }
@@ -152,9 +153,9 @@ class Router extends Header {
      * Put shorthand for a route capture
      *
      * @param string $pattern A route pattern or template view name
-     * @param callable $callback Callback function to execute
+     * @param callable|string $callback Callback function to execute
      */
-    public function put(string $pattern, mixed $callback): void
+    public function put(string $pattern, callable|string $callback): void
     {
         $this->capture('PUT', $pattern, $callback);
     }
@@ -163,9 +164,9 @@ class Router extends Header {
      * Options shorthand for a route capture
      *
      * @param string $pattern A route pattern or template view name
-     * @param callable $callback Callback function to execute
+     * @param callable|string $callback Callback function to execute
      */
-    public function options(string $pattern, mixed $callback): void
+    public function options(string $pattern, callable|string $callback): void
     {
         $this->capture('OPTIONS', $pattern, $callback);
     }
@@ -178,34 +179,62 @@ class Router extends Header {
      */
     public function bind(string $baseRoute, callable $callback): void
     {
-        $curBaseRoute = $this->baseRoute;
-        $this->baseRoute .= $baseRoute;
-        //call_user_func($callback);
-        $callback();
-        $this->baseRoute = $curBaseRoute;
+        if(is_callable($callback)){
+            $curBaseRoute = $this->baseRoute;
+            $this->baseRoute .= $baseRoute;
+            $callback();
+            $this->baseRoute = $curBaseRoute;
+        }else{
+            throw new ErrorException('Invalid argument $callback: requires callable function, ' . gettype($callback) . ', is given instead.');
+        }
     }
 
-      /**
+    /**
      * Bootstrap a group 
      *
-     * @param callable $webCallback Callback function to autoload web routes
-     * @param callable $apiCallback Callback function to autoload api routes
-     * @param callable $cliCallback Callback function to autoload cli routes
-     */
-    public function bootstrap(callable $webCallback, callable $apiCallback = null, callable $cliCallback = null): void
-    {
-        $methods = explode('|', self::METHOD_ALL);
-        if (in_array(parent::getRoutingMethod(), $methods)) {
+     * @param Bootstrap $callbacks callable arguments
+    */
+    public function bootstraps(Bootstrap ...$callbacks): void {
+        $methods = explode('|', self::ALL_METHODS);
+        $method = parent::getRoutingMethod();
+        if (in_array($method, $methods)) {
+            $uri = $this->getView();
             $curBaseRoute = $this->baseRoute;
-            $uri = $this->getViewUri();
-            if (preg_match('#^/api#', $uri) && is_callable($apiCallback)) {
-                $this->baseRoute .= '/api';
-                $apiCallback($this);
-            } elseif (preg_match('#^/cli#', $uri) && is_callable($cliCallback) && php_sapi_name() === 'cli') {
-                $this->baseRoute .= '/cli';
-                $cliCallback($this);
-            } else {
-                $webCallback($this);
+            foreach ($callbacks as $bootstrap) {
+                if (!empty($bootstrap->getType()) && is_callable($bootstrap->getFunction())) {
+                    $result = $bootstrap->getType();
+                    $errorHandler = $bootstrap->getErrorHandler();
+                    $registerError = ($errorHandler !== null && is_callable($errorHandler));
+                    
+                    if(preg_match('#^/' . $result . '#', $uri)) {
+                        if($registerError){
+                            $this->setErrorHandler($errorHandler);
+                        }
+                        if ($result === Bootstrap::CLI){
+                            header("Content-type: text/plain");
+                            if(php_sapi_name() !== 'cli') {
+                                return;
+                            }
+                        }
+
+                        /*
+                        * Make sure is not web instance
+                        */
+                        if ($result !== Bootstrap::WEB) {
+                            $this->baseRoute .= '/' . $result;
+                        }
+                    
+                        $bootstrap->getFunction()($this);
+                        break;
+                    }else{
+                        if ($result === Bootstrap::WEB) {
+                            if($registerError){
+                                $this->setErrorHandler($errorHandler);
+                            }
+                            $bootstrap->getFunction()($this);
+                        }
+                    }
+                }
             }
             $this->baseRoute = $curBaseRoute;
         }
@@ -244,7 +273,7 @@ class Router extends Header {
      *
      * @return bool
      */
-    public function run(mixed $callback = null): bool
+    public function run(?callable $callback = null): bool
     {
         $this->requestedMethod = parent::getRoutingMethod();
 
@@ -258,7 +287,11 @@ class Router extends Header {
         }
 
         if ($numHandled === 0) {
-            $this->triggerError($this->afterRoutes[$this->requestedMethod]);
+            if(isset($this->afterRoutes[$this->requestedMethod])){
+                $this->triggerError($this->afterRoutes[$this->requestedMethod]);
+            }else{
+                $this->triggerError([]);
+            }
         } 
         else {
             if ($callback && is_callable($callback)) {
@@ -266,7 +299,6 @@ class Router extends Header {
             }
         }
 
-        // If it originally was a HEAD request, clean up after ourselves by emptying the output buffer
         if ($_SERVER['REQUEST_METHOD'] == 'HEAD') {
             ob_end_clean();
         }
@@ -371,12 +403,12 @@ class Router extends Header {
 
     /**
      * Execute the class method with the given parameters using reflection
-    * @param callable $callback Class public callback method eg: UserController:update()
+    * @param callable|string $callback Class public callback method eg: UserController:update
     * @param array $arguments Method arguments to pass to callback method
     * @return void 
     * @throws ErrorException if method is not callable or doesn't exist
     */
-    private function execute(mixed $callback, array $arguments = []): void
+    private function execute(callable|string $callback, array $arguments = []): void
     {
         if (is_callable($callback)) {
             call_user_func_array($callback, $arguments);
@@ -423,10 +455,19 @@ class Router extends Header {
 
     /**
      * Get the current view relative URI.
-     *
+     * @alias getView Aliases to getView
      * @return string
      */
     public function getViewUri(): string
+    {
+        return $this->getView();
+    }
+
+    /**
+     * Get the current view relative URI.
+     * @return string
+     */
+    public function getView(): string
     {
         $uri = substr(rawurldecode($_SERVER['REQUEST_URI']), strlen($this->getBasePath()));
         if (strstr($uri, '?')) {

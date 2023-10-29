@@ -9,11 +9,10 @@
  */
 namespace Luminova\Exceptions;
 use \Exception;
-use Luminova\Config\BaseConfig;
+use Luminova\Config\Configuration;
 
 class AppException extends Exception
 {
-    private static $allowPreviews = ['system', 'app', 'resources'];
     /**
      * Constructor for AppException.
      *
@@ -25,7 +24,7 @@ class AppException extends Exception
     {
         $caller = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1];
         $message .= " Time: " . date('Y-m-d H:i:s');
-        $message .= isset($caller['file']) ? " file: " .  BaseConfig::filterPath($caller['file']) : '';
+        $message .= isset($caller['file']) ? " file: " .  Configuration::filterPath($caller['file']) : '';
         $message .= isset($caller['line']) ? " on line: " . $caller['line'] : '';
         parent::__construct($message, $code, $previous);
     }
@@ -48,7 +47,7 @@ class AppException extends Exception
     public function handle(bool $production = false)
     {
         if ($production) {
-            $logDirectory = BaseConfig::getRootDirectory(__DIR__) . "writable/log/";
+            $logDirectory = Configuration::getRootDirectory(__DIR__) . "writable/log/";
             $logFile = $logDirectory . "exception.log";
 
             if (!is_dir($logDirectory)) {

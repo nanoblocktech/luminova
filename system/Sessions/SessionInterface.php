@@ -69,7 +69,7 @@ interface SessionInterface {
      * @param string $online optional storage instance key
      * @return bool
     */
-    public function online($storage = ''): bool;
+    public function online(string $storage = ''): bool;
 
     /** 
      * Clear all data from specific session storage by passing the storage key

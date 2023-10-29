@@ -13,7 +13,7 @@ namespace Luminova\Notifications;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification;
-use Luminova\Config\BaseConfig;
+use Luminova\Config\Configuration;
 use Luminova\Exceptions\ErrorException;
 use Luminova\Models\PushMessage;
 use \Exception;
@@ -39,12 +39,12 @@ class FirebasePusher
      */
     public function __construct(string $filename = "ServiceAccount.json", string $dir = __DIR__)
     {
-        $serviceAccount = BaseConfig::getRootDirectory($dir) . "/writeable/credentials/{$filename}";
+        $serviceAccount = Configuration::getRootDirectory($dir) . "/writeable/credentials/{$filename}";
 
         if (file_exists($serviceAccount)) {
             $this->factory = (new Factory)->withServiceAccount($serviceAccount);
         } else {
-            ErrorException::throwException("Firebase notification service account not found at [{$serviceAccount}]", BaseConfig::isProduction());
+            ErrorException::throwException("Firebase notification service account not found at [{$serviceAccount}]", Configuration::isProduction());
         }
     }
 
@@ -87,7 +87,7 @@ class FirebasePusher
                     ->withData($data["data"])
             );
         } catch (Exception $e) {
-            ErrorException::throwException($e->getMessage(), BaseConfig::isProduction());
+            ErrorException::throwException($e->getMessage(), Configuration::isProduction());
         }
         return [];
     }
@@ -108,7 +108,7 @@ class FirebasePusher
                     ->withData($data["data"])
             );
         } catch (Exception $e) {
-            ErrorException::throwException($e->getMessage(), BaseConfig::isProduction());
+            ErrorException::throwException($e->getMessage(), Configuration::isProduction());
         }
         return [];
     }
@@ -130,7 +130,7 @@ class FirebasePusher
                 $data["tokens"]
             );
         } else {
-            ErrorException::throwException("Method requires an array of notification ids", BaseConfig::isProduction());
+            ErrorException::throwException("Method requires an array of notification ids", Configuration::isProduction());
         }
         return [];
     }
@@ -148,7 +148,25 @@ class FirebasePusher
         try {
             return $this->messaging()->sendMulticast($message->toArray(), $message->getTokens());
         } catch (Exception $e) {
-            ErrorException::throwException($e->getMessage(), BaseConfig::isProduction());
+            ErrorException::throwException($e->getMessage(), Configuration::isProduction());
+        }
+    }
+
+    public function device(PushMessage $message): mixed{
+        try{
+            return $this->messaging()->sendMulticast(
+                CloudMessage::new()
+                ->withNotification(self::create($message->getTitle(), $message->getBody()))
+                ->withData($message->getData())
+                ->withAndroidConfig([
+                    'priority' => 'high',
+                    'notification' => [
+                        'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+                    ],
+                ])->withCondition("'android' in topics")
+            );
+        }catch (Exception $e) {
+            ErrorException::throwException($e->getMessage(), Configuration::isProduction());
         }
     }
 

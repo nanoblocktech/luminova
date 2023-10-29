@@ -92,6 +92,7 @@ class Request
      */
     private array $body;
 
+
     public function __construct()
     {
         $this->get = $_GET;
@@ -119,7 +120,7 @@ class Request
      * @param mixed $default
      * @return mixed
      */
-    public function get(string $key, $default = null): mixed
+    public function get(string $key, mixed $default = null): mixed
     {
         return $this->get[$key] ?? $default;
     }
@@ -131,7 +132,7 @@ class Request
      * @param mixed $default
      * @return mixed
      */
-    public function getPost(string $key, $default = null): mixed
+    public function getPost(string $key, mixed $default = null): mixed
     {
         return $this->post[$key] ?? $default;
     }
@@ -143,7 +144,7 @@ class Request
      * @param mixed $default
      * @return mixed
      */
-    public function getPut(string $key, $default = null): mixed
+    public function getPut(string $key, mixed $default = null): mixed
     {
         return $this->put[$key] ?? $default;
     }
@@ -155,7 +156,7 @@ class Request
      * @param mixed $default
      * @return mixed
      */
-    public function getDelete(string $key, $default = null): mixed
+    public function getDelete(string $key, mixed $default = null): mixed
     {
         return $this->delete[$key] ?? $default;
     }
@@ -167,7 +168,7 @@ class Request
      * @param mixed $default
      * @return mixed
      */
-    public function getOption(string $key, $default = null): mixed
+    public function getOption(string $key, mixed $default = null): mixed
     {
         return $this->options[$key] ?? $default;
     }
@@ -179,7 +180,7 @@ class Request
      * @param mixed $default
      * @return mixed
      */
-    public function getPatch(string $key, $default = null): mixed
+    public function getPatch(string $key, mixed $default = null): mixed
     {
         return $this->patch[$key] ?? $default;
     }
@@ -191,7 +192,7 @@ class Request
      * @param mixed $default
      * @return mixed
      */
-    public function getHead(string $key, $default = null): mixed
+    public function getHead(string $key, mixed $default = null): mixed
     {
         return $this->head[$key] ?? $default;
     }
@@ -203,7 +204,7 @@ class Request
      * @param mixed $default
      * @return mixed
      */
-    public function getConnect(string $key, $default = null): mixed
+    public function getConnect(string $key, mixed $default = null): mixed
     {
         return $this->connect[$key] ?? $default;
     }
@@ -215,7 +216,7 @@ class Request
      * @param mixed $default
      * @return mixed
      */
-    public function getTrace(string $key, $default = null): mixed
+    public function getTrace(string $key, mixed $default = null): mixed
     {
         return $this->trace[$key] ?? $default;
     }
@@ -227,7 +228,7 @@ class Request
      * @param mixed $default
      * @return mixed
      */
-    public function getPropfind(string $key, $default = null): mixed
+    public function getPropfind(string $key, mixed $default = null): mixed
     {
         return $this->propfind[$key] ?? $default;
     }
@@ -239,7 +240,7 @@ class Request
      * @param mixed $default
      * @return mixed
      */
-    public function getMkcol(string $key, $default = null): mixed
+    public function getMkcol(string $key, mixed $default = null): mixed
     {
         return $this->mkcol[$key] ?? $default;
     }
@@ -251,7 +252,7 @@ class Request
      * @param mixed $default
      * @return mixed
      */
-    public function getCopy(string $key, $default = null): mixed
+    public function getCopy(string $key, mixed $default = null): mixed
     {
         return $this->copy[$key] ?? $default;
     }
@@ -263,7 +264,7 @@ class Request
      * @param mixed $default
      * @return mixed
      */
-    public function getMove(string $key, $default = null): mixed
+    public function getMove(string $key, mixed $default = null): mixed
     {
         return $this->move[$key] ?? $default;
     }
@@ -275,7 +276,7 @@ class Request
      * @param mixed $default
      * @return mixed
      */
-    public function getLock(string $key, $default = null): mixed
+    public function getLock(string $key,mixed  $default = null): mixed
     {
         return $this->lock[$key] ?? $default;
     }
@@ -287,7 +288,7 @@ class Request
      * @param mixed $default
      * @return mixed
      */
-    public function getUnlock(string $key, $default = null): mixed
+    public function getUnlock(string $key, mixed $default = null): mixed
     {
         return $this->unlock[$key] ?? $default;
     }
@@ -312,6 +313,59 @@ class Request
         return (object) $this->body;
     }
 
+    /**
+     * Get the uploaded file information.
+     * @param string $name file name
+     * @return object|null
+    */
+    public function getFile(string $name): ?object
+    {
+        if (isset($_FILES[$name])) {
+            return $this->parseFiles($_FILES[$name]);
+        }
+        return null;
+    }
+
+    /**
+     * Get the uploaded files information.
+     *
+     * @return object|null
+    */
+    public function getFiles(): ?object
+    {
+        $files = [];
+        foreach ($_FILES as $index => $fileInfo) {
+            $files[] = $this->parseFiles($fileInfo, $index);
+        }
+        if( $files  == []){
+            return null;
+        }
+        return (object) $files;
+    }
+
+    /**
+     * Get the uploaded files information.
+     * @param array $fileInfo file array information
+     * @param int $index file index
+     * @return object
+    */
+    private function parseFiles(array $fileInfo, int $index = 0): object{
+        if(empty($fileInfo)){
+            return (object)[];
+        }
+
+        return (object)[
+            'index' => $index,
+            'name' => $fileInfo['name']??null,
+            'type' => $fileInfo['type']??null,
+            'size' => $fileInfo['size']??0,
+            'mime' => mime_content_type($fileInfo['tmp_name']),
+            'extension' => strtolower(pathinfo($fileInfo['name'], PATHINFO_EXTENSION)),
+            'temp' => $fileInfo['tmp_name']??null,
+            'error' => $fileInfo['error']??null,
+        ];
+    }
+
      /**
      * Get the request method 
      *
@@ -320,11 +374,6 @@ class Request
     public function getMethod(): string
     {
         return strtolower($_SERVER['REQUEST_METHOD']);
-    }
-
-    public function getHeaders(): array
-    {
-        return $_SERVER;
     }
 
 

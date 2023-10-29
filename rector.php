@@ -46,7 +46,7 @@ return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->sets([
         SetList::DEAD_CODE,
         SetList::CODE_QUALITY,
-        LevelSetList::UP_TO_PHP_74
+        LevelSetList::UP_TO_PHP_80
     ]);
 
     $rectorConfig->parallel();
@@ -55,7 +55,9 @@ return static function (RectorConfig $rectorConfig): void {
         __DIR__ . '/app',
         __DIR__ . '/system',
         __DIR__ . '/tests', 
-        __DIR__ . '/resources'
+        __DIR__ . '/resources',
+        __DIR__ . '/routes',
+        __DIR__ . '/bootstrap',
     ]);
 
     $rectorConfig->phpstanConfigs([
@@ -98,4 +100,6 @@ return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->rule(StringClassNameToClassConstantRector::class);
     $rectorConfig->rule(PrivatizeFinalClassPropertyRector::class);
     $rectorConfig->rule(CompleteDynamicPropertiesRector::class);
+    $rectorConfig->rule(UnwrapFutureCompatibleIfPhpVersionRector::class);
+    $rectorConfig->rule(UnwrapFutureCompatibleIfPhpVersionRector::class);
 };

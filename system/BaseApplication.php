@@ -37,9 +37,10 @@ class BaseApplication extends Template {
      */
     public function __construct(string $dir = __DIR__) {
         // Register dotenv variables
-        DotEnv::register($this->getRootDir() . DIRECTORY_SEPARATOR . '.env');
+        DotEnv::register(parent::getRootDirectory($dir) . DIRECTORY_SEPARATOR . '.env');
+        // DotEnv::register($this->getRootDir() . DIRECTORY_SEPARATOR . '.env');
         // DotEnv::register(dirname(dirname(__DIR__)) . DIRECTORY_SEPARATOR . '.env');
-
+       
         // Initialize the router instance
         $this->router = new Router();
 
@@ -58,26 +59,17 @@ class BaseApplication extends Template {
         // Set cache control for application cache
         $this->setCacheControl(parent::getVariables("cache.control"));
 
-        // Set the current depth for template URL relative paths
-        $this->setDept(substr_count(trim($this->getView(), DIRECTORY_SEPARATOR), DIRECTORY_SEPARATOR));
+        // Set the current level for template URL relative paths
+        $this->setLevel(substr_count(trim($this->getView(), DIRECTORY_SEPARATOR), DIRECTORY_SEPARATOR));
 
         // Set the project base path
         $this->setBasePath($this->getBasePath());
 
-        // Initialize the global error handler
-        /*$this->router->setErrorHandler(function() {
-            exit($this->render("404")->view(["error_url" => parent::baseUrl() . $this->getView()]));
-        });*/
-    }
+        // Set the project script execution time
+        $this->setExecutionLimit(parent::getVariables("script.execution.limit", 90));
 
-   /**
-     * Get the version number of the application.
-     *
-     * @return string
-     */
-    public function version()
-    {
-        return 'Luminova (1.5.4)';
+        // Set response compression level
+        $this->setCompressionLevel(parent::getVariables("compression.level", 6));
     }
 
     /**
@@ -95,7 +87,7 @@ class BaseApplication extends Template {
      * @return string
      */
     public function getView(): string {
-        return $this->router->getViewUri();
+        return $this->router->getView();
     }
 
     /**
@@ -111,13 +103,13 @@ class BaseApplication extends Template {
      * Get the base application instance as a singleton.
      *
      * @param string $dir The project root directory
-     * @return BaseApplication
+     * @return self BaseApplication
      */
-    public static function getInstance(string $dir = __DIR__): BaseApplication {
-        if (self::$instance === null) {
-            self::$instance = new self($dir);
+    public static function getInstance(string $dir = __DIR__): static {
+        if (static::$instance === null) {
+            static::$instance = new static($dir);
         }
-        return self::$instance;
+        return static::$instance;
     }
 
     /**

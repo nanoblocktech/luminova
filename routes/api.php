@@ -12,6 +12,4 @@
  /**
   * Register router main page view
  */
- $router->get('/', function() use ($app) {
-    echo $app->version();
- });
+$router->get('/', 'Welcome::info');

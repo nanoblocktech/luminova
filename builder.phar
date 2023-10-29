@@ -10,7 +10,7 @@
  */
 require_once(__DIR__ . '/system/plugins/autoload.php');
 
-$options = getopt(null, ["type:"]);
+$options = getopt('', ["type:"]);
 
 if (!isset($options['type'])) {
     echo "Usage: php builder.phar --type=<build/zip>\n";

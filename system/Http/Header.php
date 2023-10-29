@@ -20,7 +20,7 @@ class Header {
      */
     public static function getHeaders(): array
     {
-        $headers = array();
+        $headers = [];
 
         // If getallheaders() is available, use that
         if (function_exists('getallheaders')) {
@@ -42,8 +42,27 @@ class Header {
         return $headers;
     }
 
+     /**
+     * Get server variables 
+     * @param string $name optional name of server variable
+     * @return array|string|null $_SERVER
+     */
+    public function getServerVariable(?string $name = null): mixed
+    {
+        if($name === null || $name == ''){
+            return $_SERVER;
+        }
+
+        if(isset($_SERVER[$name])){
+            return $_SERVER[$name];
+        }
+
+        return null;
+    }
+
     public static function getMethod(): string
     {
+        return $_SERVER['REQUEST_METHOD'];
     }
 
     /**
@@ -63,7 +82,7 @@ class Header {
         // If it's a POST request, check for a method override header
         elseif ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $headers = self::getHeaders();
-            if (isset($headers['X-HTTP-Method-Override']) && in_array($headers['X-HTTP-Method-Override'], array('PUT', 'DELETE', 'PATCH'))) {
+            if (isset($headers['X-HTTP-Method-Override']) && in_array($headers['X-HTTP-Method-Override'], ['PUT', 'DELETE', 'PATCH'])) {
                 $method = $headers['X-HTTP-Method-Override'];
             }
         }

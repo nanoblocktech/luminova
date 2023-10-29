@@ -10,7 +10,7 @@
 
 namespace Luminova\Database;
 
-use Luminova\Config\BaseConfig;
+use Luminova\Config\Configuration;
 use Luminova\Database\Drivers\MySqlDriver;
 use Luminova\Database\Drivers\PdoDriver;
 use Luminova\Models\DatabaseConfig;
@@ -22,7 +22,7 @@ use Luminova\Models\DatabaseConfig;
   *
   * @package Luminova\Database
   */
- class Conn extends BaseConfig
+ class Conn extends Configuration
  {
      /** @var mixed */
      public $db;

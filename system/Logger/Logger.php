@@ -9,7 +9,7 @@
  */
 namespace Luminova\Logger;
 
-use Luminova\Config\BaseConfig;
+use Luminova\Config\Configuration;
 
 class Logger implements LoggerInterface
 {
@@ -110,7 +110,7 @@ class Logger implements LoggerInterface
      */
     public function log(string $level, string $message, array $context = []): void
     {
-        $logDirectory = BaseConfig::getRootDirectory() . "writable/log/";
+        $logDirectory = Configuration::getRootDirectory(__DIR__) . "writable/log/";
         $logFile = $logDirectory . "{$level}.log";
 
         if (!is_dir($logDirectory)) {

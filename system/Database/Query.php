@@ -10,8 +10,8 @@
 namespace Luminova\Database;
 use Luminova\Exceptions\DatabaseException;
 use \Luminova\Cache\FileSystemCache;
-use \Luminova\Config\BaseConfig;
-use \Luminova\Exceptions\InvalidException; 
+use \Luminova\Config\Configuration;
+use \Luminova\Arrays\ArrayCountable;
 
 class Query extends Conn {  
     /**
@@ -40,9 +40,9 @@ class Query extends Conn {
 
     /**
     *Table join bind parameters
-    *@var string $databaseJoinSeed 
+    *@var array $databaseJoinSeed 
     */
-    protected array $databaseJoinSeed;
+    protected array $databaseJoinSeed = [];
 
     /**
     *Table query order limit offset and count query 
@@ -208,7 +208,7 @@ class Query extends Conn {
     /**
      * Set query limit
      * @param int $offset start offset query limit
-     * @param string $count limit threshold
+     * @param int $count limit threshold
      * @return Query class instance.
      */
     public function limit(int $offset = 0, int $count = 50): Query
@@ -311,22 +311,33 @@ class Query extends Conn {
     /**
      * Convert an object to an array.
      *
-     * @param mixed $object The object to convert to an array.
+     * @param mixed $input The object to convert to an array.
      * @return mixed The resulting array representation of the object.
      * @return array Finalized array representation of the object
      */
-    public function toArray(mixed $input): mixed {
+
+    public function toArray(mixed $input = null): array {
+        if ($input === null) {
+            return [];
+        }
+    
         if (is_object($input) || is_array($input)) {
             $array = [];
             foreach ($input as $key => $value) {
-                $array[$key] = $this->toArray($value);
+                if (is_object($value) || is_array($value)) {
+                    $array[$key] = $this->toArray($value);
+                }else{
+                    $array[$key] = $value;
+                }
             }
             return $array;
         }
-        return $input;
+
+        return [$input];
     }
 
-     /**
+
+    /**
      * Set query where IN () expression
      * @param string $column column name
      * @param array $list of values
@@ -364,7 +375,7 @@ class Query extends Conn {
      * @return string path
      */
     private function getFilepath(): string {
-        return  BaseConfig::getRootDirectory(__DIR__) . DIRECTORY_SEPARATOR . "writeable" . DIRECTORY_SEPARATOR . "caches" . DIRECTORY_SEPARATOR . "database" . DIRECTORY_SEPARATOR;
+        return  Configuration::getRootDirectory(__DIR__) . DIRECTORY_SEPARATOR . "writeable" . DIRECTORY_SEPARATOR . "caches" . DIRECTORY_SEPARATOR . "database" . DIRECTORY_SEPARATOR;
      }
  
      
@@ -522,6 +533,7 @@ class Query extends Conn {
                     $selectQuery .= " {$this->databaseJoinType} JOIN {$this->databaseJoinTable}";
                     if (!empty($this->databaseJoinSeed)) {
                         $selectQuery .= " ON {$this->databaseJoinSeed[0]}";
+                        //$countable = new ArrayCountable($this->databaseJoinSeed);
                         if(count($this->databaseJoinSeed) > 1){
                             for ($i = 1; $i < count($this->databaseJoinSeed); $i++) {
                                 $selectQuery .= " AND {$this->databaseJoinSeed[$i]}";
@@ -617,10 +629,6 @@ class Query extends Conn {
             }
         }
         return 0;
-    }
-
-    public function default(array $columns): int {
-
     }
 
     /**
@@ -793,7 +801,7 @@ class Query extends Conn {
             if(empty($query)){
                 return 0;
             }
-            return $this->exec($query);
+            return $this->db->exec($query);
         } catch (DatabaseException $e) {
             $e->handle(parent::isProduction());
         }

@@ -8,8 +8,8 @@
  * @license See LICENSE file
  */
 namespace Luminova\Composer;
-use Luminova\Config\BaseConfig;
-class BaseComposer extends BaseConfig
+use Luminova\Config\Configuration;
+class BaseComposer extends Configuration
 {
     /**
      * @param int $totalSteps
@@ -44,7 +44,7 @@ class BaseComposer extends BaseConfig
     }
 
 
-    public static function parseLocation($path){
+    public static function parseLocation(string $path): string{
         //&& is_dir($path)
         if ($path != null ) {
             $path = ltrim($path, ".");

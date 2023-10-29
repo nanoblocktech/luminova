@@ -38,7 +38,7 @@ class Cache
       * Engin static instance
      * @var object $instance
     */
-    private static $instance;
+    private static $instance = null;
 
     /**
      * Cache constructor.
@@ -57,11 +57,12 @@ class Cache
      */
     public static function getInstance(): object
     {
-        if (!isset(self::$instance)) {
+        if (self::$instance === null) {
             self::$instance = new self();
         }
         return self::$instance->engine;
     }
+
 
     /**
      * Create an instance of the cache engine based on the provided engine type.

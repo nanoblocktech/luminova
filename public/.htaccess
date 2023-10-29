@@ -16,8 +16,7 @@
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
-    # Don't Redirect Api, Assets to Fron Controller
-    #RewriteCond %{REQUEST_URI} !^/api/
+    # Don't Redirect Assets to Front Controller
     RewriteCond %{REQUEST_URI} !^/assets/
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^(.*)/$ /$1 [L,R=301]

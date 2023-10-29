@@ -8,11 +8,9 @@
  * @license See LICENSE file
  */
 namespace Luminova\Cache;
-
 use \Memcached;
-use \Generator;
 
-class MemoryCache extends Memcached {
+class MemoryCache {
     /**
      * @var int Default cache time duration in seconds.
      */
@@ -23,11 +21,17 @@ class MemoryCache extends Memcached {
      */
     protected $config = [];
 
+
+    /**
+     * @var Memcached Memcached instance
+    */
+    protected Memcached $memcache;
+
     /**
      * MemoryCache constructor.
      */
     public function __construct() {
-        parent::__construct();
+        $this->memcache = new Memcached();
     }
 
     /**
@@ -67,7 +71,7 @@ class MemoryCache extends Memcached {
         }
         
         foreach ($this->config as $config) {
-            $this->addServer($config["host"], $config["port"]);
+            $this->memcache->addServer($config["host"], $config["port"]);
         }
         
         return $this;
@@ -104,7 +108,7 @@ class MemoryCache extends Memcached {
      * @return mixed Cached or generated data.
      */
     public function withExpired(string $key, callable $cacheCallback, int $expiration): mixed {
-        $cachedResponse = $this->get($key);
+        $cachedResponse = $this->memcache->get($key);
 
         if ($cachedResponse !== false) {
             return $cachedResponse;
@@ -126,7 +130,7 @@ class MemoryCache extends Memcached {
      * @return bool True on success, false on failure.
      */
     public function writeCache(string $key, mixed $value, int $expiration): bool {
-        return $this->set($key, $value, $expiration);
+        return $this->memcache->set($key, $value, $expiration);
     }
 
     /**
@@ -136,7 +140,7 @@ class MemoryCache extends Memcached {
      * @return bool True on success, false on failure.
      */
     public function remove(string $key): bool {
-        $this->delete($key);
+        $this->memcache->delete($key);
         return true;
     }
 
@@ -147,20 +151,20 @@ class MemoryCache extends Memcached {
      * @return void
      */
     public function removeList(array $array): void {
-        $this->deleteMulti($array);
+        $this->memcache->deleteMulti($array);
     }
 
     /**
      * Clear the entire cache.
      */
     public function clearCache(): void {
-        $this->flush();
+        $this->memcache->flush();
     }
 
     /**
      * Close the Memcached connection.
      */
     public function close(): void {
-        $this->quit();
+        $this->memcache->quit();
     }
 }

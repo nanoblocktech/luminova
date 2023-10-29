@@ -9,7 +9,7 @@
  */
 namespace Luminova\Sessions;
 use Luminova\Sessions\SessionInterface;
-use App\Controllers\Config\SessionConfig;
+use App\Controllers\Config\Session as SessionConfig;
 use Luminova\Logger\LoggerInterface;
 class Session 
 {

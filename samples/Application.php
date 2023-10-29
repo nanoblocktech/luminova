@@ -8,9 +8,7 @@
  * @license See LICENSE file
  */
 namespace App\Controllers;
-use Luminova\BaseApplication;
-use Luminova\Sessions\Session;
-use Luminova\Sessions\SessionManager;
+use \Luminova\BaseApplication;
 
 class Application extends BaseApplication  {
     public function __construct(string $dir = __DIR__){
@@ -33,7 +31,6 @@ class Application extends BaseApplication  {
 
 
         parent::__construct($dir);
-        //parent::__construct(parent::getRootDirectory($dir));
 
         /**
         * Set the template engine 

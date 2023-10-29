@@ -93,7 +93,6 @@ class Optimizer
      */
     public function getCache(): bool
     {
-        header('X-Powered-By: Luminova');
         $bytesRead = readfile($this->getCacheLocation());
         return $bytesRead !== false;
     }

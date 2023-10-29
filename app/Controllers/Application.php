@@ -31,7 +31,6 @@ class Application extends BaseApplication  {
 
 
         parent::__construct($dir);
-        //parent::__construct(parent::getRootDirectory($dir));
 
         /**
         * Set the template engine 

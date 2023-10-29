@@ -1,5 +1,3 @@
 User-agent: *
-Disallow: /api
 Disallow: /api/
-Disallow: /cli
 Disallow: /cli/

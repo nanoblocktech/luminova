@@ -12,7 +12,7 @@ namespace Luminova\Email;
 use \PHPMailer\PHPMailer\PHPMailer;
 use \PHPMailer\PHPMailer\SMTP;
 use \PHPMailer\PHPMailer\Exception;
-use \Luminova\Config\BaseConfig;
+use \Luminova\Config\Configuration;
 
 class Mailer
 {
@@ -41,7 +41,7 @@ class Mailer
     public static function getInstance(): self
     {
         if (self::$instance === null) {
-            $mailer = new PHPMailer(!BaseConfig::isProduction());
+            $mailer = new PHPMailer(!Configuration::isProduction());
             self::$instance = new self($mailer);
         }
         return self::$instance;
@@ -106,25 +106,25 @@ class Mailer
     private function configureMailer(): void
     {
         $this->mailer->SMTPDebug = $this->shouldDebug() ? SMTP::DEBUG_CONNECTION : SMTP::DEBUG_OFF;
-        $this->mailer->CharSet = $this->getCharset(BaseConfig::getVariables("smtp.charset"));
+        $this->mailer->CharSet = $this->getCharset(Configuration::getVariables("smtp.charset"));
 
-        if (BaseConfig::getVariables("smtp.use.credentials") == 1) {
+        if (Configuration::getVariables("smtp.use.credentials") == 1) {
             $this->mailer->isSMTP();
-            $this->mailer->Host = BaseConfig::getVariables("smtp.host");
-            $this->mailer->Port = BaseConfig::getVariables("smtp.port");
+            $this->mailer->Host = Configuration::getVariables("smtp.host");
+            $this->mailer->Port = Configuration::getVariables("smtp.port");
 
-            if (BaseConfig::getVariables("smtp.use.password") == 1) {
+            if (Configuration::getVariables("smtp.use.password") == 1) {
                 $this->mailer->SMTPAuth = true;
-                $this->mailer->Username = BaseConfig::getVariables("smtp.username");
-                $this->mailer->Password = BaseConfig::getVariables("smtp.password");
+                $this->mailer->Username = Configuration::getVariables("smtp.username");
+                $this->mailer->Password = Configuration::getVariables("smtp.password");
             }
 
-            $this->mailer->SMTPSecure = $this->getEncryptionType(BaseConfig::getVariables("smtp.encryption"));
+            $this->mailer->SMTPSecure = $this->getEncryptionType(Configuration::getVariables("smtp.encryption"));
         } else {
             $this->mailer->isMail();
         }
 
-        $this->mailer->setFrom(BaseConfig::getVariables("smtp.email.sender"), BaseConfig::getVariables("app.name"));
+        $this->mailer->setFrom(Configuration::getVariables("smtp.email.sender"), Configuration::getVariables("app.name"));
         $this->mailer->isHTML(true);
     }
 
@@ -135,7 +135,7 @@ class Mailer
      */
     private function shouldDebug(): bool
     {
-        return !BaseConfig::isProduction() && BaseConfig::getVariables("smtp.debug");
+        return !Configuration::isProduction() && Configuration::getVariables("smtp.debug");
     }
 
     /**
