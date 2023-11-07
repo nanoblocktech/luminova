@@ -3,6 +3,7 @@
 /tests
 /log
 /dump
+/writeable/caches
 /.git
 composer.lock
 command.phar
