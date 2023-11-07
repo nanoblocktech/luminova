@@ -8,12 +8,14 @@
  * @license See LICENSE file
  */
 namespace Luminova\Http;
+use Luminova\Config\Configuration;
 class Header {
     public const ERRORS = [
         404 => '404 Not Found',
         500 => '500 Internal Server Error'
     ];
-     /**
+
+    /**
      * Get all request headers.
      *
      * @return array The request headers
@@ -65,6 +67,25 @@ class Header {
         return $_SERVER['REQUEST_METHOD'];
     }
 
+    public static function getSystemHeaders(): array
+    {
+        return [
+            'Content-Encoding' => '',
+            'Content-Type' => 'text/html; charset=UTF-8',
+            'Cache-Control' => 'no-store, max-age=0, no-cache',
+            //'Expires' => gmdate("D, d M Y H:i:s", time() + 60 * 60 * 24) . ' GMT',
+            //'Content-Length' => 0,
+            'Content-Language' => 'en',
+            'X-Content-Type-Options' => 'nosniff',
+            'X-Frame-Options' => 'SAMEORIGIN', //'deny',
+            'X-XSS-Protection' => '1; mode=block',
+            'X-Firefox-Spdy' => 'h2',
+            'Vary' => 'Accept-Encoding',
+            'Connection' => 'close',
+            'X-Powered-By' => Configuration::copyright()
+        ];
+    }
+
     /**
      * Get the request method used, taking overrides into account.
      *
@@ -72,19 +93,20 @@ class Header {
      */
     public static function getRoutingMethod(): string
     {
-        // Take the method as found in $_SERVER
-        $method = $_SERVER['REQUEST_METHOD'];
-        if ($_SERVER['REQUEST_METHOD'] == 'HEAD') {
-            ob_start();
-            $method = 'GET';
-        }
-
-        // If it's a POST request, check for a method override header
-        elseif ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $headers = self::getHeaders();
-            if (isset($headers['X-HTTP-Method-Override']) && in_array($headers['X-HTTP-Method-Override'], ['PUT', 'DELETE', 'PATCH'])) {
-                $method = $headers['X-HTTP-Method-Override'];
+        $method = '';
+        if(isset($_SERVER['REQUEST_METHOD'])){
+            $method = $_SERVER['REQUEST_METHOD'];
+            if ($_SERVER['REQUEST_METHOD'] == 'HEAD') {
+                ob_start();
+                $method = 'GET';
+            } elseif ($_SERVER['REQUEST_METHOD'] == 'POST') {
+                $headers = self::getHeaders();
+                if (isset($headers['X-HTTP-Method-Override']) && in_array($headers['X-HTTP-Method-Override'], ['PUT', 'DELETE', 'PATCH'])) {
+                    $method = $headers['X-HTTP-Method-Override'];
+                }
             }
+        }else if(php_sapi_name() === 'cli'){
+            $method = 'CLI';
         }
 
         return $method;

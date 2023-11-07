@@ -42,11 +42,11 @@ class AppException extends Exception
     /**
      * Handle the exception based on the production environment.
      *
-     * @param bool $production  Indicates whether it's a production environment (default: false).
+     * @param bool|null $production  Indicates whether it's a production environment (default: false).
      */
-    public function handle(bool $production = false)
+    public function handle(?bool $production = false)
     {
-        if ($production) {
+        if (Configuration::isProduction()) {
             $logDirectory = Configuration::getRootDirectory(__DIR__) . "writable/log/";
             $logFile = $logDirectory . "exception.log";
 
@@ -64,14 +64,14 @@ class AppException extends Exception
     /**
      * Create and handle a Exception.
      *
-     * @param string $message    The exception message.
-     * @param bool   $production Indicates whether it's a production environment (default: false).
-     * @param int   $code The exception code (default: 500).
+     * @param string $message he exception message.
+     * @param bool|null $production Indicates whether it's a production environment (default: false).
+     * @param int $code The exception code (default: 500).
      */
-    public static function throwException(string $message, bool $production = false, int $code = 500)
+    public static function throwException(string $message, ?bool $production = null, int $code = 500)
     {
         $throw = new self($message, $code);
-        $throw->handle($production);
+        $throw->handle($production === null ? Configuration::isProduction() :  $production);
     }
     
 }

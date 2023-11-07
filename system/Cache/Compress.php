@@ -8,8 +8,8 @@
  * @license See LICENSE file
  */
 namespace Luminova\Cache;
-use Luminova\Config\Configuration;
- class Compress extends Configuration{
+use Luminova\Http\Header;
+class Compress {
     /**
 	* holds json content type
 	* @var string JSON
@@ -56,7 +56,13 @@ use Luminova\Config\Configuration;
 	*  Compressed content
 	* @var mixed $compressedContent
 	*/
-    private mixed $compressedContent;
+    private mixed $compressedContent = '';
+
+    /** 
+	*  Minified content
+	* @var mixed $minifiedContent
+	*/
+    private mixed $minifiedContent = '';
 
 	/** 
 	*  Maximin execution time 
@@ -68,26 +74,28 @@ use Luminova\Config\Configuration;
 	* Compression level  
 	* @var int $compressionLevel
 	*/
-    private int $compressionLevel = 6; //9
+    private int $compressionLevel = 6;
 
-    // Regular expression patterns for content stripping
-    private const OPTIONS = [
+    /**
+     * Regular expression patterns for content stripping
+     * @var array $patterns
+    */
+    private const PATTERNS = [
         "find" => [
             '/\>[^\S ]+/s',          // Strip whitespace after HTML tags
             '/[^\S ]+\</s',          // Strip whitespace before HTML tags
-            '/(\s)+/s',              // Strip excessive whitespace
+            '/\s+/', //'/(\s)+/s',   // Strip excessive whitespace
             '/<!--(.*)-->/Uis',      // Strip HTML comments
             '/[[:blank:]]+/'         // Strip blank spaces
         ],
         "replace" => [
             '>',
             '<',
-            '\\1',
+            ' ',
             '',
             ' '
         ],
         "line" =>[
-            //'/[\n\r\t]+/'
             "\n",
             "\r",
             "\t"
@@ -100,20 +108,7 @@ use Luminova\Config\Configuration;
      * Initializes default settings for the response headers and cache control.
      */
     public function __construct() {
-        $this->headers = array(
-            'Content-Encoding' => '',
-            'Content-Type' => 'charset=UTF-8',
-            'Cache-Control' => 'no-store, max-age=0, no-cache',
-            'Expires' => gmdate("D, d M Y H:i:s", time()) . ' GMT',
-            'Content-Length' => 0,
-            'Content-Language' => 'en',
-            'X-Content-Type-Options' => 'nosniff',
-            'X-Frame-Options' => 'SAMEORIGIN', //'deny',
-            'X-XSS-Protection' => '1; mode=block',
-            'X-Firefox-Spdy' => 'h2',
-            'Vary' => 'Accept-Encoding',
-            'Connection' => 'close',
-        );
+        $this->headers = Header::getSystemHeaders();
         $this->gzip = true;
     }
    
@@ -213,10 +208,18 @@ use Luminova\Config\Configuration;
 
     /**
      * Get compressed content
-     * @return mixed compressed content $compressedContent
+     * @return mixed compressed content $this->compressedContent
      */
     public function getCompressed(): mixed {
 		return $this->compressedContent;
+    }
+
+    /**
+     * Get minified content
+     * @return string minified content $this->minifiedContent
+     */
+    public function getMinified(): string {
+		return $this->minifiedContent;
     }
 
     /**
@@ -228,21 +231,30 @@ use Luminova\Config\Configuration;
      */
     public function compress(mixed $data, string $contentType): string {
         $content = ($contentType === self::JSON) ? json_encode($data, true) : $data;
-        $minifiedContent = $this->ignoreCodeblock ? self::minifyIgnoreCodeblock($content) : self::minify($content);
-       
-        if ($this->gzip && !empty($_SERVER['HTTP_ACCEPT_ENCODING']) && strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false) {
-            $this->headers['Content-Encoding'] = 'gzip';
-            $minifiedContent = gzencode($minifiedContent, $this->compressionLevel);
-            //$minifiedContent = gzencode($minifiedContent, 9, FORCE_GZIP);
-        }
-        $this->headers['Content-Length'] = strlen($minifiedContent);
-        $this->headers['Content-Type'] = $contentType . ' ' . $this->headers['Content-Type'];
+        $this->minifiedContent = $this->ignoreCodeblock ? self::minifyIgnoreCodeblock($content) : self::minify($content);
+        $compressedContent = '';
 
+        $shouldCompress = false;
+        if ($this->gzip && function_exists('gzencode') && !empty($_SERVER['HTTP_ACCEPT_ENCODING']) && strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false) {
+            $shouldCompress = true;
+        }
+    
+        if ($shouldCompress) {
+            $this->headers['Content-Encoding'] = 'gzip';
+            // Compress the content and store it in a variable
+            $compressedContent = gzencode($this->minifiedContent, $this->compressionLevel);
+            //$compressedContent = gzencode($this->minifiedContent, $this->compressionLevel, 9, FORCE_GZIP);
+        } else {
+            // Store the uncompressed content in a property
+            $compressedContent = $this->minifiedContent;
+        }
+        
+        $this->headers['Content-Length'] = strlen($compressedContent);
+        $this->headers['Content-Type'] = $contentType . ' ' . $this->headers['Content-Type'];
         foreach ($this->headers as $header => $value) {
             header("$header: $value");
         }
-        $this->compressedContent = $minifiedContent;
-        return $minifiedContent;
+        return $compressedContent;
     }
 
     /**
@@ -251,22 +263,30 @@ use Luminova\Config\Configuration;
      * @param string|array|object $body The content body to be sent in the response.
      * @param int $statusCode The HTTP status code to be sent in the response.
      * @param string $contentType The expected content type for the response.
-     */
-    private function withViewContent(mixed $body, int $statusCode, string $contentType): void 
-    {
+    */
+    private function withViewContent(mixed $body, int $statusCode, string $contentType): void {
         set_time_limit($this->scriptExecutionLimit);
         ignore_user_abort($this->ignoreUserAbort);
-        ob_end_clean();
-        echo $this->compress($body, $contentType);
+        
+        // Start output buffering and use ob_gzhandler for gzip compression
+        ob_start('ob_gzhandler');
+    
+        // Compress the content and store it in a variable
+        //$this->compressedContent = $this->compress($body, $contentType);
+    
         if ($statusCode) {
             http_response_code($statusCode);
         }
+        // ob_end_clean();
+        // Echo the stored compressed content
+        echo $this->compress($body, $contentType);
+    
+        // If there is any content in the output buffer, end and flush it
         if (ob_get_length() > 0) {
             ob_end_flush();
         }
     }
-
-
+    
     /**
      * Send the output in HTML format.
      *
@@ -331,65 +351,47 @@ use Luminova\Config\Configuration;
     }
     
     /**
-     * Minify the given buffer content by removing unwanted tags and whitespace.
+     * Minify the given content by removing unwanted tags and whitespace.
      *
-     * @param string $buffer The content output buffer to minify.
-     * @return string The minified content.
+     * @param string $content The content to minify.
+     * @return string minified content.
      */
-    public static function minify(string $buffer): string 
-    {
-        $minified_buffer = preg_replace(
-            self::OPTIONS["find"],
-            self::OPTIONS["replace"],
-            str_replace(self::OPTIONS["line"], '', $buffer)
-        );
-        return trim(preg_replace('/\s+/', ' ', $minified_buffer));
+    public static function minify(string $content): string {
+        //$patterns = self::PATTERNS;
+        //$patterns["find"][] = '/\s+/'; 
+        //$patterns["replace"][] = ' ';
+
+        $content = str_replace(self::PATTERNS["line"], '', $content);
+        $content = preg_replace(self::PATTERNS["find"], self::PATTERNS["replace"], $content);
+        return trim($content);
     }
 
     /**
-     * @deprecated This method start() is deprecated. Use ob_start() method instead.
-     * Call ob_start(), ob_start(['\Peterujah\NanoBlock\Compress', 'minify']); 
-     * or ob_start(['\Peterujah\NanoBlock\Compress', 'minifyIgnoreCodeblock']);
-     * Start output buffering and minify the content by removing unwanted tags and whitespace.
+     * Minify the given content by removing unwanted tags and whitespace.
+     * Ignore html <code></code> block
+     * @param string $content The content to minify.
+     * @return string minified content.
      */
-    public static function start(bool $minify = false): void 
-    {
-        ob_start($minify ? ['self', 'minify'] : null);
-    }
+    function minifyIgnoreCodeblock(string $content): string {
+        $ignoredCodeBlocks = [];
+        $codeBlockPattern = '/<code[^>]*>[\s\S]*?<\/code>/i';
+        //$commentPattern = '/<!--\[File was cached on - (.*?) Using: (.*?)\]-->/';
+        $content = preg_replace_callback($codeBlockPattern, function ($matches) use (&$ignoredCodeBlocks) {
+            $ignoredCodeBlocks[] = $matches[0];
+            return '###IGNORED_CODE_BLOCK###';
+        }, $content);
     
-    /**
-     * Minify the given buffer content by removing unwanted tags and whitespace.
-     * But ignore html <pre><code> block
-     * @param string $buffer The content output buffer to minify.
-     * @return string The minified content.
-     */
-    public static function minifyIgnoreCodeblock(string $buffer): string {
-        $ignored_blocks = [];
-        $buffer = preg_replace_callback(
-            '/<pre><code>([\s\S]*?)<\/code><\/pre>/i',
-            function ($matches) use (&$ignored_blocks) {
-                $ignored_blocks[] = $matches[1];
-                return '<!--OB_COMPRESS_IGNORED_BLOCK-->';
-            },
-            $buffer
-        );
+        // Perform minification
+        //$content = preg_replace(self::PATTERNS["find"], self::PATTERNS["replace"], $content);
+        $content = self::minify($content);
     
-
-        $minified_buffer = preg_replace_callback(
-            '/<!--OB_COMPRESS_IGNORED_BLOCK-->/',
-            function () use (&$ignored_blocks) {
-                $block = array_shift($ignored_blocks);
-                $replacement = preg_replace('/class="language-(.*?)"/i', 'class="$1"', $block);
-                return '<pre><code ' . $replacement . '>' . $block . '</code></pre>';
-            },
-            preg_replace(
-                self::OPTIONS["find"],
-                self::OPTIONS["replace"],
-                $buffer
-            )
-        );
+        // After processing, restore the code blocks back to its original state
+        $count = 1; // Make sure only one code block is processed
+        foreach ($ignoredCodeBlocks as $codeBlock) {
+            $content = str_replace('###IGNORED_CODE_BLOCK###', $codeBlock, $content, $count);
+        }
     
-        return $minified_buffer;
+        return $content;
     }
     
 }

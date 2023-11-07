@@ -112,7 +112,10 @@ interface DatabaseInterface  {
 
     /**
      * Executes the prepared statement.
-     */
+     * @param array $values execute statement with values
+     * @throws DatabaseException 
+     * @return void
+    */
     public function execute(?array $values = null): void;
 
     /**

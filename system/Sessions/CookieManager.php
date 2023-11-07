@@ -12,7 +12,6 @@ use Luminova\Sessions\SessionInterface;
 
 class CookieManager implements SessionInterface
 {
-
     /**
      * @var string $storage
     */

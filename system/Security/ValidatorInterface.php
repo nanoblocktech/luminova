@@ -36,6 +36,24 @@ interface ValidatorInterface {
     public function getErrors(): array;
 
     /**
+     * Get validation error messages
+     * @param string $field messages input field name
+     * @return string Error message
+    */
+    public function getError(string $field): string;
+
+    /**
+     * Add validation error message
+     * 
+     * @param string $field input field name
+     * @param string $ruleName Rule name
+     * @param string $message Error message
+     * 
+     * @return void 
+    */
+    public function addError($field, $ruleName, $message = ''): void;
+
+    /**
      * Set rules array array with optional messages
      * @param array $rules validation rules
      * @param array $message optional pass response message for validation

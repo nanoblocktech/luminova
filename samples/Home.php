@@ -8,7 +8,7 @@
  * @license See LICENSE file
  */
 namespace App\Controllers;
-use Luminova\Controller;
+use \Luminova\Controller;
 class Home extends Controller {
     /**
     * Extending  Luminova\Controller; in your controller

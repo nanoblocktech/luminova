@@ -14,18 +14,18 @@ class MemoryCache {
     /**
      * @var int Default cache time duration in seconds.
      */
-    protected $cacheTime = 60;
+    private $cacheTime = 60;
 
     /**
      * @var array Memcached server configuration.
      */
-    protected $config = [];
+    private $config = [];
 
 
     /**
      * @var Memcached Memcached instance
     */
-    protected Memcached $memcache;
+    private Memcached $memcache;
 
     /**
      * MemoryCache constructor.

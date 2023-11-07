@@ -11,7 +11,6 @@ namespace Luminova\Email;
 
 use \PHPMailer\PHPMailer\PHPMailer;
 use \PHPMailer\PHPMailer\SMTP;
-use \PHPMailer\PHPMailer\Exception;
 use \Luminova\Config\Configuration;
 
 class Mailer

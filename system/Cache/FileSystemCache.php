@@ -56,37 +56,37 @@ class FileSystemCache {
      * Hold the cache directory path
      * @var string $cacheLocation
      */
-    protected string $cacheLocation = '';
+    private string $cacheLocation = '';
 
     /**
      * Hold the cache security status option
      * @var bool $cacheSecurity
      */
-    protected bool $cacheSecurity = true;
+    private bool $cacheSecurity = true;
 
     /**
      * Hold the cache file extension type
      * @var string $cacheFileExtension
      */
-    protected string $cacheFileExtension;
+    private string $cacheFileExtension;
 
     /**
      * Hold the cache debug status option
      * @var bool $isDebugging
      */
-    protected bool $isDebugging = false;
+    private bool $isDebugging = false;
 
     /**
      * Hold the cache state mode 
      * @var bool $isCacheEnabled
      */
-    protected bool $isCacheEnabled = true;
+    private bool $isCacheEnabled = true;
     
     /**
      * Hold the cache details array 
      * @var array $cacheArray
      */
-    protected array $cacheArray = [];
+    private array $cacheArray = [];
 
     /**
      * Hold the cache expiry delete option
@@ -439,7 +439,7 @@ class FileSystemCache {
      * @throws ErrorException if the file cannot be saved
      * @return FileSystemCache $this
      */
-    protected function buildCache(string $key, mixed $data, int $expiration = 60, bool $lock = false): self {
+    private function buildCache(string $key, mixed $data, int $expiration = 60, bool $lock = false): self {
         $cacheString = serialize($data);
         if ($cacheString === false) {
             throw new ErrorException("Failed to create cache file!");
@@ -460,7 +460,7 @@ class FileSystemCache {
      * @return mixed cached data
      * @throws ErrorException if cannot load cache, unable to unserialize, hash sum not found or invalid key
      */
-    protected function fetchCatchData(): mixed {
+    private function fetchCatchData(): mixed {
     
         $filepath = $this->getCacheFilePath();
 
@@ -505,7 +505,7 @@ class FileSystemCache {
      * @param string $str cache string
      * @return string cache text without the first security line
      */
-    protected function unlockSecurity(string $str): string {
+    private function unlockSecurity(string $str): string {
         $position = strpos($str, PHP_EOL);
         if ($position === false){
             return $str;
@@ -548,7 +548,7 @@ class FileSystemCache {
      * @throws ErrorException if the file cannot be saved
      */
 
-    protected function writeCache(): self {
+     private function writeCache(): self {
 
         /*if (!is_writeable($this->cacheLocation )) {
            throw new ErrorException('Path: ' . $this->cacheLocation . ' is not writable');

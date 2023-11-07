@@ -1,5 +1,4 @@
-#!/usr/bin/env php
-<?php
+<?php 
 /**
  * Luminova Framework
  *
@@ -8,3 +7,8 @@
  * @copyright (c) Nanoblock Technology Ltd
  * @license See LICENSE file
  */
+namespace Luminova\Command;
+use Luminova\Command\Terminal;
+abstract class TerminalGenerator extends Terminal{
+
+}

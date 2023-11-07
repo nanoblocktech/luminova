@@ -10,48 +10,82 @@
 namespace Luminova\Routing;
 use Luminova\Http\Header;
 use Luminova\Exceptions\ErrorException;
-use Luminova\Errors\Codes;
-use Luminova\Languages\Translator;
 use Luminova\Routing\Bootstrap;
 use \ReflectionMethod;
 use \ReflectionException;
+use \ReflectionClass;
+use Luminova\Command\Terminal;
+use Luminova\Command\BaseCommand;
+use Luminova\Controller;
+use App\Controllers\Application;
 
-class Router extends Header {
+
+class Router {
     /**
-     * @var array Route patterns and handling functions
-     */
+     * Route patterns and handling functions
+     * @var array $afterRoutes
+    */
     private array $afterRoutes = [];
 
     /**
-     * @var array before middleware route patterns and handling functions
+     * before middleware route patterns and handling functions
+     * @var array $beforeRoutes
      */
     private array $beforeRoutes = [];
 
     /**
-     * @var array Callable functions to be executed when no matched route was found
+     * CLI command route 
+     * @var array $commandRoutes 
      */
-    protected array $errorsCallback = [];
+    private array $commandRoutes = [];
 
     /**
-     * @var string Current base route, used for (sub)route mounting
+      * CLI command route middleware
+     * @var array $commandSecurityRoutes 
+     */
+    private array $commandSecurityRoutes = [];
+
+    /**
+     * HTTP error callable functions 
+     * to be executed when no matched route was found
+     * @var array $errorsCallback
+    */
+    private array $errorsCallback = [];
+
+    /**
+     * Current base route, used for (sub)route mounting
+     * @var string $baseRoute
      */
     private string $baseRoute = '';
 
     /**
-     * @var string The Request Method that needs to be handled
-     */
+     * HTTP Request Method 
+     * @var string $requestedMethod
+    */
     private string $requestedMethod = '';
 
     /**
-     * @var string The Server Base Path for Router Execution
-     */
+     * CLI request command name
+     * @var string $commandName 
+    */
+    private string $commandName = '';
+
+    /**
+     * Server base path for router
+     * @var string $serverBasePath
+    */
     private $serverBasePath;
 
     /**
-     * @var array Application registered controllers namespace
-     */
+     * Application registered controllers namespace
+     * @var array $namespace
+    */
     private array $namespace = [];
 
+    /**
+     * All allowed HTTP request methods
+     * @var string ALL_METHODS
+    */
     private const ALL_METHODS = 'GET|POST|PUT|DELETE|OPTIONS|PATCH|HEAD';
 
     /**
@@ -72,6 +106,58 @@ class Router extends Header {
                 'callback' => $callback,
             ];
         }
+    }
+
+    /**
+     * Capture front controller command middleware security and execute callback
+     *
+     * @param callable|string $pattern Allowed command pattern, script name or callback function
+     * @param callable|string $callback Callback function to execute
+     * @param array $options Optional options
+    */
+    public function beforeCommand(callable|string $pattern, callable|string $callback = null, array $options = []): void
+    {
+        if(is_callable($pattern)){
+            $callback = $pattern;
+            $parsedPattern = 'before';
+            $isController = false;
+        }else{
+            $build_pattern = $this->parsePatternValue($pattern);
+        
+            $parsedPattern = ($build_pattern !== false) ? $build_pattern : trim($pattern, '/');
+            $isController = ($build_pattern !== false);
+        }
+    
+        $this->commandSecurityRoutes["CLI"][] = [
+            'callback' => $callback,
+            'pattern' => $parsedPattern,
+            'options' => $options,
+            'controller' => $isController,
+            'middleware' => true
+        ];
+    }
+
+    /**
+     * Capture front controller command request names and execute callback
+     *
+     * @param string $pattern Allowed command pattern or script name
+     * @param callable|string $callback Callback function to execute
+     * @param array $options Optional options
+    */
+    public function command(string $pattern, callable|string $callback, ?array $options = []): void
+    {
+        $build_pattern = $this->parsePatternValue($pattern);
+    
+        $parsedPattern = ($build_pattern !== false) ? $build_pattern : trim($pattern, '/');
+        $isController = ($build_pattern !== false);
+    
+        $this->commandRoutes["CLI"][] = [
+            'callback' => $callback,
+            'pattern' => $parsedPattern,
+            'options' => $options,
+            'controller' => $isController,
+            'middleware' => false
+        ];
     }
 
     /**
@@ -185,7 +271,7 @@ class Router extends Header {
             $callback();
             $this->baseRoute = $curBaseRoute;
         }else{
-            throw new ErrorException('Invalid argument $callback: requires callable function, ' . gettype($callback) . ', is given instead.');
+           ErrorException::throwException('Invalid argument $callback: requires callable function, ' . gettype($callback) . ', is given instead.');
         }
     }
 
@@ -195,8 +281,12 @@ class Router extends Header {
      * @param Bootstrap $callbacks callable arguments
     */
     public function bootstraps(Bootstrap ...$callbacks): void {
+        if (!defined('ENVIRONMENT')) {
+            define('ENVIRONMENT', getenv('app.environment.mood', 'development'));
+        }
         $methods = explode('|', self::ALL_METHODS);
-        $method = parent::getRoutingMethod();
+        $methods[] = 'CLI'; //Fake a request method for cli
+        $method = Header::getRoutingMethod();
         if (in_array($method, $methods)) {
             $uri = $this->getView();
             $curBaseRoute = $this->baseRoute;
@@ -205,22 +295,23 @@ class Router extends Header {
                     $result = $bootstrap->getType();
                     $errorHandler = $bootstrap->getErrorHandler();
                     $registerError = ($errorHandler !== null && is_callable($errorHandler));
-                    
+                   
                     if(preg_match('#^/' . $result . '#', $uri)) {
-                        if($registerError){
-                            $this->setErrorHandler($errorHandler);
-                        }
-                        if ($result === Bootstrap::CLI){
-                            header("Content-type: text/plain");
-                            if(php_sapi_name() !== 'cli') {
+                       if ($result === Bootstrap::CLI){
+                            if (!defined('CLI_ENVIRONMENT')) {
+                                define('CLI_ENVIRONMENT', getenv('cli.environment.mood', 'testing'));
+                            }
+                            if (!defined('STDOUT')) {
+                                define('STDOUT', 'php://output');
+                            }
+                            if(!Terminal::isCommandLine()) {
                                 return;
                             }
+                        }elseif($registerError){
+                            $this->setErrorHandler($errorHandler);
                         }
 
-                        /*
-                        * Make sure is not web instance
-                        */
-                        if ($result !== Bootstrap::WEB) {
+                        if ($result !== Bootstrap::WEB) {  //Make sure is not web instance
                             $this->baseRoute .= '/' . $result;
                         }
                     
@@ -244,6 +335,7 @@ class Router extends Header {
      * Register a class namespace to use across the application
      *
      * @param string $namespace Class namespace
+     * @return void
      * @throws ErrorException
      */
     public function addNamespace(string $namespace): void
@@ -251,59 +343,89 @@ class Router extends Header {
         if (is_string($namespace)) {
             $this->namespace[] = $namespace;
         }else{
-            throw new ErrorException('Invalid argument $namespace: requires string, ' . gettype($namespace) . ', is given instead.');
+            ErrorException::throwException('Invalid argument $namespace: requires string, ' . gettype($namespace) . ', is given instead.');
         }
     }
 
     /**
-     * Get list of registered namespace
+     * Run the router and application: 
+     * Loop all defined CLI and HTTP before middleware's, after routes and command routes
+     * Execute callback function if method matches view  or command name.
      *
-     * @return array List of registered namespaces
-     */
-    public function getNamespaces(): array
+     * @param callable $callback Optional final callback function to execute after run
+     * @return void
+    */
+    public function run(?callable $callback = null): void
     {
-        return $this->namespace;
+        $this->requestedMethod = Header::getRoutingMethod();
+        $status = ($this->requestedMethod === "CLI" ? $this->runAsCli() : $this->runAsHttp());
+
+        if ($status && $callback && is_callable($callback)) {
+            $callback();
+        }
+
+        if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'HEAD') {
+            ob_end_clean();
+        }
+
+        exit($status == true ? 0 : 1);
+    }
+
+
+    /**
+     * Run the CLI router and application: 
+     * Loop all defined CLI routes
+     *
+     * @return bool
+    */
+    private function runAsCli(): bool
+    {
+        $result = true;
+        if (isset($this->commandSecurityRoutes[$this->requestedMethod])) {
+            $result = $this->handleCommand($this->commandSecurityRoutes[$this->requestedMethod]);
+        }
+
+        if( $result ){
+            $result = false;
+            if (isset($this->commandRoutes[$this->requestedMethod])) {
+                $this->commandName = $this->getCommandName();
+                $result = $this->handleCommand($this->commandRoutes[$this->requestedMethod], true);
+            }
+            if (!$result) {
+                echo "Unknown command: $this->commandName\n";
+            }
+        }
+
+        return $result;
     }
 
     /**
-     * Run the router and application: Loop all defined before middleware's and routes
-     * Execute callback function if method and view match was found.
-     *
-     * @param callable $callback Final callback function to execute after run
+     * Run the HTTP router and application: 
+     * Loop all defined HTTP request method and view routes
      *
      * @return bool
-     */
-    public function run(?callable $callback = null): bool
+    */
+    private function runAsHttp(): bool
     {
-        $this->requestedMethod = parent::getRoutingMethod();
+        $result = false;
 
         if (isset($this->beforeRoutes[$this->requestedMethod])) {
             $this->handle($this->beforeRoutes[$this->requestedMethod]);
         }
 
-        $numHandled = 0;
         if (isset($this->afterRoutes[$this->requestedMethod])) {
-            $numHandled = $this->handle($this->afterRoutes[$this->requestedMethod], true);
+            $result = $this->handle($this->afterRoutes[$this->requestedMethod], true);
         }
 
-        if ($numHandled === 0) {
+        if (!$result) {
             if(isset($this->afterRoutes[$this->requestedMethod])){
                 $this->triggerError($this->afterRoutes[$this->requestedMethod]);
             }else{
                 $this->triggerError([]);
             }
-        } 
-        else {
-            if ($callback && is_callable($callback)) {
-                $callback();
-            }
         }
 
-        if ($_SERVER['REQUEST_METHOD'] == 'HEAD') {
-            ob_end_clean();
-        }
-
-        return $numHandled !== 0;
+        return $result;
     }
 
     /**
@@ -328,113 +450,269 @@ class Router extends Header {
      */
     public function triggerError(?array $match = null, int $code = 404): void{
 
-        $numHandled = 0;
+        $status = false;
 
         if (count($this->errorsCallback) > 0)
         {
             foreach ($this->errorsCallback as $route_pattern => $route_callable) {
-              $matches = [];
-              $is_match = $this->patternMatches($route_pattern, $this->getViewUri(), $matches, PREG_OFFSET_CAPTURE);
+              $is_match = $this->patternMatches($route_pattern, $this->getView(), $matches);
               if ($is_match) {
-                $matches = array_slice($matches, 1);
-                $params = array_map(function ($match, $index) use ($matches) {
-
-                  if (isset($matches[$index + 1]) && isset($matches[$index + 1][0]) && is_array($matches[$index + 1][0])) {
-                    if ($matches[$index + 1][0][1] > -1) {
-                      return trim(substr($match[0][0], 0, $matches[$index + 1][0][1] - $match[0][1]), '/');
-                    }
-                  } 
-
-                  return isset($match[0][0]) && $match[0][1] != -1 ? trim($match[0][0], '/') : null;
-                }, $matches, array_keys($matches));
-
+                //$params = self::processFindMatches($matches);
                 $this->execute($route_callable);
-
-                ++$numHandled;
+                $status = true;
               }
             }
         }
-        if (($numHandled == 0) && (isset($this->errorsCallback['/']))) {
-            $this->execute($this->errorsCallback['/']);
-        } elseif ($numHandled == 0) {
-            header($_SERVER['SERVER_PROTOCOL'] . ' ' . (new Translator("en"))->get($code??Codes::ERROR_404));
+
+        if(!$status){
+            if(isset($this->errorsCallback['/'])){
+                $this->execute($this->errorsCallback['/']);
+            }elseif(isset($_SERVER['SERVER_PROTOCOL'])) {
+                header($_SERVER['SERVER_PROTOCOL'] . ' Error file not found');
+                //header($_SERVER['SERVER_PROTOCOL'] . ' ' . (new Translator("en"))->get($code??Codes::ERROR_404));
+            }
         }
     }
-
+    
     /**
      * Handle a set of routes: if a match is found, execute the relating handling function.
      *
      * @param array $routes  Collection of route patterns and their handling functions
      * @param bool  $quitAfterRun Does the handle function need to quit after one route was matched?
      *
-     * @return int The number of routes handled
+     * @return bool The number of routes handled
+     * @throws ErrorException if method is not callable or doesn't exist
      */
-    private function handle(array $routes, bool $quitAfterRun = false): int
+    private function handle(array $routes, bool $quitAfterRun = false): bool
     {
-        $numHandled = 0;
-        $uri = $this->getViewUri();
+        $status = false;
+        $uri = $this->getView();
         foreach ($routes as $route) {
-            $is_match = $this->patternMatches($route['pattern'], $uri, $matches, PREG_OFFSET_CAPTURE);
+            $is_match = $this->patternMatches($route['pattern'], $uri, $matches);
             if ($is_match) {
-                $matches = array_slice($matches, 1);
-                $params = array_map(function ($match, $index) use ($matches) {
-
-                    if (isset($matches[$index + 1]) && isset($matches[$index + 1][0]) && is_array($matches[$index + 1][0])) {
-                        if ($matches[$index + 1][0][1] > -1) {
-                            return trim(substr($match[0][0], 0, $matches[$index + 1][0][1] - $match[0][1]), '/');
-                        }
-                    } 
-
-                    return isset($match[0][0]) && $match[0][1] != -1 ? trim($match[0][0], '/') : null;
-                }, $matches, array_keys($matches));
-
-                $this->execute($route['callback'], $params);
-
-                ++$numHandled;
+                $this->execute($route['callback'], self::processFindMatches($matches));
+                $status = true;
 
                 if ($quitAfterRun) {
                     break;
                 }
             }
         }
-        return $numHandled;
+        return $status;
+    }
+
+    /**
+    * Handle C=command router CLI callback class method with the given parameters 
+    * using instance callback or reflection class
+    * @param array $routes Command name array values
+    * @return void 
+    * @throws ErrorException if method is not callable or doesn't exist
+    */
+    
+    private function handleCommand(array $routes, bool $quitAfterRun = false): bool
+    {
+        $result = false;
+        foreach ($routes as $route) {
+            if ($route['controller']) {
+                $queries = Terminal::getQueries();
+                $controllerView = trim($queries['view'], '/');
+                $is_match = $this->patternMatches($route['pattern'], $queries['view'], $matches);
+                if ($is_match || $controllerView === $route['pattern']) {
+                    if ($is_match) {
+                        $parameter = self::processFindMatches($matches);
+                    } else {
+                        $parameter = [Terminal::parseCommandLine($_SERVER['argv'] ?? [])];
+                    }
+    
+                    $result = $this->execute($route['callback'], $parameter);
+                    if (($quitAfterRun && !$route['middleware']) || (!$result && $route['middleware'])) {
+                        break;
+                    }
+                }
+            } elseif ($this->commandName === $route['pattern'] || $route['middleware']) {
+                $parameter = [Terminal::parseCommandLine($_SERVER['argv'] ?? [])];
+                $result = $this->execute($route['callback'], $parameter);
+
+                if (($quitAfterRun && !$route['middleware']) || (!$result && $route['middleware'])) {
+                    break;
+                }
+            }else {
+                $parameter = Terminal::parseCommandLine($_SERVER['argv'] ?? []);
+                if(Terminal::systemHasCommand($this->commandName, $parameter)){
+                   $result = true;
+                   break;
+                }
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Extract matched parameters from request
+     *
+     * @param array $array Matches
+     * @return array $params
+     */
+    private static function processFindMatches(array $array): array
+    {
+        $array = array_slice($array, 1);
+        $params = array_map(function ($match, $index) use ($array) {
+            if (isset($array[$index + 1]) && isset($array[$index + 1][0]) && is_array($array[$index + 1][0])) {
+                if ($array[$index + 1][0][1] > -1) {
+                    return trim(substr($match[0][0], 0, $array[$index + 1][0][1] - $match[0][1]), '/');
+                }
+            } 
+            return isset($match[0][0]) && $match[0][1] != -1 ? trim($match[0][0], '/') : null;
+        }, $array, array_keys($array));
+        return  $params;
+    }
+
+    /**
+    * Execute router HTTP callback class method with the given parameters using instance callback or reflection class
+    * @param callable|string $callback Class public callback method eg: UserController:update
+    * @param array $arguments Method arguments to pass to callback method
+    * @return bool 
+    * @throws ErrorException if method is not callable or doesn't exist
+    */
+    private function execute(callable|string $callback, array $arguments = []): bool
+    {
+        $result = true;
+        if(is_callable($callback)) {
+            $result = call_user_func_array($callback, $arguments);
+        } elseif (stripos($callback, '::') !== false) {
+            [$controller, $method] = explode('::', $callback);
+            $result = $this->reflectionClassLoader($controller, $method, $arguments);
+        }
+      
+        return self::getStatus($result);
+    }
+
+    /**
+     * Execute class using reflection method
+     *
+     * @param string $controller Controller class name
+     * @param string $method class method to execute
+     * @param array $arguments Optional arguments to pass to the method
+     *
+     * @return bool If method was called successfully
+     * @throws ErrorException if method is not callable or doesn't exist
+    */
+
+    private function reflectionClassLoader(string $controller, string $method, array $arguments = []): bool {
+        $namespaces = $this->getNamespaces(); 
+        $throw = true;
+    
+        foreach ($namespaces as $namespace) {
+            $className = $namespace . '\\' . $controller;
+            try {
+                $class = new ReflectionClass($className);
+                if (!$class->isInstantiable() || 
+                    !($class->isSubclassOf(BaseCommand::class) || 
+                        $class->isSubclassOf(Controller::class) ||
+                        $class->isSubclassOf(Application::class))) {
+                    continue;
+                }
+       
+                $classMethod = new ReflectionMethod($className, $method);
+                if ($classMethod->isPublic() && (!$classMethod->isAbstract())) {
+                    $class = null;
+                    if (!$classMethod->isStatic()) {
+                        $class = new $className();
+                    }
+    
+                    if(isset($arguments[0]['command']) && Terminal::isCommandLine() && $class !== null) {
+                        [$throw, $result] = $this->invokeCommandArgs($arguments, $className, $classMethod);
+                    }else{
+                        $result = $classMethod->invokeArgs($class, $arguments);
+                    }
+                    unset($class);
+                    return self::getStatus($result);
+                }
+            } catch (ReflectionException $e) {
+                continue;
+            }
+        }
+    
+        if ($throw) {
+            ErrorException::throwException("The method '$method' is not callable in registered namespaces.");
+        }
+    
+        return false;
     }
 
 
     /**
-     * Execute the class method with the given parameters using reflection
-    * @param callable|string $callback Class public callback method eg: UserController:update
-    * @param array $arguments Method arguments to pass to callback method
-    * @return void 
-    * @throws ErrorException if method is not callable or doesn't exist
+     * Invoke class using reflection method
+     *
+     * @param array $arguments Pass arguments to reflection method
+     * @param string $className Invoking class name
+     * @param ReflectionMethod $method Controller class method
+     *
+     * @return array<bool, bool> 
     */
-    private function execute(callable|string $callback, array $arguments = []): void
+    private function invokeCommandArgs(array $arguments, string $className, ReflectionMethod $method): array
     {
-        if (is_callable($callback)) {
-            call_user_func_array($callback, $arguments);
-        } elseif (stripos($callback, '::') !== false) {
-            [$controller, $method] = explode('::', $callback);
-            $namespaces = $this->getNamespaces(); 
-
-            foreach ($namespaces as $namespace) {
-                $fullController = $namespace . '\\' . $controller;
-                try {
-                    $reflectedMethod = new ReflectionMethod($fullController, $method);
-                    if ($reflectedMethod->isPublic() && (!$reflectedMethod->isAbstract())) {
-                        if ($reflectedMethod->isStatic()) {
-                            forward_static_call_array([$fullController, $method], $arguments);
-                        } else {
-                            $controllerInstance = new $fullController();
-                            call_user_func_array([$controllerInstance, $method], $arguments);
-                        }
-                        return;
+        $result = false;
+        $throw = true;
+        if (!$method->isStatic()) {
+            $class = new $className();
+            if (method_exists($class, 'parseCommands')) {
+                $commands = $arguments[0]??[];
+                $commandId = '_about_';
+                if(isset($class->group)) {
+                    $commandId .= $class->name;
+                    $commands[$commandId] = [
+                        'class' => $className, 
+                        'group' => $class->group,
+                        'name' => $class->name,
+                        'options' => $class->options,
+                        'usages' => $class->usages,
+                        'description' => $class->description
+                    ];
+                }
+                
+                $code = $class->parseCommands($commands);
+                if($code === 0) {
+                    if (array_key_exists('help', $commands['options'])) {
+                        $result = true;
+                        Terminal::printHelp($commands[$commandId]);
+                    }else{
+                        $result = $method->invokeArgs($class, $arguments);
                     }
-                } catch (ReflectionException $reflectionException) {
-                    continue;
+                } elseif($code === 1) {
+                    $throw = false;
                 }
             }
-            throw new ErrorException("The method '$method' is not callable in any of the provided namespaces.");
+            unset($class);
         }
+        return [$throw, $result];
+    }
+
+
+    /**
+     * Return run status based on result
+     * In cli 0 is considered as success while 1 is failure.
+     * In few occasion void or null may be returned so we treat it as success
+     * 
+     * @param void|bool|null|int $result response from callback function
+     * @return bool
+    */
+    private static function getStatus(mixed $result = null): bool
+    {
+        if ($result === false || (is_int($result) && $result == 1)) {
+            return false;
+        }
+        return true;
+    }
+  
+    /**
+     * Get list of registered namespace
+     *
+     * @return array List of registered namespaces
+    */
+    public function getNamespaces(): array
+    {
+        return $this->namespace;
     }
     
     /**
@@ -443,9 +721,9 @@ class Router extends Header {
     *
     * @param $pattern
     * @param $uri
-    * @param $matches
+    * @param &$matches
     *
-    * @return bool -> is match yes/no
+    * @return bool is match true or false
     */
     private function patternMatches(string $pattern, string $uri, mixed &$matches): bool
     {
@@ -455,25 +733,56 @@ class Router extends Header {
 
     /**
      * Get the current view relative URI.
-     * @alias getView Aliases to getView
      * @return string
      */
+    public function getView(): string
+    {
+        $uri = '';
+        if(isset($_SERVER['REQUEST_URI'])){
+            //$uri = substr(rawurldecode($_SERVER['REQUEST_URI']), strlen($this->getBasePath()));
+            $uri = substr(rawurldecode($_SERVER['REQUEST_URI']), mb_strlen($this->getBasePath()));
+            if (strstr($uri, '?')) {
+                $uri = substr($uri, 0, strpos($uri, '?'));
+            }
+        }else if(Terminal::isCommandLine()){
+            $uri = '/cli/';
+        }
+        return '/' . trim($uri, '/');
+    }
+
+    /**
+     * Get the current view relative URI.
+     * @alias getView Aliases to getView
+     * @return string
+    */
     public function getViewUri(): string
     {
         return $this->getView();
     }
 
     /**
-     * Get the current view relative URI.
-     * @return string
-     */
-    public function getView(): string
+     * Replace command script pattern values match (:value) and replace with (pattern)
+     *
+     * @param string $input command script pattern
+     * @param string|false $output If match return replaced string else return false
+    */
+    private function parsePatternValue(string $input): string|false
     {
-        $uri = substr(rawurldecode($_SERVER['REQUEST_URI']), strlen($this->getBasePath()));
-        if (strstr($uri, '?')) {
-            $uri = substr($uri, 0, strpos($uri, '?'));
+        $input = trim($input, '/');
+
+        if (strpos($input, '(:value)') !== false) {
+            $pattern = '/\(:value\)/';
+            $replacement = '([^/]+)';
+
+            $output = preg_replace($pattern, $replacement, $input);
+            return '/' . $output;
         }
-        return '/' . trim($uri, '/');
+
+        if (strstr($input, '/')) {
+            return $input;
+        }
+        
+        return false;
     }
 
     /**
@@ -483,7 +792,7 @@ class Router extends Header {
      */
     public function getBasePath(): string
     {
-        if ($this->serverBasePath === null) {
+        if ($this->serverBasePath === null && isset($_SERVER['SCRIPT_NAME'])) {
             $this->serverBasePath = implode('/', array_slice(explode('/', $_SERVER['SCRIPT_NAME']), 0, -1)) . '/';
         }
 
@@ -498,5 +807,14 @@ class Router extends Header {
     {
         $this->serverBasePath = $serverBasePath;
     }
-  
+
+    /**
+     * Gets request command name
+     *
+     * @return string
+    */
+    private function getCommandName(): ?string {
+        $args = $_SERVER['argv'] ?? [];
+        return $args[1] ?? '';
+    }
 }

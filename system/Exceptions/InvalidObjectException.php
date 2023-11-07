@@ -9,6 +9,7 @@
  */
 namespace Luminova\Exceptions;
 use Luminova\Exceptions\AppException;
+use \Exception;
 
 class InvalidObjectException extends AppException
 {

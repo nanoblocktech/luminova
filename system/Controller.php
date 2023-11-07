@@ -14,16 +14,16 @@ use App\Controllers\Application;
 use Luminova\Http\Request;
 use Luminova\Security\InputValidator;
 
-class Controller extends Application {
+abstract class Controller extends Application {
     /**
      * @var Request $request http request object 
     */
-    public Request $request;
+    protected Request $request;
 
     /**
      * @var InputValidator $validate input validation object 
     */
-    public InputValidator $validate;
+    protected InputValidator $validate;
     
     public function __construct() {
         /**

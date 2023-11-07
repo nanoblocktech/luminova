@@ -58,7 +58,9 @@ Location: `/routes/api.php`
 #### Register Web/Api Routes
 Within any of your routes files located in `/routes/`, you can register routes with patterns and methods depending on your use case. 
 
-*Example*
+*Examples*
+
+For API, and Website routes they uses the same method on like CLI routes.
 
 ```php 
 $router->before('GET|POST', '/.*', function () {
@@ -128,8 +130,72 @@ $router->bind('/admin', function() use ($router, $app) {
 
 #### Register CLI Routes
 
-Coming soon
+In NovaKit CLI, you can register a global before middleware security check.
+You must return an integer `0` or `Terminal::STATUS_OK` if check is passed and `1` or `Terminal::STATUS_ERROR` if check is failed.
 
+```php
+$router->beforeCommand(function(){
+    return Terminal::STATUS_OK;
+});
+```
+
+```php
+$router->command("foo", 'Foo::run');
+```
+```php
+$router->command("demo", 'Foo::demo');
+```
+
+You can route using segments, just as you can on website front controller.
+Command `php index.php user name "Peter"`
+
+```php
+$router->command('/user/name/(:value)', function($name) {
+    echo "Username: {$name}";
+    return Terminal::STATUS_OK;
+});
+```
+
+Command: `php index.php user message "Hello World" id 22`
+
+```php
+$router->command('/user/name/(:value)/id/(:value)', function($name, $id) {
+    echo "UserInfo: {$name}, Id: {$id}";
+    return Terminal::STATUS_OK;
+});
+```
+
+To show controller help info `php index.php user -help`
+To show controller command list `php index.php user -list`
+
+# Crea
+
+```php
+namespace App\Controllers;
+use Luminova\Command\BaseCommand;
+class Foo extends BaseCommand {
+
+    protected string $group = 'custom';
+    protected string $name  = 'foo';
+    protected string|array $usages  = 'Run php index.php <foo> <bar> <baz>';
+    protected string $description = 'This is foo command description';
+    protected array $options = [];
+
+    public function run(?array $params = []): int
+    {
+        $options = $this->getOptions();
+        $caller = $this->getCaller();
+        $command = $this->getCommand();
+        $argument = $this->getArgument(1);
+        $value = $this->getValue("name");
+
+        var_export($options);
+        $this->newLine();
+        return parent::STATUS_OK;
+
+    }
+}
+```
 
 #### Creating Template Views
 
@@ -448,6 +514,7 @@ $this->validate->addRule('name', 'required|max_length(10)|alphanumeric')
 
 Rule           | Parameter    | Description
 ---------------|--------------|------------------------------------------------
+none           |  Void        | Ignore filed and return true
 required       |  Void        | Field is required, it cannot be empty
 max_length()   |  Integer     | Field maximum allowed length
 min_length()   |  Integer     | Field minimum allowed length
@@ -459,12 +526,13 @@ url            |  Void        | Field must be a valid URL
 alphabet       |  Void        | Field must be only an alphabet [aZ-Az]
 uuid()         |  Integer     | Field value must be uuid string, optional parameter for uuid version 
 exact_length() |  Integer     | Field value must be exact length
+in_array()     |  String      | Field value must be in array list
+keys_exist()   |  String      | Field array values must match in validation list
+callback()     |  Callable    | Callback myFunction(value, field) return boolean value
 ip()           |  Integer     | Field value must be a valid IP address, optional parameter for ip version
 decimal        |  Void        | Field must be a valid decimal value
 match()        |  Regex       | Field value must match the regular expression [/pattern/] 
 fallback()     |  Mixed       | If the field value is empty, replace it withe the default value, if parameter is empty any empty string will be used instead
-
-
 
 
 ## DATABASE

@@ -8,6 +8,7 @@ composer.lock
 command.phar
 index.html
 git.ssh
+cli.help
 .fleet
 .idea
 .vscode

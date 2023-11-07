@@ -1,15 +1,15 @@
 <?php 
+//use Luminova\Command\Terminal;
 /** @var \Luminova\Routing\Router $router */
 /** @var \App\Controllers\Application $app */
 
 
 /*
-| Register Before Middleware
-| A global middleware that run before and after each request
+* Register before middleware
+* A global middleware that run before and after each command is executed
+$router->beforeCommand(function(){
+    return Terminal::STATUS_OK;
+});
 */
-//$router->before('GET|POST', '/*', App\Controllers\YourMiddleware::class);
- 
- /**
-  * Register router main page view
- */
-$router->get('/', 'Welcome::info');
+
+$router->command("command", 'Command::run');

@@ -8,7 +8,7 @@
  * @license See LICENSE file
  */
 namespace Luminova\Cache;
-
+use Luminova\Http\Header;
 /**
  *
  * @author Peter Chigozie(NG) peterujah
@@ -31,6 +31,18 @@ class Optimizer
      * @var string $optimizerKey Cache key
      */
     private string $optimizerKey;
+
+    /** 
+	*  Maximin execution time 
+	* @var int $scriptExecutionLimit
+	*/
+    private int $scriptExecutionLimit = 60;
+
+     /** 
+     * Ignore user abort
+     * @var bool $ignoreUserAbort
+     */
+	private bool $ignoreUserAbort = true;
 
     /**
      * Class constructor.
@@ -71,8 +83,8 @@ class Optimizer
      */
     public function hasCache(): bool
     {
-        return file_exists($this->getCacheLocation()) &&
-            time() - filemtime($this->getCacheLocation()) < $this->cacheExpiration;
+        $location = $this->getCacheLocation();
+        return file_exists($location) && time() - filectime($location) < $this->cacheExpiration;
     }
 
     /**
@@ -82,7 +94,7 @@ class Optimizer
      */
     public function getFileTime(): string
     {
-        $timestamp = filemtime($this->getCacheLocation());
+        $timestamp = filectime($this->getCacheLocation());
         return date('D jS M Y H:i:s', $timestamp);
     }
 
@@ -93,9 +105,36 @@ class Optimizer
      */
     public function getCache(): bool
     {
-        $bytesRead = readfile($this->getCacheLocation());
+        set_time_limit($this->scriptExecutionLimit);
+        ignore_user_abort($this->ignoreUserAbort);
+        $headers = Header::getSystemHeaders();
+        $location = $this->getCacheLocation();
+        
+        // Calculate the cache expiration time based on file creation time
+        $fileCreationTime = filectime($location);
+        if($fileCreationTime !== false){
+            $cacheExpirationTime = $fileCreationTime + $this->cacheExpiration;
+        }else{
+            $cacheExpirationTime = $this->cacheExpiration;
+        }
+
+        // Set the "Expires" header based on the calculated expiration time
+        $headers['Expires'] = gmdate("D, d M Y H:i:s", $cacheExpirationTime) . ' GMT';
+        
+        foreach ($headers as $header => $value) {
+            header("$header: $value");
+        }
+        
+        ob_start('ob_gzhandler');
+        $bytesRead = readfile($location);
+        
+        if (ob_get_length() > 0) {
+            ob_end_flush();
+        }
+        
         return $bytesRead !== false;
     }
+
 
     /**
      * Save the content to the cache file.
@@ -106,8 +145,9 @@ class Optimizer
      */
     public function saveCache(string $content): bool
     {
-        if (!file_exists($this->getCacheFilepath())) {
-            mkdir($this->getCacheFilepath(), 0755, true);
+        $location = $this->getCacheFilepath();
+        if (!file_exists($location)) {
+            mkdir($location, 0755, true);
         }
 
         $bytesWritten = file_put_contents($this->getCacheLocation(), $content);

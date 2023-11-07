@@ -9,7 +9,7 @@
  */
 namespace Luminova\Database\Drivers;
 use Luminova\Database\DatabaseInterface;
-use Luminova\Models\DatabaseConfig;
+use Luminova\Config\Database;
 use Luminova\Exceptions\DatabaseException;
 use Luminova\Exceptions\InvalidException;
 use Luminova\Exceptions\InvalidObjectException;
@@ -21,22 +21,22 @@ class PdoDriver implements DatabaseInterface {
     /**
     * @var PDO $connection PDO Database connection instance
     */
-    protected PDO $connection; 
+    private PDO $connection; 
 
     /**
     * @var object $stmt pdo statement object
     */
-    protected $stmt;
+    private $stmt;
 
     /**
     * @var bool $onDebug debug mode flag
     */
-    protected bool $onDebug = false;
+    private bool $onDebug = false;
 
     /**
-    * @var DatabaseConfig $config Database configuration
+    * @var Database $config Database configuration
     */
-    protected DatabaseConfig $config; 
+    private Database $config; 
 
     /**
     * @var int PARAM_INT Integer Parameter
@@ -61,17 +61,17 @@ class PdoDriver implements DatabaseInterface {
     /**
      * Constructor.
      *
-     * @param DatabaseConfig $config database configuration. array
+     * @param Database $config database configuration. array
      * @throws InvalidException|InvalidObjectException If a required configuration key is missing.
      */
-    public function __construct(DatabaseConfig $config) 
+    public function __construct(Database $config) 
     {
         if (empty($config) || !is_object($config)) {
             throw new InvalidObjectException("Missing database configurations");
         }
         
-        if (!$config instanceof DatabaseConfig) {
-            throw new InvalidException("Invalid database configuration, required type: DatabaseConfig, but " . gettype($config) . " is given instead.");
+        if (!$config instanceof Database) {
+            throw new InvalidException("Invalid database configuration, required type: Database, but " . gettype($config) . " is given instead.");
         }
       
         $this->config = $config;
@@ -94,7 +94,7 @@ class PdoDriver implements DatabaseInterface {
      * This method is called internally and should not be called directly.
      * @throws DatabaseException If no driver is specified
      */
-    protected function initializeDatabase(): void {
+    private function initializeDatabase(): void {
         // Check if a database connection already exists or if the configuration is empty.
         if (!empty($this->connection)) {
             return;
@@ -127,7 +127,7 @@ class PdoDriver implements DatabaseInterface {
      * @param array $options An array of PDO options.
      * @return void
      */
-    protected function createMySqlConnection(array $options): void {
+    private function createMySqlConnection(array $options): void {
         $connectionDsn = "mysql:host={$this->config->host};port={$this->config->port};dbname={$this->config->database}";
         try {
             $this->connection = new PDO($connectionDsn, $this->config->username, $this->config->password, $options);
@@ -142,7 +142,7 @@ class PdoDriver implements DatabaseInterface {
      * @param array $options An array of PDO options.
      * @return void
      */
-    protected function createPostgreSQLConnection(array $options): void {
+    private function createPostgreSQLConnection(array $options): void {
         $connectionDsn = "pgsql:host={$this->config->host} port={$this->config->port} dbname={$this->config->database}";
         $connectionDsn .= " user={$this->config->username} password={$this->config->password}";
         try {
@@ -158,7 +158,7 @@ class PdoDriver implements DatabaseInterface {
      * @param array $options An array of PDO options.
      * @return void
      */
-    protected function createSQLiteConnection(array $options): void {
+    private function createSQLiteConnection(array $options): void {
         try {
             $this->connection = new PDO("sqlite:/" . $this->config->sqlite_path, null, null, $options);
         } catch (PDOException $e) {
@@ -300,7 +300,10 @@ class PdoDriver implements DatabaseInterface {
 
     /**
      * Executes the prepared statement.
-     */
+     * @param array $values execute statement with values
+     * @throws DatabaseException 
+     * @return void
+    */
     public function execute(?array $values = null): void 
     {
         try {

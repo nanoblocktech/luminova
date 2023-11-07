@@ -581,8 +581,7 @@ class Functions{
 		$badge = "";
 
 		if (!empty($tags)) {
-			$tagArray = explode(',', $tags);
-			foreach ($tagArray as $tg) {
+			foreach ($tags as $tg) {
 				if (!empty($tg)) {
 					$tagContent = "<span class='{$class}' aria-label='Tag {$tg}'>{$tg}</span>";
 					

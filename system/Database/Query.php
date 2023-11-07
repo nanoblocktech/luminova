@@ -11,7 +11,7 @@ namespace Luminova\Database;
 use Luminova\Exceptions\DatabaseException;
 use \Luminova\Cache\FileSystemCache;
 use \Luminova\Config\Configuration;
-use \Luminova\Arrays\ArrayCountable;
+//use \Luminova\Arrays\ArrayCountable;
 
 class Query extends Conn {  
     /**
@@ -24,25 +24,25 @@ class Query extends Conn {
     *Table name to query
     *@var string $databaseTable 
     */
-    protected $databaseTable;
+    private $databaseTable;
 
     /**
     *Table name to join query
     *@var string $databaseJoinTable 
     */
-    protected $databaseJoinTable;
+    private $databaseJoinTable;
 
     /**
     *Table join query type
     *@var string $databaseJoinType 
     */
-    protected $databaseJoinType;
+    private $databaseJoinType;
 
     /**
     *Table join bind parameters
     *@var array $databaseJoinSeed 
     */
-    protected array $databaseJoinSeed = [];
+    private array $databaseJoinSeed = [];
 
     /**
     *Table query order limit offset and count query 
@@ -111,13 +111,13 @@ class Query extends Conn {
     private $useCacheStorage = false;
 
 
-    /*
-        Class Constructor
+    /**
+    * Class Constructor
     */
 	public function __construct(){
 		parent::__construct();
-         $this->cache = FileSystemCache::getInstance();
-         $this->cache->setEnableCache(false);
+        $this->cache = FileSystemCache::getInstance();
+        $this->cache->setEnableCache(false);
 	}
 
      /*
@@ -138,7 +138,7 @@ class Query extends Conn {
     * Class Singleton
     * @return Query object $instance
     */
-    public static function getInstance(): Query 
+    public static function getInstance(): self 
     {
         if (self::$instance === null) {
             self::$instance = new self();
@@ -152,7 +152,7 @@ class Query extends Conn {
      * @param string $table The table name
      * @return Query $this Class instance.
      */
-    public function table(string $table): Query
+    public function table(string $table): self
     {
         $this->databaseTable = $table;
         return $this;
@@ -350,7 +350,11 @@ class Query extends Conn {
                 return is_string($item) ? "'$item'" : $item;
             }, $list));
 
-            $this->queryWhereConditions[] = ["type" => "IN", "column" => $column, "values" => $values];
+            $this->queryWhereConditions[] = [
+                "type" => "IN", 
+                "column" => $column, 
+                "values" => $values
+            ];
         }
 
         return $this;
@@ -366,7 +370,12 @@ class Query extends Conn {
     public function inset(string $search, array $list, string $method = '='): Query
     {
         $values = implode(',', $list);
-        $this->queryWhereConditions[] = ["type" => "IN_SET", "list" => $values, "search" => $search, "method" => $method];
+        $this->queryWhereConditions[] = [
+            "type" => "IN_SET", 
+            "list" => $values, 
+            "search" => $search, 
+            "method" => $method
+        ];
         return $this;
     }
 
@@ -438,7 +447,7 @@ class Query extends Conn {
             }
             return $this->executeInsertQuery($columns, $values);
         } catch (DatabaseException $e) {
-            $e->handle(parent::isProduction());
+            $e->handle();
         }
         return 0;
     }
@@ -505,7 +514,7 @@ class Query extends Conn {
                     return $return;
                 });
             } catch (DatabaseException $e) {
-                $e->handle(parent::isProduction());
+                $e->handle();
             }
         }
         return null;
@@ -565,7 +574,7 @@ class Query extends Conn {
                         return $return;
                     });
                 } catch (DatabaseException $e) {
-                    $e->handle(parent::isProduction());
+                    $e->handle();
                 }
             }
         }
@@ -625,7 +634,7 @@ class Query extends Conn {
                     return $total;
                 });
             } catch (DatabaseException $e) {
-                $e->handle(parent::isProduction());
+                $e->handle();
             }
         }
         return 0;
@@ -675,7 +684,7 @@ class Query extends Conn {
                 $this->resetDefaults();
                 return $return;
             } catch (DatabaseException $e) {
-                $e->handle(parent::isProduction());
+                $e->handle();
             }
         }
         return 0;
@@ -716,7 +725,7 @@ class Query extends Conn {
                 $this->resetDefaults();
                 return $rowCount;
             } catch (DatabaseException $e) {
-                $e->handle(parent::isProduction());
+                $e->handle();
             }
         } else {
             self::error("Delete operation without a WHERE condition is not allowed.");
@@ -752,7 +761,7 @@ class Query extends Conn {
                 return $deleteSuccess && $resetSuccess;
             }
         } catch (DatabaseException $e) {
-            $e->handle(parent::isProduction());
+            $e->handle();
         }
     }
 
@@ -767,7 +776,7 @@ class Query extends Conn {
             $this->resetDefaults();
             return $return;
         } catch (DatabaseException $e) {
-            $e->handle(parent::isProduction());
+            $e->handle(Configuration::isProduction());
         }
         return 0;
     }
@@ -784,7 +793,7 @@ class Query extends Conn {
             $this->resetDefaults();
             return $return;
         } catch (DatabaseException $e) {
-            $e->handle(parent::isProduction());
+            $e->handle(Configuration::isProduction());
         }
         return 0;
     }
@@ -803,7 +812,7 @@ class Query extends Conn {
             }
             return $this->db->exec($query);
         } catch (DatabaseException $e) {
-            $e->handle(parent::isProduction());
+            $e->handle();
         }
         return 0;
     }
@@ -949,7 +958,7 @@ class Query extends Conn {
      * @param string $message
      */
     private static function error(string $message) {
-        DatabaseException::throwException($message, parent::isProduction());
+        DatabaseException::throwException($message);
     }
 
     /**

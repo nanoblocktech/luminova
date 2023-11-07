@@ -7,14 +7,14 @@
  * @copyright (c) Nanoblock Technology Ltd
  * @license See LICENSE file
  */
-namespace Luminova\Models;
+namespace Luminova\Config;
 
 /**
  * Database Configuration
  *
  * This class represents the configuration for a database connection.
  */
-class DatabaseConfig
+class Database
 {
     /**
      * @var int|null $port The port to connect to the database.

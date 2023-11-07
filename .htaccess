@@ -1,6 +1,0 @@
-
-<IfModule mod_rewrite.c>
-  <IfModule mod_autoindex.c>
-      Options -Indexes
-  </IfModule>
-</IfModule>

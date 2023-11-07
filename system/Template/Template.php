@@ -16,7 +16,8 @@ use Luminova\Exceptions\InvalidObjectException;
 use Luminova\Exceptions\InvalidException; 
 use Luminova\Cache\Compress;
 use Luminova\Cache\Optimizer;
-class Template extends Compress{ 
+use Luminova\Config\Configuration;
+class Template extends Configuration { 
     /** Holds the default project template engine
      * @var string DEFAULT_TEMPLATE 
     */
@@ -70,7 +71,7 @@ class Template extends Compress{
     /** Holds template assets folder
      * @var string $assetsFolder 
     */
-    public string $assetsFolder = "assets";
+    protected string $assetsFolder = "assets";
 
     /** Holds the router active page name
      * @var string $activeView 
@@ -80,17 +81,17 @@ class Template extends Compress{
     /** Holds the array attributes
      * @var array $attributesMapper 
     */
-    protected array $attributesMapper = [];
+    private array $attributesMapper = [];
 
     /** Holds the array classes
      * @var array $attributesMapper 
     */
-    protected array $classMapper = [];
+    private array $classMapper = [];
 
     /** Ignore view optimization
      * @var array $ignoreViewOptimizer 
     */
-    protected array $ignoreViewOptimizer = [];
+    private array $ignoreViewOptimizer = [];
 
     /** Holds template project root
      * @var string $appPublicFolder 
@@ -101,13 +102,13 @@ class Template extends Compress{
      * Holds router param value to share across
      * @var mixed $paramAttributes 
     */
-    protected mixed $paramAttributes = null;
+    private mixed $paramAttributes = null;
 
     /**
      * Holds template html content
      * @var string $contents 
     */
-    protected string $contents = '';
+    private string $contents = '';
 
     /**
      * Holds relative file position depth 
@@ -127,7 +128,6 @@ class Template extends Compress{
     */
     private static $ds = DIRECTORY_SEPARATOR;
 
-
     /**
      * Holds system keywords
      * @var array SYSTEM_VARIABLES
@@ -143,7 +143,7 @@ class Template extends Compress{
         "object",
         "this",
         "self",
-        "Compress",
+        //"Compress",
         "Optimizer"
     ];
 
@@ -153,34 +153,34 @@ class Template extends Compress{
     */
     public function __construct(string $dir =__DIR__){
         $this->baseTemplateDir = parent::getRootDirectory($dir);
-        parent::__construct();
-        
     }
 
     /** 
     * Get public class member 
+    * @param string $key property name 
     * @throws NotFoundException
     * @return mixed 
     */
-    public function __get(string $propertyName): mixed {
-        $property = $this->getSafeProperties($propertyName);
+    public function __get(string $key): mixed {
+        $property = $this->getProperty($key);
         if($property == null) {
-            throw new NotFoundException("Property name: $propertyName is not found.");
+            throw new NotFoundException("Property name: $key is not found.");
         }
         return $property;
     }
 
     /** 
     * Get property without exception throw
+    * @param string $key property name 
     * @return mixed 
     */
-    private function getSafeProperties(string $propertyName): mixed {
-        if (array_key_exists($propertyName, $this->attributesMapper)) {
-            return $this->attributesMapper[$propertyName];
-        } elseif (array_key_exists($propertyName, $this->classMapper)) {
-            return $this->classMapper[$propertyName];
+    private function getProperty(string $key): mixed {
+        if (array_key_exists($key, $this->attributesMapper)) {
+            return $this->attributesMapper[$key];
+        } elseif (array_key_exists($key, $this->classMapper)) {
+            return $this->classMapper[$key];
         } else {
-           return null;
+           return $this->{$key};
         }
     }
 
@@ -417,7 +417,6 @@ class Template extends Compress{
     * @throws ViewNotFoundException
     */
     public function renderViewContent(string $relativePath, array $options = []): void {
-        header('X-Powered-By: ' . parent::copyright());
         $root =  (parent::isProduction() ? self::$ds : $relativePath);
         $base =  rtrim($root . $this->appPublicFolder, "/") . "/";
 
@@ -498,25 +497,29 @@ class Template extends Compress{
         }
         
         $shouldSaveCache = false;
-        if (parent::getVariables("enable.optimize.page") && !in_array($this->activeView, $this->ignoreViewOptimizer)) {
-            $optimizer = new Optimizer(600, $this->optimizerFile);
+        $optimizer = null;
+        if (parent::getBoolean("enable.optimize.page") && !in_array($this->activeView, $this->ignoreViewOptimizer)) {
+            $optimizer = new Optimizer(parent::getVariables("page.optimize.expiry"), $this->optimizerFile);
             $optimizer->setKey($this->templateFile);
             if ($optimizer->hasCache() && $optimizer->getCache()) {
-                exit('<!-- File was optimized compiled on - '. $optimizer->getFileTime().', Using : Luminova Optimizer tool v1.0 -->');
+                exit('<!--[File was cached on - '. $optimizer->getFileTime().', Using: '.parent::copyright().']-->');
             } else {
                 $shouldSaveCache = true;
             }
         }
-        
+
         ob_start();
         include_once $this->templateFile;
-        $this->contents = ob_get_clean();
-        
-        if ($shouldSaveCache) {
-            $optimizer->saveCache(parent::minifyIgnoreCodeblock($this->contents));
+        $viewContents = ob_get_clean();
+        if(parent::getBoolean("enable.compression")){
+            $this->displayCompressedContent($viewContents, $optimizer, $options["ContentType"], $shouldSaveCache);
+        }else{
+            if ($shouldSaveCache && $optimizer !== null) {
+                $optimizer->saveCache($viewContents);
+            }
+            exit($viewContents);
         }
-        
-        $this->displayContent($this->contents, $options["ContentType"]);
+        exit(1);
     }
 
     /** 
@@ -524,23 +527,33 @@ class Template extends Compress{
     * @param mixed $contents view contents
     * @param string $contentType content type
     */
-    private function displayContent(mixed $contents, string $contentType): void{
-        if(parent::getVariables("enable.compression") == 1){
-            switch($contentType){
-                case "json":
-                    $this->json( $contents );
+    private function displayCompressedContent(mixed $contents, ?Optimizer $optimizer = null, string $contentType = 'html', bool $save = false): void{
+        $compress = new Compress();
+        // Set cache control for application cache
+        $compress->setIgnoreCodeblock(true);
+        // Set cache control for application cache
+        $compress->setCacheControl(parent::getBoolean("cache.control"));
+
+        // Set the project script execution time
+        $compress->setExecutionLimit(parent::getInt("script.execution.limit", 90));
+
+        // Set response compression level
+        $compress->setCompressionLevel(parent::getInt("compression.level", 6));
+       
+        switch($contentType){
+            case "json":
+                $compress->json( $contents );
+            break;
+            case "text":
+                $compress->text( $contents );
                 break;
-                case "text":
-                    $this->text( $contents );
-                    break;
-                case "html": default:
-                    $this->html( $contents );
-                break;
-            }
-            $this->contents = $this->getCompressed();
-            exit(1);
-        }else{
-            exit($contents);
+            case "html": 
+                default:
+                $compress->html( $contents );
+            break;
+        }
+        if ($save && $optimizer !== null) {
+            $optimizer->saveCache($compress->getMinified());
         }
     }
 
@@ -564,7 +577,7 @@ class Template extends Compress{
         $uri = $_SERVER['REQUEST_URI'];
         if (substr($uri, -1) == '/') {
             if (!parent::isProduction() && strpos($uri, '/public/') !== false) {
-                list(, $uri) = explode('/public', $uri, 2);
+                [, $uri] = explode('/public', $uri, 2);
             }
   
             $level = substr_count($uri, '/');
@@ -573,7 +586,7 @@ class Template extends Compress{
             }
         }else if($level == 0){
             if(!parent::isProduction() && strpos($uri, '/public') !== false){
-                list(, $uri) = explode('/public', $uri, 2);
+                [, $uri] = explode('/public', $uri, 2);
             }
             $level = substr_count($uri, '/');
         }

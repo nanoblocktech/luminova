@@ -13,7 +13,7 @@ namespace Luminova\Database;
 use Luminova\Config\Configuration;
 use Luminova\Database\Drivers\MySqlDriver;
 use Luminova\Database\Drivers\PdoDriver;
-use Luminova\Models\DatabaseConfig;
+use Luminova\Config\Database;
 
  /**
   * Class Conn
@@ -22,13 +22,16 @@ use Luminova\Models\DatabaseConfig;
   *
   * @package Luminova\Database
   */
- class Conn extends Configuration
+ class Conn
  {
-     /** @var mixed */
+     /** 
+      * Database connection instance 
+      * @var object 
+      */
      public $db;
  
      /** @var object|null */
-     private static $instance;
+     private static $instance = null;
  
      /**
       * Conn constructor.
@@ -39,7 +42,7 @@ use Luminova\Models\DatabaseConfig;
      public function __construct()
      {
          $this->db = self::createDatabaseInstance();
-         $this->db->setDebug(!parent::isProduction());
+         $this->db->setDebug(!Configuration::isProduction());
      }
  
      /**
@@ -48,14 +51,14 @@ use Luminova\Models\DatabaseConfig;
       * @return object Database connection instance.
       *  @throws DatabaseException|InvalidException|InvalidObjectException If fails
       */
-     public static function getInstance(): object
-     {
-         if (!isset(self::$instance)) {
-             self::$instance = new self();
-         }
- 
-         return self::$instance->db;
-     }
+
+     public static function getInstance(): self {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+        // return self::$instance->db;
+    }
  
      /**
       * Create an instance of the database driver based on configuration.
@@ -65,7 +68,7 @@ use Luminova\Models\DatabaseConfig;
       */
      private static function createDatabaseInstance(): object
      {
-         switch (parent::getVariables("database.driver")) {
+         switch (Configuration::getVariables("database.driver")) {
              case "MYSQLI":
                  return new MySqlDriver(self::getDatabaseConfig());
              case "PDO":
@@ -77,20 +80,20 @@ use Luminova\Models\DatabaseConfig;
      /**
       * Get the database configuration based on environment and settings.
       *
-      * @return DatabaseConfig Database configuration object.
+      * @return Database Database configuration object.
       */
-     public static function getDatabaseConfig(): DatabaseConfig
+     private static function getDatabaseConfig(): Database
      {
-         $config = new DatabaseConfig();
-         $config->port = parent::getVariables("database.port");
-         $config->host = parent::getVariables("database.hostname");
-         $config->version = parent::getVariables("database.version");
-         $config->charset = parent::getVariables("database.charset");
-         $config->sqlite_path = parent::getVariables("database.sqlite.path");
-         $config->production = parent::isProduction();
-         $config->username = parent::isProduction() ? parent::getVariables("database.username") : parent::getVariables("database.development.username");
-         $config->password = parent::isProduction() ? parent::getVariables("database.password") : parent::getVariables("database.development.password");
-         $config->database = parent::isProduction() ? parent::getVariables("database.name") : parent::getVariables("database.development.name");
+         $config = new Database();
+         $config->port = Configuration::getVariables("database.port");
+         $config->host = Configuration::getVariables("database.hostname");
+         $config->version = Configuration::getVariables("database.version");
+         $config->charset = Configuration::getVariables("database.charset");
+         $config->sqlite_path = Configuration::getVariables("database.sqlite.path");
+         $config->production = Configuration::isProduction();
+         $config->username = Configuration::isProduction() ? Configuration::getVariables("database.username") : Configuration::getVariables("database.development.username");
+         $config->password = Configuration::isProduction() ? Configuration::getVariables("database.password") : Configuration::getVariables("database.development.password");
+         $config->database = Configuration::isProduction() ? Configuration::getVariables("database.name") : Configuration::getVariables("database.development.name");
          return $config;
      }
  }

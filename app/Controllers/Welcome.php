@@ -13,14 +13,22 @@ class Welcome extends Controller {
 
     public function page(): void
     {
-        $this->render("index")->view([
-            "subtitle" => "Hello World"
-        ]);
+        $this->render("index")->view();
     }
 
     public function info(): void
     {
-       echo $this->version();
+        header("Content-type: application/json");
+        echo json_encode([
+            "error" => [
+                "status" => "OK",
+                "code" => 200,
+                "version" => $this->version(),
+                "framework" => $this->copyright(),
+                //"details" => "The endpoint [" . $this->getView() . "] you are trying to access does not exist.",
+                "timestamp" => date("Y-m-d H:i:s")
+            ]
+        ]);
     }
     
 }

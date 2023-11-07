@@ -38,7 +38,7 @@ class Meta{
      /**
      * @var static $instance class static singleton instance
     */
-    protected static $instance = null;
+    private static $instance = null;
 
     /**
      * Meta constructor.

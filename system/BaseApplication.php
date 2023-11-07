@@ -38,15 +38,12 @@ class BaseApplication extends Template {
     public function __construct(string $dir = __DIR__) {
         // Register dotenv variables
         DotEnv::register(parent::getRootDirectory($dir) . DIRECTORY_SEPARATOR . '.env');
-        // DotEnv::register($this->getRootDir() . DIRECTORY_SEPARATOR . '.env');
-        // DotEnv::register(dirname(dirname(__DIR__)) . DIRECTORY_SEPARATOR . '.env');
        
         // Initialize the router instance
         $this->router = new Router();
 
         // Set application controller class namespace
         $this->router->addNamespace('\App\Controllers');
-    
 
         // Initialize the template engine
         parent::__construct($dir);
@@ -56,20 +53,11 @@ class BaseApplication extends Template {
             $this->setDocumentRoot("public");
         }
 
-        // Set cache control for application cache
-        $this->setCacheControl(parent::getVariables("cache.control"));
-
         // Set the current level for template URL relative paths
         $this->setLevel(substr_count(trim($this->getView(), DIRECTORY_SEPARATOR), DIRECTORY_SEPARATOR));
 
         // Set the project base path
         $this->setBasePath($this->getBasePath());
-
-        // Set the project script execution time
-        $this->setExecutionLimit(parent::getVariables("script.execution.limit", 90));
-
-        // Set response compression level
-        $this->setCompressionLevel(parent::getVariables("compression.level", 6));
     }
 
     /**
@@ -110,14 +98,5 @@ class BaseApplication extends Template {
             static::$instance = new static($dir);
         }
         return static::$instance;
-    }
-
-    /**
-     * Get the router instance.
-     *
-     * @return Router
-     */
-    public function getRouterInstance(): Router {
-        return $this->router;
     }
 }

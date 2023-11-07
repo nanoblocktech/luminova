@@ -11,7 +11,7 @@ namespace Luminova\Models;
 
 use Luminova\Database\Query;
 
-class Model extends Query
+abstract class Model extends Query
 {
     /**
      *  Table name should be specified in child models.

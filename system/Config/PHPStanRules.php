@@ -10,13 +10,13 @@
 declare(strict_types=1);
 namespace Luminova\Config;
 
-use PhpParser\Comment\Doc;
-use PhpParser\Node;
-use PhpParser\Node\Stmt;
-use PhpParser\Node\Stmt\Use_;
-use PHPStan\Analyser\Scope;
-use PHPStan\Rules\Rule;
-use PhpParser\Node\Expr\Variable;
+use \PhpParser\Comment\Doc;
+use \PhpParser\Node;
+use \PhpParser\Node\Stmt;
+use \PhpParser\Node\Stmt\Use_;
+use \PHPStan\Analyser\Scope;
+use \PHPStan\Rules\Rule;
+use \PhpParser\Node\Expr\Variable;
 
 final class PHPStanRules implements Rule
 {

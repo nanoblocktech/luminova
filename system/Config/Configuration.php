@@ -13,19 +13,23 @@ class Configuration {
     /**
     * @var string $version version name
     */
-    public static $version = '1.5.5';
+    public static $version = '1.5.6';
 
     /**
     * @var int $versionCode version code
     */
     public static $versionCode = 155;
 
+    /**
+     * Minimum required php version
+    * @var string MIN_PHP_VERSION 
+    */
     public const MIN_PHP_VERSION = '8.0';
 
     /**
     * @var array allowPreviews allow previews
     */
-    protected static array $allowPreviews = ['system', 'app', 'resources', 'writable'];
+    private static array $allowPreviews = ['system', 'app', 'resources', 'writable'];
 
     /**
      * Magic method to retrieve session properties.
@@ -112,16 +116,6 @@ class Configuration {
     public static function shouldMinify(): int 
     {
         return (int)self::getVariables("build.minify");
-    }
-
-    /**
-     * Get the PHP script path.
-     *
-     * @return string
-     */
-    public static function phpScript(): string 
-    {
-        return "/usr/bin/php"; // /etc/alternatives/php
     }
 
     /**
@@ -237,7 +231,7 @@ class Configuration {
     }
 
     /**
-     * Get configuration variables.
+     * Get environment configuration variables.
      *
      * @param string $key The key to retrieve.
      * @param mixed $default The default value to return if the key is not found.
@@ -261,14 +255,41 @@ class Configuration {
     }
 
     /**
+     * Get environment variable as integer value
+     *
+     * @param string $key variable name
+     * @param int $default fallback to default
+     * @return bool
+    */
+    public static function getInt(string $key, int $default = 0): int
+    {
+        $value = self::getVariables($key, $default);
+        return (int) $value;
+    }
+
+    /**
+     * Get environment variable as boolean
+     *
+     * @param string $key variable name
+     * @param bool $default fallback to default
+     * @return bool
+    */
+    public static function getBoolean(string $key, bool $default = false): bool
+    {
+        $value = self::getVariables($key, $default);
+        return ($value == 'true' || $value === 1 || $value == '1');
+    }
+
+    /**
      * Convert variable to dot or underscore notation.
      *
      * @param string $input The input string .
      * @param string $notation The conversion notion
      * @return string
-     */
+    */
 
-    public static function variableToNotation(string $input, string $notation = "."): string {
+    public static function variableToNotation(string $input, string $notation = "."): string 
+    {
         if ($notation === ".") {
             $output = str_replace('_', '.', $input);
         } elseif ($notation === "_") {

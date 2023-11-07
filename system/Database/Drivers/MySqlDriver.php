@@ -10,7 +10,7 @@
 
 namespace Luminova\Database\Drivers;
 use Luminova\Database\DatabaseInterface;
-use Luminova\Models\DatabaseConfig;
+use Luminova\Config\Database;
 use Luminova\Exceptions\DatabaseException;
 use Luminova\Exceptions\InvalidObjectException;
 use Luminova\Exceptions\InvalidException;
@@ -24,27 +24,27 @@ class MySqlDriver implements DatabaseInterface {
     /**
     * @var mysqli $connection mysqli Database connection instance
     */
-    protected mysqli $connection; 
+    private mysqli $connection; 
 
     /**
     * @var object $stmt mysqli statement object
     */
-    protected $stmt;
+    private $stmt;
 
     /**
     * @var bool $onDebug debug mode flag
     */
-    protected bool $onDebug = false;
+    private bool $onDebug = false;
 
     /**
-    * @var DatabaseConfig $config Database configuration
+    * @var Database $config Database configuration
     */
-    protected DatabaseConfig $config; 
+    private Database $config; 
 
     /**
     * @var array $queryParams Database queries
     */
-    protected array $queryParams = [];
+    private array $queryParams = [];
 
     /**
     * @var int $lastRowCount last row count
@@ -55,17 +55,17 @@ class MySqlDriver implements DatabaseInterface {
     /**
      * Constructor.
      *
-     * @param DatabaseConfig $config database configuration. array
+     * @param Database $config database configuration. array
      * @throws InvalidException|InvalidObjectException If a required configuration key is missing.
      */
-    public function __construct(DatabaseConfig $config) 
+    public function __construct(Database $config) 
     {
         if (empty($config) || !is_object($config)) {
             throw new InvalidObjectException("Missing database configurations");
         }
         
-        if (!$config instanceof DatabaseConfig) {
-            throw new InvalidException("Invalid database configuration, required type: DatabaseConfig, but " . gettype($config) . " is given instead.");
+        if (!$config instanceof Database) {
+            throw new InvalidException("Invalid database configuration, required type: Database, but " . gettype($config) . " is given instead.");
         }
       
         $this->config = $config;
@@ -89,7 +89,7 @@ class MySqlDriver implements DatabaseInterface {
      * This method is called internally and should not be called directly.
      * @throws DatabaseException If no driver is specified
      */
-    protected function initializeDatabase(): void 
+    private function initializeDatabase(): void 
     {
         if (!empty($this->connection)) {
             return;
@@ -227,7 +227,7 @@ class MySqlDriver implements DatabaseInterface {
      *
      * @return MySqlDriver The current instance of the MySqlDriver class.
      */
-    public function bind(string $param, mixed $value, ?int $type = null): MySqlDriver 
+    public function bind(string $param, mixed $value, mixed $type = null): MySqlDriver 
     {
         $this->queryParams[$param] = $value;
         return $this;
@@ -242,7 +242,7 @@ class MySqlDriver implements DatabaseInterface {
      *
      * @return MySqlDriver The current instance of the MySqlDriver class.
      */
-    public function param(string $param, mixed $value, ?int $type = null): MySqlDriver 
+    public function param(string $param, mixed $value, mixed $type = null): MySqlDriver 
     {
         $this->stmt->bind_param($param, $value);
         return $this;
@@ -265,10 +265,11 @@ class MySqlDriver implements DatabaseInterface {
 
     /**
      * Executes the prepared statement.
+     * @param array $values execute statement with values
      * @throws DatabaseException 
-     */
-
-    public function execute(): void 
+     * @return void
+    */
+    public function execute(?array $values = null): void 
     {
         if(!$this->stmt){
             DatabaseException::throwException("Database operation error: Statement execution failed", $this->config->production);
@@ -338,7 +339,6 @@ class MySqlDriver implements DatabaseInterface {
         return $row;
     }
     
-
     /**
      * Fetches all rows as an array of objects.
      *
@@ -353,7 +353,6 @@ class MySqlDriver implements DatabaseInterface {
             return $this->getAllFromQueryResult($result);
         }
     }
-
 
     /**
      * Fetches all rows from a query result as an array of objects.
