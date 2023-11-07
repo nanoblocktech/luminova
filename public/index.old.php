@@ -7,14 +7,19 @@
  * @copyright (c) Nanoblock Technology Ltd
  * @license See LICENSE file
  */
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
-$app = require_once __DIR__ . '/../bootstrap/load.php';
 use Luminova\Routing\Bootstrap;
+
 define('PUBLIC_PATH', __DIR__ . DIRECTORY_SEPARATOR);
 if (getcwd() . DIRECTORY_SEPARATOR !== PUBLIC_PATH) {
     chdir(PUBLIC_PATH);
 }
+
+if (php_sapi_name() === 'cli') {
+    require __DIR__ . '/../routes/cli.php';
+    exit(1);
+}
+
+$app = require_once __DIR__ . '/../bootstrap/load.php';
 
 /*
 * Define a function for the web error handler
@@ -39,9 +44,10 @@ $apiErrorHandler = function () use($app){
     ]));
 };
 
+
 /**
 * bootstraps Load The Application Context
-* We register all our application contexts `WEB, API, and CLI` 
+* We register all our application contexts `WEB and API` 
 * bootstraps the router and set the error handler based on context
 */
 $app->router->bootstraps(
@@ -51,10 +57,7 @@ $app->router->bootstraps(
     $webErrorHandler),
     new Bootstrap(Bootstrap::API, function($router) use ($app) {
         require __DIR__ . '/../routes/api.php';
-    }, $apiErrorHandler),
-    new Bootstrap(Bootstrap::CLI, function($router) use ($app){
-        require __DIR__ . '/../routes/cli.php';
-    })
+    }, $apiErrorHandler)
 );
 
 /*
