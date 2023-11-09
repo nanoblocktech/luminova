@@ -22,16 +22,37 @@ use App\Controllers\Application;
 
 class Router {
     /**
-     * Route patterns and handling functions
-     * @var array $afterRoutes
+     * Success status code
+     *
+     * @var int STATUS_OK
     */
-    private array $afterRoutes = [];
+
+    public const STATUS_OK = 0;
+
+    /**
+     * Error status code
+     *
+     * @var int STATUS_ERROR
+    */
+    public const STATUS_ERROR = 1;
+
+    /**
+     * Route patterns to handling main controllers routes
+     * @var array $controllerRoutes
+    */
+    private array $controllerRoutes = [];
+
+    /**
+     * Route patterns and handling functions
+     * @var array $afterControllerRoutes
+    */
+    private array $afterControllerRoutes = [];
 
     /**
      * before middleware route patterns and handling functions
-     * @var array $beforeRoutes
+     * @var array $middlewareRoutes
      */
-    private array $beforeRoutes = [];
+    private array $middlewareRoutes = [];
 
     /**
      * CLI command route 
@@ -40,10 +61,10 @@ class Router {
     private array $commandRoutes = [];
 
     /**
-      * CLI command route middleware
-     * @var array $commandSecurityRoutes 
+      * before CLI command route middleware
+     * @var array $cliMiddlewareRoutes 
      */
-    private array $commandSecurityRoutes = [];
+    private array $cliMiddlewareRoutes = [];
 
     /**
      * HTTP error callable functions 
@@ -97,13 +118,67 @@ class Router {
      */
     public function before(string $methods, string $pattern, callable|string $callback): void
     {
+        if (empty($methods)) {
+            return;
+        }
         $pattern = $this->baseRoute . '/' . trim($pattern, '/');
         $pattern = $this->baseRoute ? rtrim($pattern, '/') : $pattern;
 
         foreach (explode('|', $methods) as $method) {
-            $this->beforeRoutes[$method][] = [
+            $this->middlewareRoutes[$method][] = [
                 'pattern' => $pattern,
                 'callback' => $callback,
+                'middleware' => true
+            ];
+        }
+    }
+
+    /**
+     * After middleware route, executes the callback function after before and controller routing has executed
+     *
+     * @param string  $methods  Allowed methods, can be serrated with | pipe symbol
+     * @param string  $pattern A route pattern or template view name
+     * @param callable|string $callback Callback function to execute
+     */
+    public function after(string $methods, string $pattern, callable|string $callback): void
+    {
+        if (empty($methods)) {
+            return;
+        }
+
+        $pattern = $this->baseRoute . '/' . trim($pattern, '/');
+        $pattern = $this->baseRoute ? rtrim($pattern, '/') : $pattern;
+
+        foreach (explode('|', $methods) as $method) {
+            $this->afterControllerRoutes[$method][] = [
+                'pattern' => $pattern,
+                'callback' => $callback,
+                'middleware' => false
+            ];
+        }
+    }
+
+      /**
+     * Capture front controller request method and pattern and execute callback
+     *
+     * @param string  $methods Allowed methods, can be serrated with | pipe symbol
+     * @param string  $pattern A route pattern or template view name
+     * @param callable|string $callback Callback function to execute
+     */
+    public function capture(string $methods, string $pattern, callable|string $callback): void
+    {
+        if (empty($methods)) {
+            return;
+        }
+
+        $pattern = $this->baseRoute . '/' . trim($pattern, '/');
+        $pattern = $this->baseRoute ? rtrim($pattern, '/') : $pattern;
+
+        foreach (explode('|', $methods) as $method) {
+            $this->controllerRoutes[$method][] = [
+                'pattern' => $pattern,
+                'callback' => $callback,
+                'middleware' => false
             ];
         }
     }
@@ -128,7 +203,7 @@ class Router {
             $isController = ($build_pattern !== false);
         }
     
-        $this->commandSecurityRoutes["CLI"][] = [
+        $this->cliMiddlewareRoutes["CLI"][] = [
             'callback' => $callback,
             'pattern' => $parsedPattern,
             'options' => $options,
@@ -160,25 +235,6 @@ class Router {
         ];
     }
 
-    /**
-     * Capture front controller request method and pattern and execute callback
-     *
-     * @param string  $methods Allowed methods, can be serrated with | pipe symbol
-     * @param string  $pattern A route pattern or template view name
-     * @param callable|string $callback Callback function to execute
-     */
-    public function capture(string $methods, string $pattern, callable|string $callback): void
-    {
-        $pattern = $this->baseRoute . '/' . trim($pattern, '/');
-        $pattern = $this->baseRoute ? rtrim($pattern, '/') : $pattern;
-
-        foreach (explode('|', $methods) as $method) {
-            $this->afterRoutes[$method][] = [
-                'pattern' => $pattern,
-                'callback' => $callback,
-            ];
-        }
-    }
 
     /**
      * Capture any method
@@ -284,6 +340,7 @@ class Router {
         if (!defined('ENVIRONMENT')) {
             define('ENVIRONMENT', getenv('app.environment.mood', 'development'));
         }
+    
         $methods = explode('|', self::ALL_METHODS);
         $methods[] = 'CLI'; //Fake a request method for cli
         $method = Header::getRoutingMethod();
@@ -297,7 +354,8 @@ class Router {
                     $registerError = ($errorHandler !== null && is_callable($errorHandler));
                    
                     if(preg_match('#^/' . $result . '#', $uri)) {
-                       if ($result === Bootstrap::CLI){
+                        $this->resetRoutes();
+                        if ($result === Bootstrap::CLI){
                             if (!defined('CLI_ENVIRONMENT')) {
                                 define('CLI_ENVIRONMENT', getenv('cli.environment.mood', 'testing'));
                             }
@@ -318,7 +376,7 @@ class Router {
                         $bootstrap->getFunction()($this);
                         break;
                     }else{
-                        if ($result === Bootstrap::WEB) {
+                        if ($result !== Bootstrap::CLI && $result !== Bootstrap::API) {
                             if($registerError){
                                 $this->setErrorHandler($errorHandler);
                             }
@@ -381,15 +439,15 @@ class Router {
     private function runAsCli(): bool
     {
         $result = true;
-        if (isset($this->commandSecurityRoutes[$this->requestedMethod])) {
-            $result = $this->handleCommand($this->commandSecurityRoutes[$this->requestedMethod]);
+        if (isset($this->cliMiddlewareRoutes[$this->requestedMethod])) {
+            $result = $this->handleCommand($this->cliMiddlewareRoutes[$this->requestedMethod]);
         }
 
         if( $result ){
             $result = false;
             if (isset($this->commandRoutes[$this->requestedMethod])) {
                 $this->commandName = $this->getCommandName();
-                $result = $this->handleCommand($this->commandRoutes[$this->requestedMethod], true);
+                $result = $this->handleCommand($this->commandRoutes[$this->requestedMethod]);
             }
             if (!$result) {
                 echo "Unknown command: $this->commandName\n";
@@ -407,21 +465,27 @@ class Router {
     */
     private function runAsHttp(): bool
     {
-        $result = false;
+        $result = true;
 
-        if (isset($this->beforeRoutes[$this->requestedMethod])) {
-            $this->handle($this->beforeRoutes[$this->requestedMethod]);
+        if (isset($this->middlewareRoutes[$this->requestedMethod])) {
+            $result = $this->handleWebsite($this->middlewareRoutes[$this->requestedMethod]);
         }
+       
+        if( $result ){
+            $result = false;
+            if (isset($this->controllerRoutes[$this->requestedMethod])) {
+                $result = $this->handleWebsite($this->controllerRoutes[$this->requestedMethod]);
+            }
+            if (!$result) {
+                if(isset($this->controllerRoutes[$this->requestedMethod])){
+                    $this->triggerError($this->controllerRoutes[$this->requestedMethod]);
+                }else{
+                    $this->triggerError();
+                }
+            }
 
-        if (isset($this->afterRoutes[$this->requestedMethod])) {
-            $result = $this->handle($this->afterRoutes[$this->requestedMethod], true);
-        }
-
-        if (!$result) {
-            if(isset($this->afterRoutes[$this->requestedMethod])){
-                $this->triggerError($this->afterRoutes[$this->requestedMethod]);
-            }else{
-                $this->triggerError([]);
+            if (isset($this->afterControllerRoutes[$this->requestedMethod])) {
+                $this->handleWebsite($this->afterControllerRoutes[$this->requestedMethod]);
             }
         }
 
@@ -478,40 +542,41 @@ class Router {
      * Handle a set of routes: if a match is found, execute the relating handling function.
      *
      * @param array $routes  Collection of route patterns and their handling functions
-     * @param bool  $quitAfterRun Does the handle function need to quit after one route was matched?
      *
-     * @return bool The number of routes handled
+     * @return bool $error error status [0 => true, 1 => false]
+     * 
      * @throws ErrorException if method is not callable or doesn't exist
      */
-    private function handle(array $routes, bool $quitAfterRun = false): bool
+    private function handleWebsite(array $routes): bool
     {
-        $status = false;
+        $error = false;
         $uri = $this->getView();
         foreach ($routes as $route) {
             $is_match = $this->patternMatches($route['pattern'], $uri, $matches);
             if ($is_match) {
-                $this->execute($route['callback'], self::processFindMatches($matches));
-                $status = true;
-
-                if ($quitAfterRun) {
+                $error = $this->execute($route['callback'], self::processFindMatches($matches));
+                if (!$route['middleware'] || (!$error && $route['middleware'])) {
                     break;
                 }
             }
         }
-        return $status;
+        return $error;
     }
 
     /**
     * Handle C=command router CLI callback class method with the given parameters 
     * using instance callback or reflection class
+
     * @param array $routes Command name array values
-    * @return void 
+
+    * @return void $error error status [0 => true, 1 => false]
+
     * @throws ErrorException if method is not callable or doesn't exist
     */
     
-    private function handleCommand(array $routes, bool $quitAfterRun = false): bool
+    private function handleCommand(array $routes): bool
     {
-        $result = false;
+        $error = false;
         foreach ($routes as $route) {
             if ($route['controller']) {
                 $queries = Terminal::getQueries();
@@ -524,27 +589,27 @@ class Router {
                         $parameter = [Terminal::parseCommandLine($_SERVER['argv'] ?? [])];
                     }
     
-                    $result = $this->execute($route['callback'], $parameter);
-                    if (($quitAfterRun && !$route['middleware']) || (!$result && $route['middleware'])) {
+                    $error = $this->execute($route['callback'], $parameter);
+                    if (!$route['middleware'] || (!$error && $route['middleware'])) {
                         break;
                     }
                 }
             } elseif ($this->commandName === $route['pattern'] || $route['middleware']) {
                 $parameter = [Terminal::parseCommandLine($_SERVER['argv'] ?? [])];
-                $result = $this->execute($route['callback'], $parameter);
+                $error = $this->execute($route['callback'], $parameter);
 
-                if (($quitAfterRun && !$route['middleware']) || (!$result && $route['middleware'])) {
+                if (!$route['middleware'] || (!$error && $route['middleware'])) {
                     break;
                 }
             }else {
                 $parameter = Terminal::parseCommandLine($_SERVER['argv'] ?? []);
                 if(Terminal::systemHasCommand($this->commandName, $parameter)){
-                   $result = true;
+                   $error = true;
                    break;
                 }
             }
         }
-        return $result;
+        return $error;
     }
 
     /**
@@ -732,6 +797,20 @@ class Router {
     }
 
     /**
+     * Return server base Path, and define it if isn't defined.
+     *
+     * @return string
+    */
+    public function getBasePath(): string
+    {
+        if ($this->serverBasePath === null && isset($_SERVER['SCRIPT_NAME'])) {
+            $this->serverBasePath = implode('/', array_slice(explode('/', $_SERVER['SCRIPT_NAME']), 0, -1)) . '/';
+        }
+
+        return $this->serverBasePath;
+    }
+
+    /**
      * Get the current view relative URI.
      * @return string
      */
@@ -739,7 +818,6 @@ class Router {
     {
         $uri = '';
         if(isset($_SERVER['REQUEST_URI'])){
-            //$uri = substr(rawurldecode($_SERVER['REQUEST_URI']), strlen($this->getBasePath()));
             $uri = substr(rawurldecode($_SERVER['REQUEST_URI']), mb_strlen($this->getBasePath()));
             if (strstr($uri, '?')) {
                 $uri = substr($uri, 0, strpos($uri, '?'));
@@ -759,6 +837,72 @@ class Router {
     {
         return $this->getView();
     }
+
+    /**
+     * Get the current view array of segment.
+     * @return array
+    */
+    public function getArrayViews(): array
+    {
+        $baseView = trim($this->getView(), '/');
+        $segments = explode('/', $baseView);
+        $public = array_search('public', $segments);
+        if ($public !== false) {
+            array_splice($segments, $public, 1);
+        }
+
+        return $segments;
+    }
+
+    /**
+     * Get the current view segment by position index.
+     * 
+     * @param int $index position index
+     * 
+     * @return string view segment
+    */
+    public function getViewPosition(int $index = 0): string
+    {
+        $segments = $this->getArrayViews();
+        return $segments[$index]??'';
+    }
+
+    /**
+     * Get the current view first segment.
+     * 
+     * @return string
+    */
+    public function getFirstView(): string
+    {
+        $segments = $this->getArrayViews();
+        return reset($segments);
+    }
+    
+    /**
+     * Get the current view last segment.
+     * 
+     * @return string
+    */
+    public function getLastView(): string 
+    {
+        $segments = $this->getArrayViews();
+        return end($segments);
+    }
+
+    /**
+     * Get the current view segment before last segment.
+     * 
+     * @return string
+    */
+    public function getSecondToLastView(): string {
+        $segments = $this->getArrayViews();
+        if (count($segments) > 1) {
+            $secondToLastSegment = $segments[count($segments) - 2];
+            return $secondToLastSegment;
+        }
+        return '';
+    }
+    
 
     /**
      * Replace command script pattern values match (:value) and replace with (pattern)
@@ -784,20 +928,6 @@ class Router {
         
         return false;
     }
-
-    /**
-     * Return server base Path, and define it if isn't defined.
-     *
-     * @return string
-     */
-    public function getBasePath(): string
-    {
-        if ($this->serverBasePath === null && isset($_SERVER['SCRIPT_NAME'])) {
-            $this->serverBasePath = implode('/', array_slice(explode('/', $_SERVER['SCRIPT_NAME']), 0, -1)) . '/';
-        }
-
-        return $this->serverBasePath;
-    }
     
     /**
      * Set application router base path
@@ -816,5 +946,18 @@ class Router {
     private function getCommandName(): ?string {
         $args = $_SERVER['argv'] ?? [];
         return $args[1] ?? '';
+    }
+    
+    /**
+     * Reset register routes to avoid conflicts
+    */
+    private function resetRoutes(): void
+    {
+        $this->controllerRoutes = [];
+        $this->afterControllerRoutes = [];
+        $this->middlewareRoutes = [];
+        $this->commandRoutes = [];
+        $this->cliMiddlewareRoutes = [];
+        $this->errorsCallback = [];
     }
 }

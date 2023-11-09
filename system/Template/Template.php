@@ -245,7 +245,7 @@ class Template extends Configuration {
         return $this;
     }
 
-     /** 
+    /** 
     * Set optimizer ignore view
     * @param array|string $path folder name
     * @throws InvalidException
@@ -261,7 +261,6 @@ class Template extends Configuration {
         }
         return $this;
     }
-
 
     /** 
     * render render template view
@@ -279,13 +278,13 @@ class Template extends Configuration {
         return $this;
     }
 
-
     /** 
     * redirect to template view
     * @param string $viewName view name
-    * @return self $this
+    * @return void
     */
-    public function redirect(string $viewName = ''): void {
+    public function redirect(string $viewName = ''): void 
+    {
         $to = parent::baseUrl();
         if ($viewName !== '' && $viewName !== '/') {
             $to .= '/' . $viewName;
@@ -293,6 +292,17 @@ class Template extends Configuration {
         header("Location: {$to}");
         exit();
     }
+
+    /** 
+    * redirect to url view
+    * @param string $url view name
+    * @return void 
+    */
+    public function redirectTo(string $url): void 
+    {
+        header("Location: $url", true, 302);
+        exit();
+    }    
 
     /**
      * Register a class instance to the template.
@@ -330,7 +340,6 @@ class Template extends Configuration {
         $this->classMapper[$classNameOrInstance] = $classInstance;
         return $this;
     }
-
 
     /** 
      * Set project application document root
@@ -456,9 +465,8 @@ class Template extends Configuration {
         }
         
         $options["root"] = $root;
-        
-        
         $options["baseAssets"] = "{$root}{$this->assetsFolder}/";
+
        /* if($this->templateEngin == self::SMARTY_ENGINE){
             $smarty = new \Smarty\Smarty();
             $smarty->setTemplateDir($this->templateDir);
@@ -489,7 +497,6 @@ class Template extends Configuration {
                 define("ALLOW_ACCESS", true);
             }
         //}
-       
 
         if (!file_exists($this->templateFile)) {
             echo $this->templateFile;
@@ -498,28 +505,33 @@ class Template extends Configuration {
         
         $shouldSaveCache = false;
         $optimizer = null;
+        // Set the project script execution time
+        set_time_limit(parent::getInt("script.execution.limit", 90));
+        // Set cache control for application cache
+        ignore_user_abort(parent::getBoolean('script.ignore.abort', true));
+        // Set output handler
+        ob_start(parent::getMixedNull('script.ob.handler', null));
+
         if (parent::getBoolean("enable.optimize.page") && !in_array($this->activeView, $this->ignoreViewOptimizer)) {
+            $shouldSaveCache = true;
             $optimizer = new Optimizer(parent::getVariables("page.optimize.expiry"), $this->optimizerFile);
             $optimizer->setKey($this->templateFile);
             if ($optimizer->hasCache() && $optimizer->getCache()) {
-                exit('<!--[File was cached on - '. $optimizer->getFileTime().', Using: '.parent::copyright().']-->');
-            } else {
-                $shouldSaveCache = true;
+                exit(0);
             }
         }
 
-        ob_start();
         include_once $this->templateFile;
         $viewContents = ob_get_clean();
         if(parent::getBoolean("enable.compression")){
             $this->displayCompressedContent($viewContents, $optimizer, $options["ContentType"], $shouldSaveCache);
         }else{
             if ($shouldSaveCache && $optimizer !== null) {
-                $optimizer->saveCache($viewContents);
+                $optimizer->saveCache($viewContents, parent::copyright());
             }
             exit($viewContents);
         }
-        exit(1);
+        exit(0);
     }
 
     /** 
@@ -530,12 +542,7 @@ class Template extends Configuration {
     private function displayCompressedContent(mixed $contents, ?Optimizer $optimizer = null, string $contentType = 'html', bool $save = false): void{
         $compress = new Compress();
         // Set cache control for application cache
-        $compress->setIgnoreCodeblock(true);
-        // Set cache control for application cache
         $compress->setCacheControl(parent::getBoolean("cache.control"));
-
-        // Set the project script execution time
-        $compress->setExecutionLimit(parent::getInt("script.execution.limit", 90));
 
         // Set response compression level
         $compress->setCompressionLevel(parent::getInt("compression.level", 6));
@@ -552,8 +559,9 @@ class Template extends Configuration {
                 $compress->html( $contents );
             break;
         }
+
         if ($save && $optimizer !== null) {
-            $optimizer->saveCache($compress->getMinified());
+            $optimizer->saveCache($compress->getMinified(), parent::copyright());
         }
     }
 
@@ -570,7 +578,9 @@ class Template extends Configuration {
     /** 
     * Fixes the broken css,image & links when added additional slash(/) at the router link
     * The function will add the appropriate relative base based on how many invalid link detected.
+
     * @param int $level the directory level from base directory controller/foo(1) controller/foo/bar(2)
+
     * @return string relative path 
     */
     private static function getRelativePath(int $level = 0): string {

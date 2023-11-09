@@ -32,18 +32,6 @@ class Optimizer
      */
     private string $optimizerKey;
 
-    /** 
-	*  Maximin execution time 
-	* @var int $scriptExecutionLimit
-	*/
-    private int $scriptExecutionLimit = 60;
-
-     /** 
-     * Ignore user abort
-     * @var bool $ignoreUserAbort
-     */
-	private bool $ignoreUserAbort = true;
-
     /**
      * Class constructor.
      *
@@ -100,13 +88,11 @@ class Optimizer
 
     /**
      * Load the content from the cache file and exit the script.
-     *
+     * 
      * @return bool True if loading was successful; false otherwise.
      */
-    public function getCache(): bool
+    public function getCache(string $info = null): bool
     {
-        set_time_limit($this->scriptExecutionLimit);
-        ignore_user_abort($this->ignoreUserAbort);
         $headers = Header::getSystemHeaders();
         $location = $this->getCacheLocation();
         
@@ -125,7 +111,6 @@ class Optimizer
             header("$header: $value");
         }
         
-        ob_start('ob_gzhandler');
         $bytesRead = readfile($location);
         
         if (ob_get_length() > 0) {
@@ -140,17 +125,21 @@ class Optimizer
      * Save the content to the cache file.
      *
      * @param string $content The content to be saved to the cache file.
+     * @param string $info Framework copyright information
      *
      * @return bool True if saving was successful; false otherwise.
      */
-    public function saveCache(string $content): bool
+    public function saveCache(string $content, string $info = null): bool
     {
         $location = $this->getCacheFilepath();
         if (!file_exists($location)) {
-            mkdir($location, 0755, true);
+            @mkdir($location, 0755, true);
         }
 
-        $bytesWritten = file_put_contents($this->getCacheLocation(), $content);
+        $now = date('D jS M Y H:i:s', time());
+        $content .= '<!--[File was cached on - '. $now . ', Using: ' . $info . ']-->';
+
+        $bytesWritten = @file_put_contents($this->getCacheLocation(), $content);
         return $bytesWritten !== false;
     }
 

@@ -281,6 +281,19 @@ class Configuration {
     }
 
     /**
+     * Get environment variable as default null
+     *
+     * @param string $key variable name
+     * @param mixed|null $default fallback to default
+     * @return bool
+    */
+    public static function getMixedNull(string $key, mixed $default = null): mixed
+    {
+        $value = self::getVariables($key, $default);
+        return ($value != 0 && empty($value) ? null : $value);
+    }
+
+    /**
      * Convert variable to dot or underscore notation.
      *
      * @param string $input The input string .

@@ -41,12 +41,6 @@ class Compress {
     private bool $gzip; 
 
     /** 
-     * Ignore user abort
-     * @var bool $ignoreUserAbort
-     */
-	private bool $ignoreUserAbort = true;
-
-    /** 
      * Ignore html code block tag <code></code>
      * @var bool $ignoreCodeblock
      */
@@ -63,12 +57,6 @@ class Compress {
 	* @var mixed $minifiedContent
 	*/
     private mixed $minifiedContent = '';
-
-	/** 
-	*  Maximin execution time 
-	* @var int $scriptExecutionLimit
-	*/
-    private int $scriptExecutionLimit = 60;
 
     /** 
 	* Compression level  
@@ -157,31 +145,6 @@ class Compress {
         return $this;
     }
 
-	/**
-     * sets ignore user abort
-     *
-     * @param bool $ignore Cache-Control header value.
-     * @return Compress Returns the class instance for method chaining.
-     */
-	public function setIgnoreUserAbort(bool $ignore): Compress 
-    {
-		$this->ignoreUserAbort = $ignore;
-		return $this;
-	}
-
-
-	/**
-     * sets ignore user abort
-     *
-     * @param int $limit Set script maximin execution limit
-     * @return Compress Returns the class instance for method chaining.
-     */
-	public function setExecutionLimit(int $limit): Compress 
-    {
-		$this->scriptExecutionLimit = $limit;
-		return $this;
-	}
-
     /**
      * sets compression level
      *
@@ -265,12 +228,7 @@ class Compress {
      * @param string $contentType The expected content type for the response.
     */
     private function withViewContent(mixed $body, int $statusCode, string $contentType): void {
-        set_time_limit($this->scriptExecutionLimit);
-        ignore_user_abort($this->ignoreUserAbort);
-        
-        // Start output buffering and use ob_gzhandler for gzip compression
-        ob_start('ob_gzhandler');
-    
+
         // Compress the content and store it in a variable
         //$this->compressedContent = $this->compress($body, $contentType);
     
