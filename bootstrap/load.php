@@ -9,6 +9,7 @@
  */
 require_once __DIR__ . '/../system/plugins/autoload.php';
 use \App\Controllers\Application;
+
 $minPhpVersion = '8.0';
 if (version_compare(PHP_VERSION, $minPhpVersion, '<')) {
     $message = sprintf(
@@ -20,12 +21,6 @@ if (version_compare(PHP_VERSION, $minPhpVersion, '<')) {
 }
 
 /*
-* Register The Application Timezone
-*/
-date_default_timezone_set(Application::getVariables("app.timezone", 'UTC'));
-
-
-/*
 * Load global developer file
 */
 
@@ -35,15 +30,7 @@ if(file_exists($global)){
 }
 
 /*
-* Create The Application
-*/
-
-//$app = new Application(__DIR__);
-$app = Application::getInstance(__DIR__);
-
-
-/*
 * Return The Application Instance
 */
 
-return $app;
+return Application::getInstance(__DIR__);

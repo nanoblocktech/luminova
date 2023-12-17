@@ -47,11 +47,13 @@ class Optimizer
     /**
      * Get the file path for the cache based on the current request URI.
      *
+     * @param string $extension file extension
+     * 
      * @return string The file path for the cache.
-     */
-    public function getCacheLocation(): string
+    */
+    public function getCacheLocation(string $extension = 'html'): string
     {
-        return $this->getCacheFilepath() . $this->getKey() . '.html';
+        return $this->getCacheFilepath() . $this->getKey() . '.' . $extension;
     }
 
     /**
@@ -95,6 +97,7 @@ class Optimizer
     {
         $headers = Header::getSystemHeaders();
         $location = $this->getCacheLocation();
+        $infoLocation = $this->getCacheLocation('json');
         
         // Calculate the cache expiration time based on file creation time
         $fileCreationTime = filectime($location);
@@ -106,6 +109,13 @@ class Optimizer
 
         // Set the "Expires" header based on the calculated expiration time
         $headers['Expires'] = gmdate("D, d M Y H:i:s", $cacheExpirationTime) . ' GMT';
+
+        if (file_exists($infoLocation)) {
+            $info = json_decode(file_get_contents($infoLocation), true);
+            $headers['Content-Type'] = $info['Content-Type'];
+            //$headers['Content-Length'] = $info['Content-Length'];
+            $headers['Content-Encoding'] = $info['Content-Encoding'];
+        }
         
         foreach ($headers as $header => $value) {
             header("$header: $value");
@@ -129,16 +139,21 @@ class Optimizer
      *
      * @return bool True if saving was successful; false otherwise.
      */
-    public function saveCache(string $content, string $info = null): bool
+    public function saveCache(string $content, ?string $info = null, array $cacheData = []): bool
     {
         $location = $this->getCacheFilepath();
         if (!file_exists($location)) {
             @mkdir($location, 0755, true);
         }
 
-        $now = date('D jS M Y H:i:s', time());
-        $content .= '<!--[File was cached on - '. $now . ', Using: ' . $info . ']-->';
-
+        if($info !== null){
+            $now = date('D jS M Y H:i:s', time());
+            $content .= '<!--[File was cached on - '. $now . ', Using: ' . $info . ']-->';
+        }
+    
+        if($cacheData !== []){
+            file_put_contents($this->getCacheLocation('json'), json_encode($cacheData));
+        }
         $bytesWritten = @file_put_contents($this->getCacheLocation(), $content);
         return $bytesWritten !== false;
     }

@@ -177,17 +177,22 @@ class Meta{
      * Retrieves a configuration value by key and appends a query string if necessary.
      *
      * @param string $key The key of the configuration value.
-     * @return string The configured value with an optional query string.
+     * @return mixed The configured value with an optional query string.
      */
-    private function getConfig(string $key): string
+    private function getConfig(string $key): mixed
     {
         $config = array_replace($this->defaultConfig, array_filter($this->extendedConfig));
+        
         $param = ($config[$key]??null);
-
-        if($this->shouldAddParam($key, $param)){
-            $param .= "?{$this->getQuery()}";
+        if(is_array($param)){
+            $value = $param;
+        }else{
+            if($this->shouldAddParam($key, $param)){
+                $param .= "?{$this->getQuery()}";
+            }
+            $value = rtrim($param, "/");
         }
-        $value = is_array($param) ? $param: rtrim($param, "/");
+    
         if($key == "image_assets"){
             return "{$value}/";
         }

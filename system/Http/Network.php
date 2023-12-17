@@ -9,28 +9,78 @@
  */
 
 namespace Luminova\Http;
-use Luminova\Http\CurlClient;
+use Luminova\Http\NetworkClientInterface;
+use Luminova\Http\NetworkResponse;
 class Network
 {
-    private $client;
+    /**
+     * @var NetworkClientInterface
+     */
+    private NetworkClientInterface $client;
 
-    public function __construct($client = null)
+    /**
+     * Network constructor with http client instance 
+     *
+     * @param NetworkClientInterface $client 
+     */
+    public function __construct(NetworkClientInterface $client)
     {
-        $this->client = $client ?: new CurlClient();
+        $this->client = $client;
     }
 
-    public function send($method, $url, $data = [], $headers = [])
+    /**
+     * Send a request.
+     *
+     * @param string $method
+     * @param string $url
+     * @param array $data
+     * @param array $headers
+     *
+     * @return NetworkResponse
+     */
+    public function send(string $method, string $url, array $data = [], array $headers = []): NetworkResponse
     {
-        return $this->client->sendRequest($method, $url, $data, $headers);
+        return $this->client->request($method, $url, $data, $headers);
     }
 
-    public function fetch($url, $headers = [])
+    /**
+     * Perform a GET request.
+     *
+     * @param string $url
+     * @param array $data
+     * @param array $headers
+     *
+     * @return NetworkResponse
+     */
+    public function get(string $url, array $data = [], array $headers = []): NetworkResponse
     {
-        return $this->send('GET', $url, [], $headers);
+        return $this->client->request("GET", $url, $data, $headers);
     }
 
-    public function post($url, $data = [], $headers = [])
+    /**
+     * Fetch data using a GET request.
+     *
+     * @param string $url
+     * @param array $headers
+     *
+     * @return NetworkResponse
+     */
+    public function fetch(string $url, array $headers = []): NetworkResponse
     {
-        return $this->send('POST', $url, $data, $headers);
+        return $this->client->request("GET", $url, [], $headers);
+    }
+
+    /**
+     * Perform a POST request.
+     *
+     * @param string $url
+     * @param array $data
+     * @param array $headers
+     *
+     * @return NetworkResponse
+     */
+    public function post(string $url, array $data = [], array $headers = []): NetworkResponse
+    {
+        return $this->client->request("POST", $url, $data, $headers);
     }
 }

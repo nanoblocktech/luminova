@@ -28,6 +28,12 @@ class Compress {
 	*/
 	public const HTML = "text/html;";
 
+    /**
+	* holds xml content type
+	* @var string XML
+	*/
+	public const XML = 'application/xml';
+
     /** 
 	* Array to hold response headers
 	* @var array $headers
@@ -63,6 +69,8 @@ class Compress {
 	* @var int $compressionLevel
 	*/
     private int $compressionLevel = 6;
+
+    private array $info = [];
 
     /**
      * Regular expression patterns for content stripping
@@ -119,17 +127,6 @@ class Compress {
      */
     public function setExpires(int $offset): Compress {
         $this->headers['Expires'] = gmdate("D, d M Y H:i:s", time() + $offset) . ' GMT';
-        return $this;
-    }
-
-	/**
-     * Set the expiration offset for the Cache-Control header.
-     *
-     * @param int $expire Cache expiration offset in seconds.
-     * @return Compress Returns the class instance for method chaining.
-     */
-    public function setHtmlExpires(int $expire): Compress {
-		$this->cacheExpiry = $expire;
         return $this;
     }
 
@@ -193,7 +190,7 @@ class Compress {
      * @return string The compressed content for output.
      */
     public function compress(mixed $data, string $contentType): string {
-        $content = ($contentType === self::JSON) ? json_encode($data, true) : $data;
+        $content = ($contentType === self::JSON) ? $this->toJsonEncodedString($data) : $data;
         $this->minifiedContent = $this->ignoreCodeblock ? self::minifyIgnoreCodeblock($content) : self::minify($content);
         $compressedContent = '';
 
@@ -207,18 +204,58 @@ class Compress {
             // Compress the content and store it in a variable
             $compressedContent = gzencode($this->minifiedContent, $this->compressionLevel);
             //$compressedContent = gzencode($this->minifiedContent, $this->compressionLevel, 9, FORCE_GZIP);
+            $this->info['Content-Encoding'] = 'gzip';
         } else {
             // Store the uncompressed content in a property
             $compressedContent = $this->minifiedContent;
         }
-        
-        $this->headers['Content-Length'] = strlen($compressedContent);
-        $this->headers['Content-Type'] = $contentType . ' ' . $this->headers['Content-Type'];
+        $contentLength = strlen($compressedContent);
+
+        $this->info['Content-Length'] = $contentLength;
+        $this->info['Content-Type'] = $contentType;
+
+        $this->headers['Content-Length'] = $contentLength;
+        $this->headers['Content-Type'] = $contentType;
+        // ?? $this->headers['Content-Type']; 
+        //Header::getContentType($contentType);
         foreach ($this->headers as $header => $value) {
             header("$header: $value");
         }
         return $compressedContent;
     }
+
+    /**
+     * Get page header information
+     * 
+     * @return array
+    */
+    public function getInfo(): array
+    {
+        return $this->info;
+    }
+
+    /**
+     * Convert content to json string
+     * @param mixed $data
+     * 
+     * @return string
+    */
+    private function toJsonEncodedString(mixed $data): string
+    {
+        $decodedData = json_decode($data);
+    
+        if ($decodedData !== null || json_last_error() === JSON_ERROR_NONE) {
+            return $data;
+        } else {
+            $encodedData = json_encode($data);
+    
+            if ($encodedData !== false) {
+                return $encodedData;
+            } else {
+                return '';
+            }
+        }
+    }    
 
     /**
      * Sends the response with the specified content type and status code.
@@ -266,6 +303,16 @@ class Compress {
     }
 
     /**
+     * Send the output in XML format.
+     *
+     * @param string|array|object $body The content body to be sent in the response.
+     */
+    public function xml(mixed $body): void 
+    {
+        $this->withViewContent($body, 200, self::XML);
+    }
+
+     /**
      * Send the output in JSON format.
      *
      * @param string|array|object $body The content body to be sent in the response.
@@ -329,27 +376,29 @@ class Compress {
      * Ignore html <code></code> block
      * @param string $content The content to minify.
      * @return string minified content.
-     */
-    function minifyIgnoreCodeblock(string $content): string {
-        $ignoredCodeBlocks = [];
-        $codeBlockPattern = '/<code[^>]*>[\s\S]*?<\/code>/i';
-        //$commentPattern = '/<!--\[File was cached on - (.*?) Using: (.*?)\]-->/';
-        $content = preg_replace_callback($codeBlockPattern, function ($matches) use (&$ignoredCodeBlocks) {
-            $ignoredCodeBlocks[] = $matches[0];
-            return '###IGNORED_CODE_BLOCK###';
+    */
+    public static function minifyIgnoreCodeblock(string $content): string 
+    {
+        $ignores = [];
+        $pattern = '/<pre><code[^>]*>[\s\S]*?<\/code><\/pre>/i';
+        $ignorePatten = '###IGNORED_CODE_BLOCK###';
+        $content = preg_replace_callback($pattern, function ($matches) use (&$ignores, $ignorePatten) {
+            $ignores[] = $matches[0];
+            return $ignorePatten;
         }, $content);
-    
-        // Perform minification
-        //$content = preg_replace(self::PATTERNS["find"], self::PATTERNS["replace"], $content);
+
+
         $content = self::minify($content);
-    
-        // After processing, restore the code blocks back to its original state
-        $count = 1; // Make sure only one code block is processed
-        foreach ($ignoredCodeBlocks as $codeBlock) {
-            $content = str_replace('###IGNORED_CODE_BLOCK###', $codeBlock, $content, $count);
-        }
-    
+
+        // Restore the code blocks back to its original state
+        $content = preg_replace_callback('/' . $ignorePatten . '/', function () use (&$ignores) {
+            $copy = '<button type="button" class="copy-snippet">copy</button>';
+            $codeBlock =  array_shift($ignores);
+            return str_replace('<pre>', '<pre class="pre-codeblock">' . $copy , $codeBlock);
+        }, $content);
+
+       
+
         return $content;
     }
-    
 }

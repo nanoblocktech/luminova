@@ -7,11 +7,12 @@
  * @copyright (c) Nanoblock Technology Ltd
  * @license See LICENSE file
  */
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
 $app = require_once __DIR__ . '/../bootstrap/load.php';
+
 use Luminova\Routing\Bootstrap;
+
 define('PUBLIC_PATH', __DIR__ . DIRECTORY_SEPARATOR);
+
 if (getcwd() . DIRECTORY_SEPARATOR !== PUBLIC_PATH) {
     chdir(PUBLIC_PATH);
 }
@@ -21,7 +22,7 @@ if (getcwd() . DIRECTORY_SEPARATOR !== PUBLIC_PATH) {
 */
 $webErrorHandler = function () use ($app) {
     $app->render("404")->view([
-        "error_url" => $app::baseUrl() . $app->getView()
+        "error_url" => $app->getView()
     ]);
 };
 

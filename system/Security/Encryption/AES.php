@@ -32,7 +32,7 @@ class AES implements EncryptionInterface
      * @param int|null $blockSize
      * @param string $mode
      */
-    public function __construct(string $key = '', ?int $blockSize = null, string $mode = 'CBC')
+    public function __construct(?string $key = '', ?int $blockSize = null, string $mode = 'CBC')
     {
         $this->setKey($key);
         $this->setMethod($blockSize, $mode);
@@ -43,7 +43,7 @@ class AES implements EncryptionInterface
      *
      * @param string|null $data
      */
-    public function setData(?string $data): void
+    public function setData(?string $data = null): void
     {
         $this->data = $data;
     }
@@ -53,7 +53,7 @@ class AES implements EncryptionInterface
      *
      * @param string|null $key
      */
-    public function setKey(?string $key): void
+    public function setKey(?string $key = null): void
     {
         $this->key = hash('sha256', $key, true);
     }
@@ -63,7 +63,7 @@ class AES implements EncryptionInterface
      *
      * @param string|null $iv
      */
-    public function setInitializationVector(?string $iv): void
+    public function setInitializationVector(?string $iv = null): void
     {
         $this->iv = $iv;
     }
@@ -81,7 +81,7 @@ class AES implements EncryptionInterface
      * @param string $mode
      * @throws ErrorException
      */
-    public function setMethod(?int $blockSize, string $mode = 'CBC'): void
+    public function setMethod(?int $blockSize = null, string $mode = 'CBC'): void
     {
 		//if ($blockSize==192 && in_array('', array('CBC-HMAC-SHA1','CBC-HMAC-SHA256','XTS'))){
         if ($blockSize == 192 && in_array($mode, ['', 'CBC-HMAC-SHA1', 'CBC-HMAC-SHA256', 'XTS'])) {

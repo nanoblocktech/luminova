@@ -22,16 +22,16 @@ use Luminova\Config\Database;
   *
   * @package Luminova\Database
   */
- class Conn
- {
-     /** 
+class Conn
+{
+    /** 
       * Database connection instance 
       * @var object 
-      */
-     public $db;
+    */
+    protected $db;
  
-     /** @var object|null */
-     private static $instance = null;
+    /** @var object|null */
+    private static $instance = null;
  
      /**
       * Conn constructor.
@@ -41,8 +41,8 @@ use Luminova\Config\Database;
       */
      public function __construct()
      {
-         $this->db = self::createDatabaseInstance();
-         $this->db->setDebug(!Configuration::isProduction());
+        $this->db = self::createDatabaseInstance();
+        $this->db->setDebug(!Configuration::isProduction());
      }
  
      /**
@@ -52,7 +52,8 @@ use Luminova\Config\Database;
       *  @throws DatabaseException|InvalidException|InvalidObjectException If fails
       */
 
-     public static function getInstance(): self {
+     public static function getInstance(): self 
+     {
         if (self::$instance === null) {
             self::$instance = new self();
         }
@@ -60,30 +61,28 @@ use Luminova\Config\Database;
         // return self::$instance->db;
     }
  
-     /**
+    /**
       * Create an instance of the database driver based on configuration.
       *
       * @return object Database driver instance (either MySqlDriver or PdoDriver).
       * @throws DatabaseException|InvalidException|InvalidObjectException If fails
-      */
-     private static function createDatabaseInstance(): object
-     {
-         switch (Configuration::getVariables("database.driver")) {
-             case "MYSQLI":
-                 return new MySqlDriver(self::getDatabaseConfig());
-             case "PDO":
-             default:
-                 return new PdoDriver(self::getDatabaseConfig());
-         }
-     }
+    */
+    private static function createDatabaseInstance(): object
+    {
+        return match (Configuration::getVariables("database.driver")) {
+            "MYSQLI" => new MySqlDriver(self::getDatabaseConfig()),
+            "PDO" => new PdoDriver(self::getDatabaseConfig()),
+            default => new PdoDriver(self::getDatabaseConfig())
+        };
+    }
  
-     /**
+    /**
       * Get the database configuration based on environment and settings.
       *
       * @return Database Database configuration object.
-      */
-     private static function getDatabaseConfig(): Database
-     {
+    */
+    private static function getDatabaseConfig(): Database
+    {
          $config = new Database();
          $config->port = Configuration::getVariables("database.port");
          $config->host = Configuration::getVariables("database.hostname");
@@ -95,6 +94,6 @@ use Luminova\Config\Database;
          $config->password = Configuration::isProduction() ? Configuration::getVariables("database.password") : Configuration::getVariables("database.development.password");
          $config->database = Configuration::isProduction() ? Configuration::getVariables("database.name") : Configuration::getVariables("database.development.name");
          return $config;
-     }
- }
+    }
+}
  

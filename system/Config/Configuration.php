@@ -13,12 +13,12 @@ class Configuration {
     /**
     * @var string $version version name
     */
-    public static $version = '1.5.7';
+    public static $version = '1.5.6';
 
     /**
     * @var int $versionCode version code
     */
-    public static $versionCode = 157;
+    public static $versionCode = 155;
 
     /**
      * Minimum required php version
@@ -150,10 +150,20 @@ class Configuration {
      * Get development environment
      *
      * @return string
-     */
+    */
     public static function getEnvironment(): string
     {
         return self::getVariables("app.environment.mood");
+    }
+
+    /**
+     * Check if app is on maintenance
+     *
+     * @return bool
+    */
+    public static function isMaintenance(): bool
+    {
+        return self::getBoolean("app.maintenance.mood", false);
     }
 
     /**
@@ -276,9 +286,10 @@ class Configuration {
     */
     public static function getBoolean(string $key, bool $default = false): bool
     {
-        $value = self::getVariables($key, $default);
-        return ($value == 'true' || $value === 1 || $value == '1');
+        $value = strtolower(self::getVariables($key, $default));
+        return $value == 'true' || $value === 1 || $value == '1';
     }
+
 
     /**
      * Get environment variable as default null
@@ -338,7 +349,7 @@ class Configuration {
      *
      * @return string
      */
-    public function version(): string
+    public static function version(): string
     {
         return self::$version;
     }

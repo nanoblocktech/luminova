@@ -231,7 +231,9 @@ class FileSystemCache {
 
      /**
      * Enable the cache to store data in base64 encoded.
+     * 
      * @param bool $encode true or false
+     * 
      * @return FileSystemCache $this
      */
     public function enableBase64(bool $encode): self {
@@ -254,7 +256,9 @@ class FileSystemCache {
 
     /**
      * Enable the cache to store secure data in php file extension.
-     * @param bool $encode true or false
+     * 
+     * @param bool $secure true or false
+     * 
      * @return FileSystemCache $this
      */
     public function enableSecureAccess(bool $secure): self {
@@ -285,22 +289,22 @@ class FileSystemCache {
     /**
      * Loads, create, update and delete cache with fewer options
      * @param string $key cache key
-     * @param object|callable $cacheCallback Callback called when data needs to be refreshed.
+     * @param callable $cacheCallback Callback called when data needs to be refreshed.
      * @return mixed Data currently stored under key
      * @throws ErrorException if the file cannot be saved
      */
-    public function onExpired(string $key, object $cacheCallback): mixed {
+    public function onExpired(string $key, callable $cacheCallback): mixed {
         return $this->get($key, $cacheCallback, $this->cacheTime, $this->cacheLock);
     }
 
     /**
      * Loads, create, update and delete cache with FileCacheItem model
      * @param string $key cache key
-     * @param object|callable $cacheCallback Callback called when data needs to be refreshed.
+     * @param callable $cacheCallback Callback called when data needs to be refreshed.
      * @return mixed Data currently stored under key
      * @throws ErrorException if the file cannot be saved
      */
-    public function onCache(string $key, object $cacheCallback): mixed {
+    public function onCache(string $key, callable $cacheCallback): mixed {
         if(empty($key)) {
             throw new ErrorException('Invalid argument, cache $key cannot be empty');
         }
@@ -309,7 +313,7 @@ class FileSystemCache {
             if ($this->hasExpired($key)){
                 $result = $cacheCallback(new FileCacheItem());
                 if ($result instanceof FileCacheItem) {
-                    if(!empty($result->getData())){
+                    if($result->getData() !== null){
                         $this->buildCache($key, $result->getData(), $result->getExpiry(), $result->getLock());
                         return  $result->getData();
                     }
@@ -325,20 +329,20 @@ class FileSystemCache {
     /**
      * Loads, create, update and delete cache with full options
      * @param string $key cache key
-     * @param object|callable $cacheCallback Callback called when data needs to be refreshed.
+     * @param callable $cacheCallback Callback called when data needs to be refreshed.
      * @param int $time cache expiry time
      * @param bool $lock lock catch to avoid deletion even when cache time expire
      * @return mixed|null Data currently stored under key
      * @throws ErrorException if the file cannot be saved
      */
-    public function get(string $key, object $cacheCallback, int $time, bool $lock): mixed {
+    public function get(string $key, callable $cacheCallback, int $time, bool $lock): mixed {
         if(empty($key)) {
             throw new ErrorException('Invalid argument, cache $key cannot be empty');
         }
 		if($this->isCacheEnabled){
             if ($this->hasExpired($key)){
                 $result = $cacheCallback();
-                if(!empty($result)){
+                if($result !== null){
                     $this->buildCache($key, $result, $time, $lock);
                     return $result;
                 }
@@ -351,7 +355,8 @@ class FileSystemCache {
 
     /**
      * Creates, Reloads and retrieve cache once class is created
-     * @return object $this
+     * 
+     * @return FileSystemCache $this
      * @throws ErrorException if there is a problem loading the cache
      */
     public function create(): self {
@@ -441,7 +446,7 @@ class FileSystemCache {
      */
     private function buildCache(string $key, mixed $data, int $expiration = 60, bool $lock = false): self {
         $cacheString = serialize($data);
-        if ($cacheString === false) {
+        if ($cacheString === null) {
             throw new ErrorException("Failed to create cache file!");
         }
 
@@ -474,7 +479,7 @@ class FileSystemCache {
 
             $data = unserialize($this->unlockSecurity($file));
 
-            if ($data === false) {
+            if ($data === null) {
                 unlink($filepath);
                 throw new ErrorException("Failed to unserialize cache file, cache file deleted. ({$this->cacheFilenameHashed})");
             }

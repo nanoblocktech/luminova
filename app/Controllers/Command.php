@@ -8,7 +8,9 @@
  * @license See LICENSE file
  */
 namespace App\Controllers;
-use Luminova\Command\BaseCommand;
+
+use Luminova\Base\BaseCommand;
+
 class Command extends BaseCommand {
 
     protected string $group = 'custom';

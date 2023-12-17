@@ -8,12 +8,15 @@
  * @license See LICENSE file
  */
 namespace App\Controllers;
-use Luminova\Controller;
-class Welcome extends Controller {
+
+use Luminova\Base\BaseController;
+use Luminova\Config\Configuration;
+
+class Welcome extends BaseController {
 
     public function page(): void
     {
-        $this->render("index")->view();
+        $this->app->render("index")->view();
     }
 
     public function info(): void
@@ -23,8 +26,8 @@ class Welcome extends Controller {
             "error" => [
                 "status" => "OK",
                 "code" => 200,
-                "version" => $this->version(),
-                "framework" => $this->copyright(),
+                "version" => Configuration::version(),
+                "framework" => Configuration::copyright(),
                 //"details" => "The endpoint [" . $this->getView() . "] you are trying to access does not exist.",
                 "timestamp" => date("Y-m-d H:i:s")
             ]

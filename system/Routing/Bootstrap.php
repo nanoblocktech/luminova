@@ -28,6 +28,12 @@ class Bootstrap {
     */
     public const CLI = 'cli';
 
+     /** 
+     * Default CLI controller type
+     * @var string CLI
+    */
+    public const ADMIN = 'console';
+
     /**
      * @var string $type
     */
@@ -38,10 +44,15 @@ class Bootstrap {
     */
     private $callback;
 
-     /**
+    /**
      * @var callable $error
     */
     private $error = null;
+
+    /**
+     * @var array $instances
+    */
+    private static $instances = [];
 
     /**
      *
@@ -53,13 +64,18 @@ class Bootstrap {
         $this->type = $type;
         $this->callback = $callback;
         $this->error = $error;
+        
+        if( $type !== self::WEB){
+            static::$instances[] = $type;
+        }
     }
 
     /**
      * Get bootstrap controller instance type
      * @return string $type route instance type
     */
-    public function getType(): string {
+    public function getType(): string 
+    {
         return $this->type;
     }
 
@@ -67,7 +83,8 @@ class Bootstrap {
      * Get bootstrap controller callback function to execute
      * @return callable $callback 
     */
-    public function getFunction(): callable {
+    public function getFunction(): callable 
+    {
         return $this->callback;
     }
 
@@ -75,7 +92,17 @@ class Bootstrap {
      * Get bootstrap controller error callback handler
      * @return callable|null $callback 
     */
-    public function getErrorHandler(): ?callable {
+    public function getErrorHandler(): ?callable 
+    {
         return $this->error;
+    }
+
+    /**
+     * Get bootstrap registered custom instance
+     * @return array static::$instances 
+    */
+    public static function getInstances(): array 
+    {
+        return static::$instances;
     }
 }

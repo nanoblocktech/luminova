@@ -20,12 +20,12 @@ class InputValidator implements ValidatorInterface{
      /**
      * @var array $validationRules validation rules
     */
-    protected array $validationRules = [];
+    public array $validationRules = [];
 
     /**
      * @var array $errorMessages validation error messages
     */
-    protected array $errorMessages = [];
+    public array $errorMessages = [];
 
     /**
      * Validate entries
@@ -49,39 +49,36 @@ class InputValidator implements ValidatorInterface{
             $ruleParts = explode('|', $rule);
             foreach ($ruleParts as $rulePart) {
                 $ruleName = preg_replace("/\s*\([^)]*\)/", '', $rulePart);
+                $ruleParam = str_replace([$ruleName . '(', ')'], '', $rulePart);
                 switch ($ruleName) {
                     case 'none':
                         return true;
 
                     case 'required':
-                        if (empty($fieldValue)) {
+                        if (self::isEmpty($fieldValue)) {
                             $this->addError($field, $ruleName);
                         }
                         break;
                     case 'callback':
-                        $callback = str_replace(['callback(', ')'], '', $rulePart);
-                        if (is_callable($callback) && !$callback($fieldValue, $field)) {
+                        if (is_callable($ruleParam) && !$ruleParam($fieldValue, $field)) {
                             $this->addError($field, $ruleName);
                         }
                         break;
                     case 'match':
-                        $param = str_replace(['match(', ')'], '', $rulePart);
-                        if (!preg_match('/' . $param . '/', $fieldValue)) {
+                        if (!preg_match('/' . $ruleParam . '/', $fieldValue)) {
                             $this->addError($field, $ruleName);
                         }
                         break;
 
                     case 'equals':
-                        $matchWith = str_replace(['equals(', ')'], '', $rulePart);
-                        if ($fieldValue !== $input[$matchWith]) {
+                        if ($fieldValue !== $input[$ruleParam]) {
                             $this->addError($field, $ruleName);
                         }
                         break;
 
                     case 'in_array':
-                        $matchWith = str_replace(['in_array(', ')'], '', $rulePart);
-                        if (!empty($matchWith)) {
-                            $matches = self::listToArray($matchWith);
+                        if (!empty($ruleParam)) {
+                            $matches = self::listToArray($ruleParam);
                             if (!in_array($fieldValue, $matches)) {
                                 $this->addError($field, $ruleName);
                             }
@@ -89,9 +86,8 @@ class InputValidator implements ValidatorInterface{
                         break;
 
                     case 'keys_exist':
-                        $matchWith = str_replace(['keys_exist(', ')'], '', $rulePart);
-                        if (!empty($matchWith)) {
-                            $matches = self::listToArray($matchWith);
+                        if (!empty($ruleParam)) {
+                            $matches = self::listToArray($ruleParam);
                             if (is_array($fieldValue)) {
                                 $intersection = array_intersect($matches, $fieldValue);
                                 $exist = count($intersection) === count($fieldValue);
@@ -105,17 +101,17 @@ class InputValidator implements ValidatorInterface{
                         break;
 
                     case 'fallback':
-                        $defaultValue = str_replace(['fallback(', ')'], '', $rulePart);
-                        if (empty($fieldValue)) {
+                        $defaultValue = $ruleParam;
+                        if (self::isEmpty($fieldValue)) {
                             $defaultValue = "";
-                        } elseif (strtolower($defaultValue) == 'null') {
+                        } elseif (strtolower($ruleParam) == 'null') {
                             $defaultValue = null;
                         }
                         $input[$field] = $defaultValue;
                         break;
 
                     default:
-                        if (!$this->validateField($ruleName, $fieldValue, $rulePart)) {
+                        if (!$this->validateField($ruleName, $fieldValue, $rulePart, $ruleParam)) {
                             $this->addError($field, $ruleName);
                         }
                         break;
@@ -135,48 +131,48 @@ class InputValidator implements ValidatorInterface{
      * @param string $param additional validation parameters
      * @return boolean true if the rule passed else false
     */
-    public function validateField(string $ruleName, string $value, string $rule, ?string $param = null): bool
+    public function validateField(string $ruleName, string $value, string $rule, mixed $param = null): bool
     {
-        
-        switch ($ruleName) {
-            case 'max_length':
-                $max = (int) str_replace(['max_length(', ')'], '', $rule);
-                return strlen($value) <= $max;
-            case 'min_length':
-                $min = (int) str_replace(['min_length(', ')'], '', $rule);
-                return strlen($value) >= $min;
-            case 'exact_length':
-                $exact = (int) str_replace(['exact_length(', ')'], '', $rule);
-                return strlen($value) == $exact;
-            case 'integer':
-                $isInteger = filter_var($value, FILTER_VALIDATE_INT) !== false; 
-                $type = str_replace(['integer(', ')'], '', $rule);
-                if($type === "positive"){
-                    return $isInteger && (int)$value > 0;
-                }elseif($type === "negative"){
-                    return $isInteger && (int)$value < 0;
-                }
-                return $isInteger;
-            case 'email':
-                return filter_var($value, FILTER_VALIDATE_EMAIL) !== false;
-            case 'alphanumeric':
-                return preg_match("/[^A-Za-z0-9]/", $value) !== false;
-            case 'alphabet':
-                return preg_match("/^[A-Za-z]+$/", $value) !== false;
-            case 'url':
-                return filter_var($value, FILTER_VALIDATE_URL) !== false;
-            case 'uuid':
-                //$version = (int) str_replace(['uuid(', ')'], '', $rule);
-                return Functions::is_uuid($value);
-            case 'ip':
-                $version = (int) str_replace(['ip(', ')'], '', $rule);
-                return Functions::is_ip($value, $version);
-            case 'decimal':
-                return preg_match('/^-?\d+(\.\d+)?$/', $value) === 1;
-            default:
-                return true;
-        }
+        return match ($ruleName) {
+            'max_length' => strlen($value) <= (int) $param,
+            'min_length' => strlen($value) >= (int) $param,
+            'exact_length' => strlen($value) == (int) $param,
+            'integer' => match ($param) {
+                'positive' => filter_var($value, FILTER_VALIDATE_INT) !== false && (int)$value > 0,
+                'negative' => filter_var($value, FILTER_VALIDATE_INT) !== false && (int)$value < 0,
+                default => filter_var($value, FILTER_VALIDATE_INT) !== false,
+            },
+            'email' => filter_var($value, FILTER_VALIDATE_EMAIL) !== false,
+            'alphanumeric' => preg_match("/[^A-Za-z0-9]/", $value) !== false,
+            'alphabet' => preg_match("/^[A-Za-z]+$/", $value) !== false,
+            'url' => filter_var($value, FILTER_VALIDATE_URL) !== false,
+            'uuid' => Functions::is_uuid($value), //$version = (int) $param;
+            'ip' => Functions::isIpAddress($value, (int) $param),
+            'phone' => Functions::isPhoneNumber($value),
+            'decimal' => preg_match('/^-?\d+(\.\d+)?$/', $value) === 1,
+            'binary' => ctype_print($value) && !preg_match('/[^\x20-\x7E\t\r\n]/', $value),
+            'hexadecimal' => ctype_xdigit($value),
+            'array' => is_array(json_decode($value, true)),
+            'json' => (json_decode($value) && json_last_error() == JSON_ERROR_NONE),
+            'path' => match ($param) {
+                'true' => is_string($value) && is_readable($value),
+                default => is_string($value) && preg_match("#^[a-zA-Z]:[\\\/]{1,2}#", $value)
+            },
+            'scheme' => strpos($value, rtrim($param, '://')) === 0,
+            default => true,
+        };
     }
+
+    /**
+     * Check if input is empty 
+     * 
+     * @param mixed $value input value 
+     * 
+     * @return bool
+    */
+    private static function isEmpty(mixed $value) {
+        return $value === null || $value === '' || strlen($value) < 1;
+    }    
 
     /**
      * Convert string list to array 
@@ -243,6 +239,41 @@ class InputValidator implements ValidatorInterface{
     public function getError(string $field): string
     {
         return $this->errors[$field][0]??'';
+    }
+
+    /**
+     * Get validation error messages
+     * @param int $indexField field index
+     * @param int $indexErrors error index
+     * 
+     * @return string Error message
+    */
+    public function getErrorLine(int $indexField = 0, int $indexErrors = 0): string
+    {
+        $errors = $this->errors;
+        // Get the keys of the provided indices
+        $fieldKey = array_keys($errors)[$indexField] ?? null;
+        $errorKey = array_keys($errors[$fieldKey])[$indexErrors] ?? null;
+
+        // Retrieve the error message based on the indices
+        $errorMessage = $errors[$fieldKey][$errorKey] ?? '';
+
+        // Remove the parent key from the error array
+        unset($errors[$fieldKey]);
+
+        return $errorMessage;
+    }
+
+     /**
+     * Get validation error messages
+     * @param int $indexField field index
+     * @param int $indexErrors error index
+     * 
+     * @deprecated This method will be removed in a future release use getErrorLine instead
+     * @return string Error message
+    */
+    public function getErrorByIndices(int $indexField = 0, int $indexErrors = 0){
+        return $this->getErrorLine($indexField, $indexErrors);
     }
 
     /**

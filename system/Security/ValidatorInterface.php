@@ -83,4 +83,13 @@ interface ValidatorInterface {
      * @return self InputValidator instance 
     */
     public function addMessage(string $field, array $messages): self;
+
+    /**
+     * Get validation error messages
+     * @param int $indexField field index
+     * @param int $indexErrors error index
+     * 
+     * @return string Error message
+    */
+    public function getErrorLine(int $indexField = 0, int $indexErrors = 0): string;
 }

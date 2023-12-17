@@ -28,4 +28,14 @@ class ArrayCountable implements Countable {
     public function count(): int {
         return count($this->array);
     }
+
+     /**
+     * Check if array is a nested array
+     * 
+     * @return bool 
+    */
+    public function isNested(): bool 
+    {
+        return count($this->array) > 0 && is_array($this->array[0]);
+    }
 }

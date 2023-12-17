@@ -8,6 +8,7 @@
  * @license See LICENSE file
  */
 namespace Luminova\Sessions;
+
 interface SessionInterface {
     /**
      * Set storage key
@@ -87,10 +88,34 @@ interface SessionInterface {
 
     /** 
      * Get data as array from storage 
+     * 
      * @param string $storage optional storage key 
+     * 
      * @return array
     */
-    public function getStorageData(string $storage = ''): array;
+    public function getContents(string $storage = ''): array;
+
+    /**
+    *Get all stored session as array
+    * @return array
+    */
+    public function getResult(): array;
+
+    /** 
+     * Check if key exists in session
+     * @param string $key
+     * @return bool
+    */
+    public function hasKey(string $key): bool;
+
+     /** 
+     * Check if storage key exists in session
+     * 
+     * @param string $storage
+     * 
+     * @return bool
+    */
+    public function hasStorage(string $storage): bool;
 
     /** 
      * Get data as array from current session storage 
@@ -105,5 +130,13 @@ interface SessionInterface {
      * @return object
     */
     public function toObject(string $index = ''): object;
+
+    /** 
+     * Set cookie options 
+     * @param array $config 
+     * 
+     * @return void
+    */
+    public function setConfig(array $config): void;
 
 }

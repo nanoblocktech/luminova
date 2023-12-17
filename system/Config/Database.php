@@ -17,47 +17,56 @@ namespace Luminova\Config;
 class Database
 {
     /**
-     * @var int|null $port The port to connect to the database.
+     * The port to connect to the database.
+     * @var int|null $port 
      */
     public ?int $port = 3306;
 
     /**
-     * @var string $host The hostname or IP address of the database server.
+     * The hostname or IP address of the database server.
+     * @var string $host 
      */
     public string $host = 'localhost';
 
     /**
-     * @var string|null $version The version of the database server.
+     * The version of the database server.
+     * @var string|null $version 
      */
     public ?string $version = 'mysql';
 
     /**
-     * @var string $charset The character set used for the database connection.
+     * The character set used for the database connection.
+     * @var string $charset 
      */
     public string $charset = 'utf8';
 
     /**
-     * @var string|null $sqlite_path The path to the SQLite database file if applicable.
+     * The path to the SQLite database file if applicable.
+     * @var string|null $sqlite_path 
      */
     public ?string $sqlite_path = '';
 
     /**
-     * @var bool $production Indicates if this configuration is for a production environment.
+     * Indicates if this configuration is for a production environment.
+     * @var bool $production 
      */
     public bool $production = false;
 
     /**
-     * @var string $username The username for the database connection.
+     * The username for the database connection.
+     * @var string $username 
      */
     public string $username = '';
 
     /**
-     * @var string $password The password for the database connection.
+     * The password for the database connection.
+     * @var string $password 
      */
     public string $password = '';
 
     /**
-     * @var string $database The name of the database to connect to.
+     * The name of the database to connect to.
+     * @var string $database 
      */
     public string $database = '';
 }

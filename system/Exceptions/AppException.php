@@ -43,23 +43,34 @@ class AppException extends Exception
      * Handle the exception based on the production environment.
      *
      * @param bool|null $production  Indicates whether it's a production environment (default: false).
+     * 
+     * @throws $this Exception
      */
-    public function handle(?bool $production = false)
+    public function handle(?bool $production = false): void
     {
         if (Configuration::isProduction()) {
-            $logDirectory = Configuration::getRootDirectory(__DIR__) . "writable/log/";
-            $logFile = $logDirectory . "exception.log";
-
-            if (!is_dir($logDirectory)) {
-                mkdir($logDirectory, 0755, true);
-            }
-            file_put_contents($logFile, "Exception: {$this->getMessage()}" . PHP_EOL, FILE_APPEND);
+            $this->logException();
         } else {
             throw $this;
         }
     }
 
+    /**
+     * Logs an exception
+     *
+     * 
+     * @return void
+     */
+    public function logException(): void
+    {
+        $logDirectory = Configuration::getRootDirectory(__DIR__) . "/writeable/log/";
+        $logFile = $logDirectory . "exception.log";
 
+        if (!is_dir($logDirectory)) {
+            mkdir($logDirectory, 0755, true);
+        }
+        file_put_contents($logFile, "Exception: {$this->getMessage()}" . PHP_EOL, FILE_APPEND);
+    }
 
     /**
      * Create and handle a Exception.
@@ -67,8 +78,11 @@ class AppException extends Exception
      * @param string $message he exception message.
      * @param bool|null $production Indicates whether it's a production environment (default: false).
      * @param int $code The exception code (default: 500).
+     * 
+     * @return void 
+     * @throws $this Exception
      */
-    public static function throwException(string $message, ?bool $production = null, int $code = 500)
+    public static function throwException(string $message, ?bool $production = null, int $code = 500): void
     {
         $throw = new self($message, $code);
         $throw->handle($production === null ? Configuration::isProduction() :  $production);

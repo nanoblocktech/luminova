@@ -15,9 +15,10 @@ use \ReflectionMethod;
 use \ReflectionException;
 use \ReflectionClass;
 use Luminova\Command\Terminal;
-use Luminova\Command\BaseCommand;
-use Luminova\Controller;
-use App\Controllers\Application;
+use Luminova\Base\BaseCommand;
+use Luminova\Base\BaseController;
+use Luminova\Base\BaseApplication;
+//use App\Controllers\Application;
 
 
 class Router {
@@ -345,16 +346,17 @@ class Router {
         $methods[] = 'CLI'; //Fake a request method for cli
         $method = Header::getRoutingMethod();
         if (in_array($method, $methods)) {
-            $uri = $this->getView();
-            $curBaseRoute = $this->baseRoute;
+            $firstSegment = $this->getFirstView();
+            $routeInstances = Bootstrap::getInstances();
+            $currentRouteBase = $this->baseRoute;
             foreach ($callbacks as $bootstrap) {
-                if (!empty($bootstrap->getType()) && is_callable($bootstrap->getFunction())) {
-                    $result = $bootstrap->getType();
-                    $errorHandler = $bootstrap->getErrorHandler();
-                    $registerError = ($errorHandler !== null && is_callable($errorHandler));
-                   
-                    if(preg_match('#^/' . $result . '#', $uri)) {
-                        $this->resetRoutes();
+                $result = $bootstrap->getType();
+                $callback = $bootstrap->getFunction();
+                if (!empty($result) && is_callable($callback)) {
+                    $errorCallback = $bootstrap->getErrorHandler();
+                    $hasErrorHandler = ($errorCallback !== null && is_callable($errorCallback));
+                    $this->resetRoutes();
+                    if($firstSegment === $result) {
                         if ($result === Bootstrap::CLI){
                             if (!defined('CLI_ENVIRONMENT')) {
                                 define('CLI_ENVIRONMENT', getenv('cli.environment.mood', 'testing'));
@@ -365,28 +367,42 @@ class Router {
                             if(!Terminal::isCommandLine()) {
                                 return;
                             }
-                        }elseif($registerError){
-                            $this->setErrorHandler($errorHandler);
+                        }elseif($hasErrorHandler){
+                            $this->setErrorHandler($errorCallback);
                         }
-
-                        if ($result !== Bootstrap::WEB) {  //Make sure is not web instance
+                   
+                        if (in_array($result, $routeInstances)) {  
+                        //if (in_array($result, $routeInstances) && Bootstrap::WEB !== $result) {  
+                            //Make sure is not web instance
                             $this->baseRoute .= '/' . $result;
                         }
                     
-                        $bootstrap->getFunction()($this);
+                        $callback($this);
                         break;
-                    }else{
-                        if ($result !== Bootstrap::CLI && $result !== Bootstrap::API) {
-                            if($registerError){
-                                $this->setErrorHandler($errorHandler);
-                            }
-                            $bootstrap->getFunction()($this);
+                    }elseif (!in_array($firstSegment, $routeInstances) && self::isWebInstance($result, $firstSegment)) {
+                        if($hasErrorHandler){
+                            $this->setErrorHandler($errorCallback);
                         }
+                        $callback($this);
+                        break;
                     }
                 }
             }
-            $this->baseRoute = $curBaseRoute;
+            $this->baseRoute = $currentRouteBase;
         }
+    }
+
+    /**
+     * Is bootstrap a web instance
+     *
+     * @param string $result bootstrap result
+     * @param string $first First url segment
+     * 
+     * @return bool
+     */
+    private static function isWebInstance(string $result, ?string $first = null): bool 
+    {
+        return ($first === null || $first === '' || Bootstrap::WEB) && $result !== Bootstrap::CLI && $result !== Bootstrap::API;
     }
 
     /**
@@ -669,12 +685,14 @@ class Router {
     
         foreach ($namespaces as $namespace) {
             $className = $namespace . '\\' . $controller;
+
             try {
                 $class = new ReflectionClass($className);
+              
                 if (!$class->isInstantiable() || 
                     !($class->isSubclassOf(BaseCommand::class) || 
-                        $class->isSubclassOf(Controller::class) ||
-                        $class->isSubclassOf(Application::class))) {
+                        $class->isSubclassOf(BaseController::class) ||
+                        $class->isSubclassOf(BaseApplication::class))) {
                     continue;
                 }
        

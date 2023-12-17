@@ -116,8 +116,7 @@ class PdoDriver implements DatabaseInterface {
             $this->createSQLiteConnection($options);
         } else {
             // Handle the case when no valid database driver is found for the specified version.
-            DatabaseException::throwException("No database driver found for version '{$this->config->version}'", $this->config->production);
-            
+            DatabaseException::throwException("No database driver found for version '{$this->config->version}'", $this->config->production); 
         }
     }
 
@@ -354,7 +353,7 @@ class PdoDriver implements DatabaseInterface {
         if (isset($response[0][0])) {
             return (int) $response[0][0];
         }
-        return $response;
+        return $response??0;
     }
 
     /**

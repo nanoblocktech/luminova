@@ -15,10 +15,34 @@ use \Luminova\Config\Configuration;
 
 class Mailer
 {
+    /**
+     * Mailer singleton instance
+     * @var PHPMailer $mailer
+    */
     private static ?self $instance = null;
+
+    /**
+     * Mailer instance
+     * @var PHPMailer $mailer
+    */
     private PHPMailer $mailer;
+
+    /**
+     * Message subject
+     * @var string $Subject
+    */
     public string $Subject = '';
+
+    /**
+     * Message body
+     * @var string $Body
+    */
     public string $Body = '';
+
+    /**
+     * Alternative message body
+     * @var string $AltBody 
+    */
     public string $AltBody = '';
 
     /**
@@ -106,7 +130,7 @@ class Mailer
     {
         $this->mailer->SMTPDebug = $this->shouldDebug() ? SMTP::DEBUG_CONNECTION : SMTP::DEBUG_OFF;
         $this->mailer->CharSet = $this->getCharset(Configuration::getVariables("smtp.charset"));
-
+        $this->mailer->XMailer = Configuration::copyright();
         if (Configuration::getVariables("smtp.use.credentials") == 1) {
             $this->mailer->isSMTP();
             $this->mailer->Host = Configuration::getVariables("smtp.host");

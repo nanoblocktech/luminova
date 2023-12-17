@@ -11,21 +11,44 @@
  namespace Luminova\Http;
 class NetworkRequest
 {
-    private $method;
-    private $url;
+    /**
+     * Method 
+     * @var string $method
+    */
+    private string $method = '';
 
-    public function __construct($method, $url)
+    /**
+     * Url
+     * @var string $url
+    */
+    private string $url = '';
+
+    /**
+     * Initialize 
+     * 
+     * @param string $method
+     * @param string $url
+    */
+    public function __construct(string $method, string $url)
     {
         $this->method = $method;
         $this->url = $url;
     }
 
-    public function getMethod()
+    /**
+     * Get method  
+     * @return string 
+    */
+    public function getMethod(): string 
     {
         return $this->method;
     }
 
-    public function getUrl()
+    /**
+     * Get url 
+     * @return string 
+    */
+    public function getUrl(): string 
     {
         return $this->url;
     }

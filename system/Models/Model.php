@@ -11,7 +11,7 @@ namespace Luminova\Models;
 
 use Luminova\Database\Query;
 
-abstract class Model extends Query
+abstract class Model
 {
     /**
      *  Table name should be specified in child models.
@@ -44,11 +44,17 @@ abstract class Model extends Query
     protected array $validationMessages = [];
 
     /**
+     * Database query class instance
+     * @var Query $query
+    */
+    protected $query = null;
+
+    /**
      * Constructor for the Model class.
      */
     public function __construct()
     {
-        parent::__construct();
+        $this->query = Query::getInstance();
     }
 
     /**
@@ -59,7 +65,7 @@ abstract class Model extends Query
      */
     public function insertRecord(array $data): bool
     {
-        return $this->insert($this->table, $data);
+        return $this->query->table($this->table)->insert($data);
     }
 
     /**
@@ -71,7 +77,7 @@ abstract class Model extends Query
      */
     public function updateRecord(string $key, array $data): bool
     {
-        return $this->table($this->table)->where($this->primaryKey, $key)->update($data);
+        return $this->query->table($this->table)->where($this->primaryKey, $key)->update($data);
     }
 
     /**
@@ -83,7 +89,7 @@ abstract class Model extends Query
      */
     public function getRecord(string $key, array $fields = ["*"]): mixed
     {
-        return $this->table($this->table)->where($this->primaryKey, $key)->find($fields);
+        return $this->query->table($this->table)->where($this->primaryKey, $key)->find($fields);
     }
 
     /**
@@ -95,7 +101,7 @@ abstract class Model extends Query
      */
     public function selectRecords(string $key, array $fields): mixed
     {
-        return $this->table($this->table)->where($this->primaryKey, $key)->select($fields);
+        return $this->query->table($this->table)->where($this->primaryKey, $key)->select($fields);
     }
 
     /**
@@ -106,7 +112,7 @@ abstract class Model extends Query
      */
     public function deleteRecord(string $key): bool
     {
-        return $this->table($this->table)->where($this->primaryKey, $key)->delete();
+        return $this->query->table($this->table)->where($this->primaryKey, $key)->delete();
     }
 
     /**

@@ -44,7 +44,7 @@ class FirebasePusher
         if (file_exists($serviceAccount)) {
             $this->factory = (new Factory)->withServiceAccount($serviceAccount);
         } else {
-            ErrorException::throwException("Firebase notification service account not found at [{$serviceAccount}]", Configuration::isProduction());
+            ErrorException::throwException("Firebase notification service account not found at [{$serviceAccount}]");
         }
     }
 
@@ -83,11 +83,11 @@ class FirebasePusher
         try {
             return $this->messaging()->send(
                 CloudMessage::withTarget("token", $data["token"])
-                    ->withNotification(self::create($data["title"], $data["body"]))
-                    ->withData($data["data"])
+                    ->withNotification(Notification::create($data["title"], $data["body"]))
+                    ->withData($data["data"]??[])
             );
         } catch (Exception $e) {
-            ErrorException::throwException($e->getMessage(), Configuration::isProduction());
+            ErrorException::throwException($e->getMessage());
         }
         return [];
     }
@@ -98,17 +98,20 @@ class FirebasePusher
      * @param array $data The notification data.
      *
      * @return mixed The response from Firebase Cloud Messaging.
-     */
-    public function sendToTopic(array $data): mixed
+    */
+
+    public function channel(array $data): mixed
     {
         try {
             return $this->messaging()->send(
                 CloudMessage::withTarget("topic", $data["topic"])
-                    ->withNotification(self::create($data["title"], $data["body"]))
-                    ->withData($data["data"])
+                    ->withNotification(
+                        Notification::create($data["title"], $data["body"], $data["image"] ?? '')
+                    )
+                    ->withData($data["data"] ?? [])
             );
         } catch (Exception $e) {
-            ErrorException::throwException($e->getMessage(), Configuration::isProduction());
+            ErrorException::throwException($e->getMessage());
         }
         return [];
     }
@@ -125,12 +128,14 @@ class FirebasePusher
         if (is_array($data["tokens"])) {
             return $this->messaging()->sendMulticast(
                 CloudMessage::new()
-                    ->withNotification(self::create($data["title"], $data["body"]))
-                    ->withData($data["data"]),
+                    ->withNotification(
+                        Notification::create($data["title"], $data["body"], $data["image"] ?? '')
+                    )
+                    ->withData($data["data"]??[]),
                 $data["tokens"]
             );
         } else {
-            ErrorException::throwException("Method requires an array of notification ids", Configuration::isProduction());
+            ErrorException::throwException("Method requires an array of notification ids");
         }
         return [];
     }
@@ -144,11 +149,10 @@ class FirebasePusher
      */
     public function push(PushMessage $message): mixed
     {
-       
         try {
             return $this->messaging()->sendMulticast($message->toArray(), $message->getTokens());
         } catch (Exception $e) {
-            ErrorException::throwException($e->getMessage(), Configuration::isProduction());
+            ErrorException::throwException($e->getMessage());
         }
     }
 
@@ -163,11 +167,19 @@ class FirebasePusher
                     'notification' => [
                         'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
                     ],
-                ])->withCondition("'android' in topics")
+                ])
+                //->withApnsConfig([])
             );
         }catch (Exception $e) {
-            ErrorException::throwException($e->getMessage(), Configuration::isProduction());
+            ErrorException::throwException($e->getMessage());
         }
+    }
+
+    public function subscribe(string $token, string $topic): array 
+    {
+        $result = $this->messaging()->subscribeToTopic($topic, $token);
+        //$result = $this->messaging()->subscribeToTopics($topics, $registrationTokenOrTokens);
+        return $result;
     }
 
     /**
@@ -180,15 +192,11 @@ class FirebasePusher
      */
     public function send(array $data, string $type = self::TO_ID): mixed
     {
-        switch ($type) {
-            case "topic":
-                return $this->sendToTopic($data);
-            case "id":
-                return $this->sendToId($data);
-            case "ids":
-                return $this->cast($data);
-            default:
-                return [];
-        }
+        return match ($type) {
+            "topic" => $this->channel($data),
+            "id" => $this->sendToId($data),
+            "ids" => $this->cast($data),
+            default => []
+        };
     }
 }

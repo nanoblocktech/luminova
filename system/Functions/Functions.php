@@ -15,6 +15,7 @@ class Functions{
 	public const SALT = "salt";
 	public const SID = "sid";
 	public const UUI = "uui";
+	public const PASS = "pass";
 	public const BADGE_LINK = 1;
 	public const BADGE_SPAN = 2;
 	private const DEFAULT_RULES = [
@@ -98,37 +99,29 @@ class Functions{
 	 * @param bool $upper Whether to make the value uppercase if it's a string.
 	 * @return string The generated random value.
 	 */
-	public static function random(int $length = 10, string $type = self::INT, bool $upper = false): string {
+	public static function random(int $length = 10, string $type = self::INT, bool $upper = false): string 
+	{
 		$char = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 		$int = '0123456789';
-
-		switch ($type) {
-			case self::INT:
-				$hash = $int;
-				break;
-			case self::CHAR:
-				$hash = $char;
-				break;
-			case self::STR:
-				$hash = $int . $char;
-				break;
-			case self::SALT:
-				$hash = $int . $char . '%#*^,?+$`;"{}][|\/:=)(@!.';
-				break;
-			case self::SID:
-			default:
-				$hash = $int . $char . '-';
-				break;
-		}
-
+	
+		$hash = match ($type) {
+			self::CHAR => $char,
+			self::STR => $int . $char,
+			self::SALT => $int . $char . '%#*^,?+$`;"{}][|\/:=)(@!.',
+			self::PASS => $int . $char . '%#^_-@!',
+			self::SID => $int . $char . '-',
+			default => $int
+		};
+	
 		$strLength = strlen($hash);
 		$key = '';
-
+	
 		for ($i = 0; $i < $length; $i++) {
 			$key .= $hash[random_int(0, $strLength - 1)];
 		}
+	
 		return $upper ? strtoupper($key) : $key;
-	}
+	}	
 
 
 	/** 
@@ -189,32 +182,21 @@ class Functions{
 	 * @param string|int $time The timestamp to convert.
 	 * @return string Time in a human-readable format.
 	 */
-	public static function timeSocial(string $time): string 
+
+	public static function timeSocial(string|int $time): string 
 	{
 		$time_elapsed = time() - strtotime($time);
-		switch (true) {
-			case $time_elapsed <= 60:
-				return "just now";
-			case $time_elapsed <= 3600:
-				$minutes = round($time_elapsed / 60);
-				return $minutes . (($minutes == 1) ? " minute" : " minutes") . " ago";
-			case $time_elapsed <= 86400:
-				$hours = round($time_elapsed / 3600);
-				return $hours . (($hours == 1) ? " hour" : " hours") . " ago";
-			case $time_elapsed <= 604800:
-				$days = round($time_elapsed / 86400);
-				return $days . (($days == 1) ? " day" : " days") . " ago";
-			case $time_elapsed <= 2419200:
-				$weeks = round($time_elapsed / 604800);
-				return $weeks . (($weeks == 1) ? " week" : " weeks") . " ago";
-			case $time_elapsed <= 29030400:
-				$months = round($time_elapsed / 2419200);
-				return $months . (($months == 1) ? " month" : " months") . " ago";
-			default:
-				$years = round($time_elapsed / 29030400);
-				return $years . (($years == 1) ? " year" : " years") . " ago";
-		}
+		return match (true) {
+			$time_elapsed <= 60 => "just now",
+			$time_elapsed <= 3600 => sprintf('%d minute%s ago', round($time_elapsed / 60), (round($time_elapsed / 60) == 1) ? '' : 's'),
+			$time_elapsed <= 86400 => sprintf('%d hour%s ago', round($time_elapsed / 3600), (round($time_elapsed / 3600) == 1) ? '' : 's'),
+			$time_elapsed <= 604800 => sprintf('%d day%s ago', round($time_elapsed / 86400), (round($time_elapsed / 86400) == 1) ? '' : 's'),
+			$time_elapsed <= 2419200 => sprintf('%d week%s ago', round($time_elapsed / 604800), (round($time_elapsed / 604800) == 1) ? '' : 's'),
+			$time_elapsed <= 29030400 => sprintf('%d month%s ago', round($time_elapsed / 2419200), (round($time_elapsed / 2419200) == 1) ? '' : 's'),
+			default => sprintf('%d year%s ago', round($time_elapsed / 29030400), (round($time_elapsed / 29030400) == 1) ? '' : 's'),
+		};
 	}
+
 
 	/**
 	 * Check if timestamp has passed certain minutes
@@ -261,6 +243,22 @@ class Functions{
 		}
 
 		return $day . "th";
+	}
+
+	/**
+	 * Check if values are empty
+	 * 
+	 * @param string ...$values arguments
+	 * @return bool
+	 */
+	public static function isEmpty(string ...$values): bool 
+	{
+		foreach ($values as $value) {
+			if (!isset($value) || empty(trim($value))) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	
@@ -310,33 +308,26 @@ class Functions{
 
 	/** 
 	* Checks if string is a valid phone number
-	* @param mixed $phoneNumber phone address to validate
+	*
+	* @param mixed $phone phone address to validate
+	*
 	* @return bool true or false
 	*/
-	public static function is_phone(mixed $phoneNumber): bool 
-	{
-		$phoneNumber = preg_replace("/[^0-9]/", "", $phoneNumber);
-        if (strlen($phoneNumber) >= 11) {
-            return true; 
-        }
-		return false;
+	public static function isPhoneNumber(mixed $phone) {
+		// Remove any non-digit characters
+		$phone = preg_replace('/\D/', '', $phone);
+	
+		// Check if the phone number is numeric and has a valid length
+		if (is_numeric($phone) && (strlen($phone) >= 10 && strlen($phone) <= 15)) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
-	/** 
-	* Checks if string is a valid ip address
-	* @param string $ipAddress to validate
-	* @return bool true or false
-	*/
-	public static function is_ip(string $ipAddress, int $version = 0): bool 
+	public static function is_phone(mixed $phone): bool 
 	{
-		if ($version == 4 && filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-			return true;
-		} elseif ($version == 6 && filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
-			return true;
-		}elseif ($version == 0 && filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6)) {
-			return true;
-		}
-		return false;
+		return self::isPhoneNumber($phone);
 	}
 
 	/**
@@ -347,18 +338,23 @@ class Functions{
 	 *
 	 * @return bool True if the IP address is valid, false otherwise.
 	 */
-	public static function isValidIpAddress(string $ipAddress, int $version): bool 
+	public static function isIpAddress(string $ipAddress, int $version = 0): bool 
 	{
-		switch ($version) {
-			case 4:
-				return filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false;
+		return match ($version) {
+			4 => filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false,
+			6 => filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) !== false,
+			default => filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6) !== false
+		};
+	}
 
-			case 6:
-				return filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) !== false;
+	public static function isValidIpAddress(string $ipAddress, int $version = 0): bool 
+	{
+		return self::isIpAddress($ipAddress, $version);
+	}
 
-			default:
-				return filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6) !== false;
-		}
+	public static function is_ip(string $ipAddress, int $version = 0): bool 
+	{
+		return self::isIpAddress($ipAddress, $version);
 	}
 
 	/**
@@ -368,7 +364,7 @@ class Functions{
 	 *
 	 * @return int|string Numeric IP address or empty string on error.
 	 */
-	public static function ipAddressToNumeric(string $ipAddress)
+	public static function ipToNumeric(string $ipAddress): mixed
 	{
 		if (self::isValidIpAddress($ipAddress, 4)) {
 			return ip2long($ipAddress);
@@ -379,6 +375,11 @@ class Functions{
 		return '';
 	}
 
+	public static function ipAddressToNumeric(string $ipAddress): mixed
+	{
+		return self::ipToNumeric($ipAddress);
+	}
+
 	/**
 	 * Convert a numeric IP address to its string representation (IPv4 or IPv6).
 	 *
@@ -386,17 +387,23 @@ class Functions{
 	 *
 	 * @return string IP address in string format or empty string on error.
 	 */
-	public static function numericToIpAddress($numericIp)
+	public static function toIpAddress(int|string $numericIp): string
 	{
+		$ip = ''; 
 		// Check if it's binary (IPv6) or numeric (IPv4).
-		if (is_string($numericIp)) {
-			// Convert binary (IPv6) to human-readable IPv6 address.
-			return inet_ntop($numericIp);
-		} elseif (is_numeric($numericIp)) {
+		if (is_numeric($numericIp)) {
 			// Convert numeric (IPv4) to human-readable IPv4 address.
-			return long2ip($numericIp);
+			$ip = long2ip($numericIp);
+		}elseif (is_string($numericIp)) {
+			// Convert binary (IPv6) to human-readable IPv6 address.
+			$ip = inet_ntop($numericIp);
 		}
-		return '';
+		return $ip !== false ? $ip : '';
+	}
+
+	public static function numericToIpAddress(int|string $numericIp): string
+	{
+		return self::toIpAddress($numericIp);
 	}
 
 	/*	public static function numericToIpAddress($ipAddress) 
@@ -714,44 +721,26 @@ class Functions{
 	 */
 	public static function sanitizeInput(string $string, string $type = "name", string $symbol = ""): string
 	{
-		switch ($type) {
-			case 'int':
-				return preg_replace("/[^0-9]+/", $symbol, $string);
-			case 'digit':
-				return preg_replace("/[^-0-9.]+/", $symbol, $string);
-			case 'key':
-				return preg_replace("/[^a-zA-Z0-9_-]/", $symbol, $string);
-			case 'pass':
-				return preg_replace("/[^a-zA-Z0-9-@!*_]/", $symbol, $string);
-			case 'username':
-				return preg_replace("/[^a-zA-Z0-9-_.]+/", $symbol, $string);
-			case 'email':
-				return preg_replace("/[^a-zA-Z0-9-@.-_]+/", $symbol, $string);
-			case 'url':
-				return preg_replace("/[^a-zA-Z0-9?&-+=.:'\/ ]+/", $symbol, $string);
-			case 'money':
-				return preg_replace("/[^0-9.-]+/", $symbol, $string);
-			case 'double':
-			case 'float':
-				return preg_replace("/[^0-9.]+/", $symbol, $string);
-			case 'az':
-				return preg_replace("/[^a-zA-Z]+/", $symbol, $string);
-			case 'tel':
-				return preg_replace("/[^0-9-+]+/", $symbol, $string);
-			case 'name':
-				return preg_replace("/[^a-zA-Z., ]+/", $symbol, $string);
-			case 'timezone':
-				return preg_replace("/[^a-zA-Z0-9-\/,_:+ ]+/", $symbol, $string);
-			case 'time':
-				return preg_replace("/[^a-zA-Z0-9-: ]+/", $symbol, $string);
-			case 'date':
-				return preg_replace("/[^a-zA-Z0-9-:\/,_ ]+/", $symbol, $string);
-			default:
-				return preg_replace("/[^a-zA-Z0-9-@.,]+/", $symbol, $string);
-		}
-		return '';
+		return match ($type) {
+			'int' => preg_replace("/[^0-9]+/", $symbol, $string),
+			'digit' => preg_replace("/[^-0-9.]+/", $symbol, $string),
+			'key' => preg_replace("/[^a-zA-Z0-9_-]/", $symbol, $string),
+			'pass' => preg_replace("/[^a-zA-Z0-9-@!*_]/", $symbol, $string),
+			'username' => preg_replace("/[^a-zA-Z0-9-_.]+/", $symbol, $string),
+			'email' => preg_replace("/[^a-zA-Z0-9-@.-_]+/", $symbol, $string),
+			'url' => preg_replace("/[^a-zA-Z0-9?&-+=.:'\/ ]+/", $symbol, $string),
+			'money' => preg_replace("/[^0-9.-]+/", $symbol, $string),
+			'double', 'float' => preg_replace("/[^0-9.]+/", $symbol, $string),
+			'az' => preg_replace("/[^a-zA-Z]+/", $symbol, $string),
+			'tel' => preg_replace("/[^0-9-+]+/", $symbol, $string),
+			'text' => preg_replace("/[^a-zA-Z0-9-_. ?@#%&]+/", $symbol, $string),
+			'name' => preg_replace("/[^a-zA-Z., ]+/", $symbol, $string),
+			'timezone' => preg_replace("/[^a-zA-Z0-9-\/,_:+ ]+/", $symbol, $string),
+			'time' => preg_replace("/[^a-zA-Z0-9-: ]+/", $symbol, $string),
+			'date' => preg_replace("/[^a-zA-Z0-9-:\/,_ ]+/", $symbol, $string),
+			default => preg_replace("/[^a-zA-Z0-9-@.,]+/", $symbol, $string),
+		};
 	}
-
 
 	/**
 	 * Convert string characters to HTML entities with optional encoding.

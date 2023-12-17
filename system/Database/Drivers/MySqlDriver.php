@@ -431,7 +431,7 @@ class MySqlDriver implements DatabaseInterface {
         if (isset($response[0][0])) {
             return (int) $response[0][0];
         }
-        return $response;
+        return $response??0;
     }  
 
     /**

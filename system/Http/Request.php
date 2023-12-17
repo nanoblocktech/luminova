@@ -9,6 +9,7 @@
  */
 
 namespace Luminova\Http;
+use Luminova\Http\Header;
 
 class Request
 {
@@ -354,15 +355,23 @@ class Request
             return (object)[];
         }
 
+        $extension = pathinfo($fileInfo['name'], PATHINFO_EXTENSION);
+        $mime = mime_content_type($fileInfo['tmp_name']);
+        if($extension === ''){
+            [$format, $extension] = explode('/', $mime);
+            $fileInfo['name'] = uniqid('file_') . '.' . $extension;
+        }
+        
         return (object)[
             'index' => $index,
-            'name' => $fileInfo['name']??null,
-            'type' => $fileInfo['type']??null,
+            'name' => $fileInfo['name'] ?? null,
+            'type' => $fileInfo['type'] ?? null,
+            'format' => $format ?? null,
             'size' => $fileInfo['size']??0,
-            'mime' => mime_content_type($fileInfo['tmp_name']),
-            'extension' => strtolower(pathinfo($fileInfo['name'], PATHINFO_EXTENSION)),
-            'temp' => $fileInfo['tmp_name']??null,
-            'error' => $fileInfo['error']??null,
+            'mime' => $mime ?? null,
+            'extension' => strtolower( $extension ?? '' ),
+            'temp' => $fileInfo['tmp_name'] ?? null,
+            'error' => $fileInfo['error'] ?? null,
         ];
     }
 
@@ -373,9 +382,18 @@ class Request
      */
     public function getMethod(): string
     {
-        return strtolower($_SERVER['REQUEST_METHOD']);
+        return strtolower($_SERVER['REQUEST_METHOD']??'');
     }
 
+     /**
+     * Get the request content type
+     *
+     * @return string The Request content type
+     */
+    public function getContentType(): string
+    {
+        return $_SERVER['CONTENT_TYPE'] ?? '';
+    }
 
     /**
      * Parse the request body based on the request method.
@@ -383,48 +401,113 @@ class Request
      * @param string|null $method
      * @return array
      */
-    private function parseRequestBody(string $method = null): array
+    private function parseRequestBody(?string $method = null): array
     {
         $body = [];
-        if ($method === null || $_SERVER['REQUEST_METHOD'] === $method) {
+
+        if ($method === null || $this->getMethod() === $method) {
             $input = file_get_contents('php://input');
-            if ($input !== false) {
-                parse_str($input, $body);
+            $type = $this->getContentType();
+            if ($type !== '' && strpos($type, 'multipart/form-data') !== false) {
+
+                $body = array_merge($_FILES, $_POST);
+               
+                if ($input !== false) {
+                    parse_str($input, $fields);
+                    $body = array_merge($body, $fields);
+                }
+            } else {
+                if ($input !== false) {
+                    parse_str($input, $body);
+                }
             }
         }
+
         return $body;
     }
 
-    public function getAuthorization(): string{
-		$headers = null;
-		if (isset($_SERVER['Authorization'])) {
-			$headers = trim($_SERVER["Authorization"]);
-		}else if (isset($_SERVER['HTTP_AUTHORIZATION'])) { //Nginx or fast CGI
-			$headers = trim($_SERVER["HTTP_AUTHORIZATION"]);
-		} else if (function_exists('apache_request_headers')) {
-			$requestHeaders = apache_request_headers();
-			// Server-side fix for bug in old Android versions (a nice side-effect of this fix means we don't care about capitalization for Authorization)
-			$requestHeaders = array_combine(
-			  array_map('ucwords', array_keys($requestHeaders)),
-			  array_values($requestHeaders)
-			);
-			if (isset($requestHeaders['Authorization'])) {
-				$headers = trim($requestHeaders['Authorization']);
-			}
-		}
-		return $headers;
+    public function getAuthorization(): string
+    {
+		return Header::getAuthorization();
 	}
 	
-	 /**
+	/**
 	 * get access token from header
-	 * */
-	public function getAuthBearer(): ?string {
-		$authHeader = $this->getAuthorization();
-		if (!empty($authHeader)) {
-			if (preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
+     * 
+     * @return string|null
+	*/
+	public function getAuthBearer(): ?string 
+    {
+		$auth = Header::getAuthorization();
+		if (!empty($auth)) {
+			if (preg_match('/Bearer\s(\S+)/', $auth, $matches)) {
 				return $matches[1];
 			}
 		}
 		return null;
 	}
+
+     /**
+     * Is CLI?
+     *
+     * Test to see if a request was made from the command line.
+     *
+     * @return bool
+    */
+    public function isCommandLine(): bool
+    {
+        return defined('STDIN') ||
+            (empty($_SERVER['REMOTE_ADDR']) && !isset($_SERVER['HTTP_USER_AGENT']) && count($_SERVER['argv']) > 0) ||
+            php_sapi_name() === 'cli' ||
+            array_key_exists('SHELL', $_ENV) ||
+            !array_key_exists('REQUEST_METHOD', $_SERVER);
+    }
+
+    /**
+     * Check if the current connection is secure
+    */
+    public function isSecure(): bool
+    {
+        return (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443;
+    }
+
+    /**
+     * Test to see if a request contains the HTTP_X_REQUESTED_WITH header.
+    */
+    public function isAJAX(): bool
+    {
+        return !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+    }
+
+    // Get the URI
+    public function getUri(): string
+    {
+        return $_SERVER['REQUEST_URI'];
+    }
+
+    // Get the user agent as an array
+    public function getUserAgent(): array
+    {
+        return get_browser(null, true);
+    }
+
+    // Get the user agent as a string
+    public function getAgentString(): string
+    {
+        $userAgent = $this->getUserAgent();
+        return $userAgent['browser'] . ' on ' . $userAgent['platform'];
+    }
+
+    public function hasHeader(string $headerName): bool
+    {
+        return array_key_exists($headerName, $_SERVER);
+    }
+
+    public function header(string $headerName): ?Header
+    {
+        if ($this->hasHeader($headerName)) {
+            return new Header($_SERVER[$headerName]);
+        }
+        return null;
+    }
 }

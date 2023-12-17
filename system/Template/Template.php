@@ -8,6 +8,7 @@
  * @license See LICENSE file
  */
 namespace Luminova\Template;
+
 use Luminova\Exceptions\ViewNotFoundException; 
 use Luminova\Exceptions\ErrorException; 
 use Luminova\Exceptions\NotFoundException; 
@@ -17,7 +18,10 @@ use Luminova\Exceptions\InvalidException;
 use Luminova\Cache\Compress;
 use Luminova\Cache\Optimizer;
 use Luminova\Config\Configuration;
-class Template extends Configuration { 
+use \Exception;
+use Luminova\Exceptions\AppException; 
+
+class Template { 
     /** Holds the default project template engine
      * @var string DEFAULT_TEMPLATE 
     */
@@ -71,7 +75,7 @@ class Template extends Configuration {
     /** Holds template assets folder
      * @var string $assetsFolder 
     */
-    protected string $assetsFolder = "assets";
+    private string $assetsFolder = "assets";
 
     /** Holds the router active page name
      * @var string $activeView 
@@ -112,9 +116,9 @@ class Template extends Configuration {
 
     /**
      * Holds relative file position depth 
-     * @var int $calculateLevel 
+     * @var int $relativeLevel 
     */
-    private int $calculateLevel = 0;
+    private int $relativeLevel = 0;
 
     /**
      * Holds current router request base
@@ -128,6 +132,30 @@ class Template extends Configuration {
     */
     private static $ds = DIRECTORY_SEPARATOR;
 
+     /**
+     * Response cache key
+     *  @var string|null $responseCacheKey 
+    */
+    private ?string $responseCacheKey = null;
+
+    /**
+     * Response cache expiry
+     *  @var int|null $responseCacheExpiry 
+    */
+    private ?int $responseCacheExpiry = null;
+
+    /**
+     * Should optimize view base
+     *  @var bool $optimizeBase 
+    */
+    private bool $optimizeBase = true;
+
+     /**
+     * Should ignore codeblock minification
+     *  @var bool $ignoreCodeblock 
+    */
+    private bool $ignoreCodeblock = false;
+
     /**
      * Holds system keywords
      * @var array SYSTEM_VARIABLES
@@ -138,7 +166,7 @@ class Template extends Configuration {
         "BaseApplication",
         "instance",
         "class",
-        "function",
+       //"function",
         "static",
         "object",
         "this",
@@ -149,39 +177,50 @@ class Template extends Configuration {
 
     /** 
     * Initialize class construct
+    *
     * @param string $dir template base directory
     */
-    public function __construct(string $dir =__DIR__){
-        $this->baseTemplateDir = parent::getRootDirectory($dir);
+    public function __construct(string $dir =__DIR__)
+    {
+        $this->baseTemplateDir = Configuration::getRootDirectory($dir);
     }
 
     /** 
     * Get public class member 
+    *
     * @param string $key property name 
+    *
     * @throws NotFoundException
     * @return mixed 
     */
-    public function __get(string $key): mixed {
-        $property = $this->getProperty($key);
+    public function __get(string $key): mixed 
+    {
+        $property = $this->getter($key);
         if($property == null) {
             throw new NotFoundException("Property name: $key is not found.");
+            //NotFoundException::throwException("Property name: $key is not found.");
         }
         return $property;
     }
 
     /** 
     * Get property without exception throw
+    *
     * @param string $key property name 
+    *
     * @return mixed 
     */
-    private function getProperty(string $key): mixed {
+    private function getter(string $key): mixed 
+    {
         if (array_key_exists($key, $this->attributesMapper)) {
-            return $this->attributesMapper[$key];
-        } elseif (array_key_exists($key, $this->classMapper)) {
-            return $this->classMapper[$key];
-        } else {
-           return $this->{$key};
-        }
+            return $this->attributesMapper[$key] ?? null;
+        } 
+
+        if (array_key_exists($key, $this->classMapper)) {
+            return $this->classMapper[$key] ?? null;
+        } 
+
+        return $this->{$key} ?? null;
     }
 
     /** 
@@ -190,7 +229,33 @@ class Template extends Configuration {
     * @return self $this
     */
     public function setLevel(int $level): self{
-        $this->calculateLevel = $level;
+        $this->relativeLevel = $level;
+        return $this;
+    }
+
+    /** 
+    * Set if base template should be optimized
+    *
+    * @param bool $allow true or false
+    *
+    * @return self $this
+    */
+    public function setOptimizeBase(bool $allow): self 
+    {
+        $this->optimizeBase = $allow;
+        return $this;
+    }
+
+    /** 
+    * Set if compress should ignore code block minification
+    *
+    * @param bool $ignore true or false
+    *
+    * @return self $this
+    */
+    public function setCompressIgnoreCodeblock(bool $ignore): self 
+    {
+        $this->ignoreCodeblock = $ignore;
         return $this;
     }
 
@@ -199,7 +264,8 @@ class Template extends Configuration {
     * @param string $base the base directory
     * @return self $this
     */
-    public function setBasePath(string $base): self{
+    public function setBasePath(string $base): self
+    {
         $this->currentRequestBase = $base;
         return $this;
     }
@@ -208,7 +274,8 @@ class Template extends Configuration {
     * Get view root folder
     * @return string root
     */
-    public function getRootDir(): string{
+    public function getRootDir(): string
+    {
         if(empty($this->baseTemplateDir)){
             $this->baseTemplateDir = dirname(__DIR__, 2);
         }
@@ -220,7 +287,8 @@ class Template extends Configuration {
     * @param string $path the file path directory
     * @return self $this
     */
-    public function setTemplatePath(string $path): self{
+    public function setTemplatePath(string $path): self
+    {
         $this->templateFolder = trim( $path, "/" );
         return $this;
     }
@@ -230,7 +298,8 @@ class Template extends Configuration {
     * @param string $engin template engine name
     * @return self $this
     */
-    public function setTemplateEngin(string $engin): self{
+    public function setTemplateEngin(string $engin): self
+    {
         $this->templateEngin = $engin;
         return $this;
     }
@@ -240,18 +309,22 @@ class Template extends Configuration {
     * @param string $path folder name
     * @return self $this
     */
-    public function setFolder(string $path): self{
+    public function setFolder(string $path): self
+    {
         $this->subViewFolder =  trim( $path, "/" );
         return $this;
     }
 
     /** 
     * Set optimizer ignore view
-    * @param array|string $path folder name
+    *
+    * @param array|string $viewName view name
+    *
     * @throws InvalidException
     * @return self $this
     */
-    public function addIgnoreOptimizer(array|string $viewName): self{
+    public function addIgnoreOptimizer(array|string $viewName): self
+    {
         if(is_array($viewName)){
             $this->ignoreViewOptimizer = $viewName;
         }else if(is_string($viewName)){
@@ -264,12 +337,15 @@ class Template extends Configuration {
 
     /** 
     * render render template view
+    *
     * @param string $viewName view name
+    *
     * @return self $this
     */
-    public function render(string $viewName): self {
-        $this->templateDir = "{$this->getRootDir()}" . self::$ds . "{$this->templateFolder}" . self::$ds;
-        $this->optimizerFile = "{$this->getRootDir()}" . self::$ds . "{$this->optimizerFolder}" . self::$ds;
+    public function render(string $viewName): self 
+    {
+        $this->templateDir = $this->getBaseViewFolder();
+        $this->optimizerFile = $this->getBaseOptimizerFolder();
         if($this->subViewFolder !== ''){
             $this->templateDir .= $this->subViewFolder . self::$ds;
         }
@@ -285,7 +361,7 @@ class Template extends Configuration {
     */
     public function redirect(string $viewName = ''): void 
     {
-        $to = parent::baseUrl();
+        $to = Configuration::baseUrl();
         if ($viewName !== '' && $viewName !== '/') {
             $to .= '/' . $viewName;
         }
@@ -303,6 +379,20 @@ class Template extends Configuration {
         header("Location: $url", true, 302);
         exit();
     }    
+
+    /** 
+    * Set project application document root
+    * public_html default
+    *
+    * @param string $root base directory
+    *
+    * @return self $this
+    */
+    public function setDocumentRoot(string $root): self 
+    {
+        $this->appPublicFolder = $root;
+        return $this;
+    }
 
     /**
      * Register a class instance to the template.
@@ -341,25 +431,17 @@ class Template extends Configuration {
         return $this;
     }
 
-    /** 
-     * Set project application document root
-     * public_html default
-    * @param string $root base directory
-    * @return self $this
-    */
-    public function setDocumentRoot(string $root): self {
-        $this->appPublicFolder = $root;
-        return $this;
-    }
-
     /**
      * Sets project template options
+     * 
      * @param  array $attributes
+     * 
      * @return self
      * @throws ErrorException
      */
    
-    public function setAttributes(array $attributes): self{
+    public function setAttributes(array $attributes): self
+    {
         if (!is_array($attributes)) {
             throw new ErrorException("Attributes must be an array");
         }
@@ -405,174 +487,379 @@ class Template extends Configuration {
 
     /** 
      * Get object instance
-    * @return mixed
+     * 
+     * @return mixed
     */
-    public function getParam(): mixed{
+    public function getParam(): mixed
+    {
         return $this->paramAttributes;
     }
 
     /** 
      * Get view contents 
-    * @return mixed
+     * 
+     * @return mixed
     */
-    public function getContents(): mixed{
+    public function getContents(): mixed
+    {
         return $this->contents;
+    }
+
+     /** 
+    * Get base view file directory
+    *
+    * @return string path
+    */
+    private function getBaseViewFolder(): string 
+    {
+        return "{$this->getRootDir()}" . self::$ds . "{$this->templateFolder}" . self::$ds;
+    }
+
+    /** 
+    * Get error file from directory
+    *
+    * @param string $filename file name
+    *
+    * @return string path
+    */
+    private function getBaseErrorViewFolder(string $filename): string 
+    {
+        return $this->getBaseViewFolder() . "system_errors" . self::$ds . "{$filename}.php";
+    }
+
+    /** 
+    * Get optimizer file directory
+    *
+    * @return string path
+    */
+    private function getBaseOptimizerFolder(): string
+    {
+        return "{$this->getRootDir()}" . self::$ds . "{$this->optimizerFolder}" . self::$ds;
+    }
+
+    /** 
+     * Cache response use before respond() method
+     * @param string $cacheKey Cache key
+     * @param int|null $expire Cache expiration
+     * @return Template $this
+    */
+    public function cache(string $cacheKey, ?int $expiry = null): self 
+    {
+        $this->responseCacheKey = $cacheKey;
+        $this->responseCacheExpiry = $expiry ?? Configuration::getVariables("page.optimize.expiry");
+        return $this;
+    }
+
+    /** 
+     * Cache response
+     * @param mixed $content Cache key
+     * @param string $type Cache type [json, html, xml, text]
+     * @return void
+    */
+    public function respond(mixed $content, string $type): void 
+    {
+        $shouldSaveCache = false;
+        $optimizer = null;
+        $result = $content;
+        $saveContent = $content;
+        $saveInfo = [];
+        // Set the project script execution time
+        set_time_limit(Configuration::getInt("script.execution.limit", 90));
+        // Set cache control for application cache
+        ignore_user_abort(Configuration::getBoolean('script.ignore.abort', true));
+        // Set output handler
+        ob_start(Configuration::getMixedNull('script.ob.handler', null));
+
+        if ($this->responseCacheKey !== null) {
+            $shouldSaveCache = true;
+            $optimizerFile = $this->getBaseOptimizerFolder();;
+            $optimizer = new Optimizer($this->responseCacheExpiry, $optimizerFile);
+            $optimizer->setKey($this->responseCacheKey);
+            if ($optimizer->hasCache() && $optimizer->getCache()) {
+                $this->responseCacheKey = null;
+                $this->responseCacheExpiry = null;
+                exit(0);
+            }
+        }
+
+        if(Configuration::getBoolean("enable.compression")){
+            $compress = new Compress();
+            // Set cache control for application cache
+            $compress->setCacheControl(Configuration::getBoolean("cache.control"));
+
+            // Set response compression level
+            $compress->setCompressionLevel(Configuration::getInt("compression.level", 6));
+
+            $compress->setIgnoreCodeblock($this->ignoreCodeblock);
+        
+            switch($type){
+                case "json":
+                    $compress->json( $content );
+                break;
+                case "text":
+                    $compress->text( $content );
+                break;
+                case "html": 
+                    $compress->html( $content );
+                break;
+                case "xml": 
+                    $compress->html( $content );
+                break;
+                default:
+                    $compress->run($content, $type);
+                break;
+            }
+            $result = 0;
+            $saveContent = $compress->getMinified();
+            $saveInfo = $compress->getInfo();
+        }
+
+        if ($shouldSaveCache && $optimizer !== null && $saveContent != null) {
+            $optimizer->saveCache($saveContent, null, $saveInfo);
+        }
+        $this->responseCacheKey = null;
+        $this->responseCacheExpiry = null;
+        exit($result);
     }
 
     /** 
     * Creates and Render template by including the accessible global variable within the template file.
-    * @param string $relativePath app relative directory path to then template file
     * @param array $options additional parameters to pass in the template file
+    *
+    * @return void
     * @throws ViewNotFoundException
     */
-    public function renderViewContent(string $relativePath, array $options = []): void {
-        $root =  (parent::isProduction() ? self::$ds : $relativePath);
-        $base =  rtrim($root . $this->appPublicFolder, "/") . "/";
-
-        if(empty($options["active"])){
-            $options["active"] = $this->activeView;
+    private function renderViewContent(array $options = []): void {
+        $shouldSaveCache = false;
+        $optimizer = null;
+        if (!defined('ALLOW_ACCESS')){
+            define("ALLOW_ACCESS", true);
         }
-
-        if(isset($options["optimize"]) && !$options["optimize"]){
-            $this->ignoreViewOptimizer[] = $this->activeView;
-        }
-
-        if(empty($options["ContentType"])){
-            $options["ContentType"] = "html";
-        }
-
-        if(empty($options["title"])){
-            $options["title"] = self::toTitle($options["active"], true);
-        }else{
-            $options["title"] = self::addTitleSuffix($options["title"]);
-        }
-
-        if(empty($options["subtitle"])){
-            $options["subtitle"] = self::toTitle($options["active"]);
-        }
-
-        if($this->activeView == "404"){
-            //Set this in other to allow back to view not mater the base view 404 is triggered
-            $base = $this->currentRequestBase;
-        }
-
-        if(empty($options["base"])){
-            $options["base"] = $base;
-        }
-
-        if(empty($options["assets"])){
-            $options["assets"] = "{$base}{$this->assetsFolder}/";
-        }
-        
-        $options["root"] = $root;
-        $options["baseAssets"] = "{$root}{$this->assetsFolder}/";
-
-       /* if($this->templateEngin == self::SMARTY_ENGINE){
+  
+        try {
+            /* if($this->templateEngin == self::SMARTY_ENGINE){
             $smarty = new \Smarty\Smarty();
             $smarty->setTemplateDir($this->templateDir);
-           // $smarty->setCompileDir('templates_c');
-           // $smarty->setConfigDir('configs');
+            // $smarty->setCompileDir('templates_c');
+            // $smarty->setConfigDir('configs');
             $smarty->setCacheDir($this->optimizerFile);
 
             // Set options (optional)
-            $smarty->caching = parent::getVariables("enable.optimize.page");
+            $smarty->caching = Configuration::getVariables("enable.optimize.page");
             //$smarty->compile_check = true; 
 
             foreach($options as $k => $v){
                 $smarty->assign($k, $v);
             }
             $smarty->display($this->activeView . '.tpl');
-        }else{*/
-            $this->setAttributes($options);
+            }else{*/
             /*
                 can access key as variable
                 extract($options);
             */
+            $this->setAttributes($options);
 
-            if(isset($this->classMapper["Meta"])){
+            if(isset($this->classMapper["Meta"])  && is_object($this->classMapper["Meta"])){
                 $this->classMapper["Meta"]->setTitle($this->_title);
+            }elseif (property_exists($this, 'Meta') && is_object($this->Meta)) {
+                $this->Meta->setTitle($this->_title);
             }
 
-            if (!defined('ALLOW_ACCESS')){
-                define("ALLOW_ACCESS", true);
-            }
-        //}
+            //}
 
-        if (!file_exists($this->templateFile)) {
-            echo $this->templateFile;
-            throw new ViewNotFoundException($this->activeView);
-        }
+            if (!file_exists($this->templateFile)) {
+                throw new ViewNotFoundException($this->activeView);
+            }
         
-        $shouldSaveCache = false;
-        $optimizer = null;
-        // Set the project script execution time
-        set_time_limit(parent::getInt("script.execution.limit", 90));
-        // Set cache control for application cache
-        ignore_user_abort(parent::getBoolean('script.ignore.abort', true));
-        // Set output handler
-        ob_start(parent::getMixedNull('script.ob.handler', null));
+            // Set the project script execution time
+            set_time_limit(Configuration::getInt("script.execution.limit", 90));
+            // Set cache control for application cache
+            ignore_user_abort(Configuration::getBoolean('script.ignore.abort', true));
+            // Set output handler
+            ob_start(Configuration::getMixedNull('script.ob.handler', null));
 
-        if (parent::getBoolean("enable.optimize.page") && !in_array($this->activeView, $this->ignoreViewOptimizer)) {
-            $shouldSaveCache = true;
-            $optimizer = new Optimizer(parent::getVariables("page.optimize.expiry"), $this->optimizerFile);
-            $optimizer->setKey($this->templateFile);
-            if ($optimizer->hasCache() && $optimizer->getCache()) {
+           
+
+            if ($this->shouldOptimize()) {
+                $shouldSaveCache = true;
+                $optimizer = new Optimizer(Configuration::getVariables("page.optimize.expiry"), $this->optimizerFile);
+                $optimizer->setKey($this->templateFile);
+                if ($optimizer->hasCache() && $optimizer->getCache()) {
+                    exit(0);
+                }
+                
+            }
+
+            /**
+             * Check If The Application Is Under Maintenance
+             * 
+             * If the application is in maintenance load maintenance and exit immediately
+             * instead of starting the framework, which could cause an exception.
+            */
+            if(Configuration::isMaintenance()){
+                $maintenanceView = $this->getBaseErrorViewFolder('maintenance');
+                include_once $maintenanceView;
                 exit(0);
             }
-        }
 
-        include_once $this->templateFile;
-        $viewContents = ob_get_clean();
-        if(parent::getBoolean("enable.compression")){
-            $this->displayCompressedContent($viewContents, $optimizer, $options["ContentType"], $shouldSaveCache);
-        }else{
-            if ($shouldSaveCache && $optimizer !== null) {
-                $optimizer->saveCache($viewContents, parent::copyright());
+            include_once $this->templateFile;
+            $viewContents = ob_get_clean();
+            if(Configuration::getBoolean("enable.compression")){
+                $contentType = $options["ContentType"] ?? 'html';
+                $this->displayCompressedContent($viewContents, $optimizer, $contentType, $shouldSaveCache);
+            }else{
+                
+                if ($shouldSaveCache && $optimizer !== null) {
+                    $optimizer->saveCache($viewContents, Configuration::copyright(), $this->requestHeaders());
+                }
+                exit($viewContents);
             }
-            exit($viewContents);
+            exit(0);
+        } catch (AppException $e) {
+            $this->handleException($e, $options);
         }
-        exit(0);
     }
 
     /** 
     * Display view content compress if enabled 
     * @param mixed $contents view contents
-    * @param string $contentType content type
+    * @param string $type content type
     */
-    private function displayCompressedContent(mixed $contents, ?Optimizer $optimizer = null, string $contentType = 'html', bool $save = false): void{
+    private function displayCompressedContent(mixed $contents, ?Optimizer $optimizer = null, string $type = 'html', bool $save = false): void{
         $compress = new Compress();
         // Set cache control for application cache
-        $compress->setCacheControl(parent::getBoolean("cache.control"));
+        $compress->setCacheControl(Configuration::getBoolean("cache.control"));
 
         // Set response compression level
-        $compress->setCompressionLevel(parent::getInt("compression.level", 6));
+        $compress->setCompressionLevel(Configuration::getInt("compression.level", 6));
+        $compress->setIgnoreCodeblock($this->ignoreCodeblock);
        
-        switch($contentType){
+        switch($type){
             case "json":
                 $compress->json( $contents );
             break;
             case "text":
                 $compress->text( $contents );
-                break;
+            break;
             case "html": 
-                default:
                 $compress->html( $contents );
+            break;
+            case "xml": 
+                $compress->html( $contents );
+            break;
+            default:
+                $compress->run($contents, $type);
             break;
         }
 
         if ($save && $optimizer !== null) {
-            $optimizer->saveCache($compress->getMinified(), parent::copyright());
+            $optimizer->saveCache($compress->getMinified(), Configuration::copyright(), $compress->getInfo());
         }
     }
 
     /** 
-    * Shorthand to build and Render template by including the accessible global variable within the template file.
-    * @param int $level the directory location dept
-    * @param array $options additional parameters to pass in the template file
+    * Get output headers
+    * 
+    * @return array $info
     */
-    public function view(array $options = [], ?int $level = null): void {
-        $this->calculateLevel = ( !is_null($level) ? $level : $this->calculateLevel);
-        $this->renderViewContent(self::getRelativePath($this->calculateLevel), $options);
+    private function requestHeaders(): array
+    {
+        $responseHeaders = headers_list();
+        $info = [];
+
+        foreach ($responseHeaders as $header) {
+            // Check for Content-Type header
+            if (strpos($header, 'Content-Type:') === 0) {
+                $info['Content-Type'] = trim(str_replace('Content-Type:', '', $header));
+            }
+
+            // Check for Content-Length header
+            if (strpos($header, 'Content-Length:') === 0) {
+                $info['Content-Length'] = (int) trim(str_replace('Content-Length:', '', $header));
+            }
+
+            // Check for Content-Encoding header
+            if (strpos($header, 'Content-Encoding:') === 0) {
+                $info['Content-Encoding'] = trim(str_replace('Content-Encoding:', '', $header));
+            }
+        }
+
+        return $info;
+    }
+
+    /** 
+    * Calls after render() to display your template view and
+    * Include any accessible global variable within the template file.
+    *
+    * @param array $options additional parameters to pass in the template file $this->_myOption
+    * @param int $level Optional directory relative level to fix your file location
+    * 
+    * @return void
+    * @throws InvalidException
+    */
+    public function view(array $options = [], int $level = 0): void 
+    {
+        $level =  (int) ( $level > 0 ? $level : $this->relativeLevel);
+        $relative = $this->calculateLevel($level);
+        $path = (Configuration::isProduction() ? self::$ds : $relative);
+        $base = rtrim($path . $this->appPublicFolder, "/") . "/";
+
+
+        if(!isset($options["active"])){
+            $options["active"] = $this->activeView;
+        }
+
+        if(isset($options["optimize"])){
+            if($options["optimize"]){
+                if(isset($options["ContentType"])){
+                    $contentType = strtolower($options["ContentType"]);
+                    if(!in_array($contentType, ['html', 'json', 'text', 'xml'])){
+                        throw new InvalidException('Invalid argument, $options["ContentType"] required (html, json, text or xml), ' . gettype($contentType) . ' is given instead');
+                    }
+                }else{
+                    $options["ContentType"] = "html";
+                }
+            }else{
+                $this->ignoreViewOptimizer[] = $this->activeView;
+            }
+        }
+
+        if(isset($options["title"])){
+            $options["title"] = self::addTitleSuffix($options["title"]);
+        }else{
+            $options["title"] = self::toTitle($options["active"], true);
+        }
+
+        if(!isset($options["subtitle"])){
+            $options["subtitle"] = self::toTitle($options["active"]);
+        }
+
+        if($this->activeView === '404'){
+            //Set this in other to allow back to view not mater the base view 404 is triggered
+            $base = $this->currentRequestBase;
+        }
+
+        if(!isset($options["base"])){
+            $options["base"] = $base;
+        }
+
+        if(!isset($options["assets"])){
+            $options["assets"] = "{$base}{$this->assetsFolder}/";
+        }
+        
+        //$options["root"] = $path;
+       // $options["rootAssets"] = "{$path}{$this->assetsFolder}/";
+
+        $this->renderViewContent($options);
+    }
+
+    /** 
+    * Check if view should be optimized or not
+    *
+    * @return bool 
+    */
+    private function shouldOptimize(): bool {
+        return $this->optimizeBase && Configuration::getBoolean("enable.optimize.page") && !in_array($this->activeView, $this->ignoreViewOptimizer);
     }
 
     /** 
@@ -583,30 +870,91 @@ class Template extends Configuration {
 
     * @return string relative path 
     */
-    private static function getRelativePath(int $level = 0): string {
-        $uri = $_SERVER['REQUEST_URI'];
-        if (substr($uri, -1) == '/') {
-            if (!parent::isProduction() && strpos($uri, '/public/') !== false) {
+    private function calculateLevel(int $level = 0): string 
+    {
+        if($level === 0){
+            $uri = $this->getTemplateBaseUri();
+           
+
+            if (!Configuration::isProduction() && strpos($uri, '/public') !== false) {
                 [, $uri] = explode('/public', $uri, 2);
             }
-  
+
             $level = substr_count($uri, '/');
-            if ($level == 1 && parent::isProduction()) {
+
+            if ($level == 1 && Configuration::isProduction()) {
                 $level = 0;
             }
-        }else if($level == 0){
-            if(!parent::isProduction() && strpos($uri, '/public') !== false){
-                [, $uri] = explode('/public', $uri, 2);
-            }
-            $level = substr_count($uri, '/');
         }
 
-        if ($level >= 2) {
-            return str_repeat('../', $level);
-        }
-       
-        return ($level == 1 ? '../' : './');
+        return str_repeat(($level >= 2 ? '../' : ($level == 1 ? '../' : './')), $level);
     }
+
+
+    /** 
+    * Get template base view segments
+    *
+    * @return string template view segments
+    */
+    private function getTemplateBaseUri(): string
+    {
+        $url = '';
+        if(isset($_SERVER['REQUEST_URI'])){
+            $base = '';
+            if (isset($_SERVER['SCRIPT_NAME'])) {
+                $base = implode('/', array_slice(explode('/', $_SERVER['SCRIPT_NAME']), 0, -1)) . '/';
+            }
+            $url = substr(rawurldecode($_SERVER['REQUEST_URI']), mb_strlen($base));
+            if (strstr($url, '?')) {
+                $url = substr($url, 0, strpos($url, '?'));
+            }
+        }
+        return '/' . trim($url, '/');
+    }
+
+    /** 
+    * Handle exceptions
+    *
+    * @param AppException $exception
+    * @param array $options view options
+    *
+    * @return void 
+    */
+    private function handleException(AppException $exception, array $options): void 
+    {
+        /*if ($exception instanceof ViewNotFoundException) {
+            // Handle file not found exception
+            Log::error("Template file '$templateName' not found");
+        } elseif ($exception instanceof NotFoundException) {
+            // Handle issues with the rendering process
+            Log::error("Issue rendering template: $templateName");
+            $this->cache->clear($templateName); // Clear the cache
+        } elseif ($exception instanceof ErrorException) {
+            // Handle issues with the rendering process
+            Log::error("Issue rendering template: $templateName");
+            $this->cache->clear($templateName); // Clear the cache
+        } elseif ($exception instanceof ClassException) {
+            // Handle issues with the rendering process
+            Log::error("Issue rendering template: $templateName");
+            $this->cache->clear($templateName); // Clear the cache
+        } elseif ($exception instanceof InvalidObjectException) {
+            // Handle issues with the rendering process
+            Log::error("Issue rendering template: $templateName");
+            $this->cache->clear($templateName); // Clear the cache
+        } elseif ($exception instanceof InvalidException) {
+            // Handle issues with the rendering process
+            Log::error("Issue rendering template: $templateName");
+            $this->cache->clear($templateName); // Clear the cache
+        } else {
+            // A general catch-all for any other exceptions
+            Log::error("Unhandled exception in template: $templateName");
+        }*/
+
+        $exceptionView = $this->getBaseErrorViewFolder('exceptions');
+        @include_once $exceptionView;
+        $exception->logException();
+    }
+    
 
     /** 
     * Convert view name to title
@@ -627,7 +975,7 @@ class Template extends Configuration {
     * @return string view title
     */
     private static function addTitleSuffix(string $title): string{
-        $appName = parent::getVariables("app.name");
+        $appName = Configuration::getVariables("app.name");
         if (strpos($title, "| {$appName}") === false) {
             $title = " {$title} | {$appName}";
         }

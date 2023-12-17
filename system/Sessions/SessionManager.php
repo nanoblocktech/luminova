@@ -17,19 +17,38 @@ class SessionManager implements SessionInterface {
     protected string $storage;
 
     /**
+     * @var array $config
+    */
+    private array $config = [];
+
+    /**
      * Session constructor.
      *
      * @param string $storage The session storage key.
+     * @param array $config Session configuration
     */
-    public function __construct(string $storage = 'global') 
+    public function __construct(string $storage = 'global', array $config = []) 
     {
         $this->storage = $storage;
+        $this->config = $config;
+    }
+
+    /** 
+     * Set cookie options 
+     * @param array $config 
+     * 
+     * @return void
+    */
+    public function setConfig(array $config): void 
+    {
+        $this->config = $config;
     }
 
     /**
      * Set storage key
      *
      * @param string $storage The session storage key.
+     * 
      * @return self
     */
     public function setStorage(string $storage): self {
@@ -39,6 +58,7 @@ class SessionManager implements SessionInterface {
 
     /**
      * Get storage key
+     * 
      * @return string
     */
     public function getStorage(): string {
@@ -50,17 +70,21 @@ class SessionManager implements SessionInterface {
      *
      * @param string $key The key.
      * @param mixed $value The value.
+     * 
      * @return self
      */
     public function add(string $key, mixed $value): self
     {
-        return $this->set($key, $value);
+        $_SESSION[$this->storage][$key] = $value;
+        return $this;
     }
 
     /** 
      * Set key and value to session
+     * 
      * @param string $key key to set
      * @param mixed $value value to set
+     * 
      * @return self
     */
     public function set(string $key, mixed $value): self
@@ -71,7 +95,9 @@ class SessionManager implements SessionInterface {
 
     /** 
      * get data from session
+     * 
      * @param string $index key to het
+     * 
      * @return mixed
     */
     public function get(string $index): mixed
@@ -81,8 +107,10 @@ class SessionManager implements SessionInterface {
 
     /** 
      * Get data from specified storage instance
+     * 
      * @param string $index value key to get
      * @param string $storage Storage key name
+     * 
      * @return mixed
     */
     public function getFrom(string $index, string $storage): mixed
@@ -93,9 +121,11 @@ class SessionManager implements SessionInterface {
 
     /** 
      * Get data from specified storage instance
+     * 
      * @param string $index value key to get
      * @param mixed $data data to set
      * @param string $storage Storage key name
+     * 
      * @return self
     */
     public function setTo(string $index, mixed $data, string $storage): self
@@ -106,28 +136,36 @@ class SessionManager implements SessionInterface {
 
     /** 
      * Check if session user is online from any storage instance
+     * 
+     * @param string $storage Optional storage key 
+     * 
      * @return bool
     */
     public function online($storage = ''): bool
     {
-        return (isset($this->getStorageData($storage)["_online"]) && $this->getStorageData($storage)["_online"] == "YES");
+        $data = $this->getContents($storage);
+        return (isset($data["_online"]) && $data["_online"] == "YES");
     }
 
     /** 
      * Clear all data from specific session storage by passing the storage key
+     * 
      * @param string $storage storage key to unset
+     * 
      * @return self
     */
     public function clear(string $storage = ''): self
     {
-        $storageKey = empty($storage) ? $this->storage : $storage;
+        $storageKey = $storage === '' ? $this->storage : $storage;
         unset($_SESSION[$storageKey]);
         return $this;
     }
 
     /** 
      * Remove key from current session storage by passing the key
+     * 
      * @param string $index key index to unset
+     * 
      * @return self
     */
     public function remove(string $index): self
@@ -137,27 +175,52 @@ class SessionManager implements SessionInterface {
     }
 
     /** 
-     * Get data as array from storage 
-     * @param string $storage optional storage key 
+     * Check if key exists in session storage
+     * 
+     * @param string $key
+     * 
+     * @return bool
+    */
+    public function hasKey(string $key): bool
+    {
+        return isset($_SESSION[$this->storage][$key]);
+    }
+
+    /** 
+     * Check if storage key exists in session
+     * 
+     * @param string $storage
+     * 
+     * @return bool
+    */
+    public function hasStorage(string $storage): bool
+    {
+        return isset($_SESSION[$storage]);
+    }
+
+    /** 
+     * Get all stored session as array
+     * 
      * @return array
     */
-    public function getStorageData(string $storage = ''): array
+    public function getResult(): array
     {
-        $storageKey = empty($storage) ? $this->storage : $storage;
-        if (isset($_SESSION[$storageKey])) {
-            return $_SESSION[$storageKey];
+        if (isset($_SESSION)) {
+            return (array) $_SESSION;
         }
         return [];
     }
 
     /** 
      * Get data as array from current session storage 
+     * 
      * @param string $index optional key to get
+     * 
      * @return array
     */
     public function toArray(string $index = ''): array
     {
-        if( empty($index)){
+        if( $index === ''){
             if(isset($_SESSION[$this->storage])){
                 return (array) $_SESSION[$this->storage];
             }
@@ -165,9 +228,7 @@ class SessionManager implements SessionInterface {
             if(isset($_SESSION)){
                 return (array) $_SESSION;
             }
-        }
-
-        if(isset($_SESSION[$this->storage][$index])){
+        }elseif(isset($_SESSION[$this->storage][$index])){
             return (array) $_SESSION[$this->storage][$index];
         }
         return [];
@@ -175,12 +236,14 @@ class SessionManager implements SessionInterface {
 
     /** 
      * Get data as object from current session storage
+     * 
      * @param string $index optional key to get
+     * 
      * @return object
     */
     public function toObject(string $index = ''): object
     {
-        if( empty($index)){
+        if( $index === ''){
             if(isset($_SESSION[$this->storage])){
                 return (object) $_SESSION[$this->storage];
             }
@@ -188,12 +251,26 @@ class SessionManager implements SessionInterface {
             if(isset($_SESSION)){
                 return (object) $_SESSION;
             }
-        }
-
-        if(isset($_SESSION[$this->storage][$index])){
+        }elseif(isset($_SESSION[$this->storage][$index])){
             return (object) $_SESSION[$this->storage][$index];
         }
         return (object)[];
+    }
+
+    /** 
+     * Get data as array from storage 
+     * 
+     * @param string $storage optional storage key 
+     * 
+     * @return array
+    */
+    public function getContents(string $storage = ''): array
+    {
+        $storageKey = $storage === '' ? $this->storage : $storage;
+        if (isset($_SESSION[$storageKey])) {
+            return $_SESSION[$storageKey];
+        }
+        return [];
     }
 
 }

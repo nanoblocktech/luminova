@@ -16,21 +16,21 @@ interface EncryptionInterface
      *
      * @param string|null $data
      */
-    public function setData(?string $data): void;
+    public function setData(?string $data = null): void;
 
     /**
      * Set encryption key.
      *
      * @param string|null $key
      */
-    public function setKey(?string $key): void;
+    public function setKey(?string $key = null): void;
 
     /**
      * Set initialization vector (IV).
      *
      * @param string|null $iv
      */
-    public function setInitializationVector(?string $iv): void;
+    public function setInitializationVector(?string $iv = null): void;
 
     /**
      * Set IV length based on the encryption method.
@@ -42,7 +42,7 @@ interface EncryptionInterface
      * @param string $mode
      * @throws ErrorException
      */
-    public function setMethod(?int $blockSize, string $mode = 'CBC'): void;
+    public function setMethod(?int $blockSize = null, string $mode = 'CBC'): void;
 
     /**
      * Validate encryption parameters.

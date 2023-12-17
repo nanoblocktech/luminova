@@ -8,21 +8,29 @@
  * @license See LICENSE file
  */
 namespace App\Controllers;
-use \Luminova\BaseApplication;
+
+use \Luminova\Base\BaseApplication;
 
 class Application extends BaseApplication  {
+    /**
+     * @var Session $session;
+     * protected $session;
+    */
     public function __construct(string $dir = __DIR__){
         /**
          *  Initialize session manager if you want to make use of sessions
-         *  @example $session = new Session(new SessionManager());
-         *  @example $session->setStorage("my_storage");
-         *  @example $session->start();
+         *  @example $this->session = new Session(new SessionManager());
+         *  @example $this->session->setStorage("my_storage");
+         *  @example $this->session->start();
         */
        
 
         /**
         * Register global classes to use across your application life cycle
         * You must register classes before initializing parent __construct
+        * 
+        * Or you can register your classed using protected method 
+        *
         * @example $this->registerClass($session); 
         * @example $this->registerClass(MyClass::class); 
         * @example $this->registerClass("MyClass", new MyClass(arguments));

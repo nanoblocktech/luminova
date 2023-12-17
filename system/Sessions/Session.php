@@ -21,7 +21,7 @@ class Session
     /**
      * @var LoggerInterface $logger logger interface
     */
-    protected LoggerInterface $logger;
+    protected $logger;
 
     /**
      * @var static $instance static class instance
@@ -67,7 +67,7 @@ class Session
         return self::$instance;
     }*/
 
-   /**
+    /**
      * Set the logger for this session.
      *
      * @param LoggerInterface $logger The logger to set.
@@ -97,21 +97,26 @@ class Session
         return $this->manager->toObject($index);
     }
 
+    public function toDig(string $index = ''): array
+    {
+        return $this->manager->getResult();
+    }
+
     /**
      * Set the session manager.
      *
      * @param SessionInterface $manager The session manager to set.
-     */
+    */
     public function setManager(SessionInterface $manager): void
     {
         $this->manager = $manager;
     }
 
-   /**
+    /**
      * Set the storage key for the session.
      *
      * @param string $storage The storage key to set.
-     */
+    */
     public function setStorage(string $storage): self
     {
         $this->manager->setStorage($storage);
@@ -213,7 +218,17 @@ class Session
         return $this;
     }
 
-     /**
+    /** 
+     * Check if key exists in session
+     * @param string $key
+     * @return bool
+    */
+    public function has(string $key): bool
+    {
+        return $this->manager->hasKey($key);
+    }
+
+    /**
     * Initialize and start session manager.
     *
     * @param string $path The path for the session.
@@ -245,6 +260,7 @@ class Session
      * Start an online session with an optional IP address.
      *
      * @param string $ip The IP address.
+     * 
      * @return self
      */
     public function goOnline(string $ip = ''): self
@@ -254,6 +270,26 @@ class Session
             $this->manager->set("_online_session_id", $ip);
         }
         return $this;
+    }
+
+    /**
+     * Check if user ip address match with session login ip
+     *
+     * @param string $ip Current session ip address
+     * @param string $storage Optional storage location
+     * 
+     * @return bool
+     */
+    public function ipChanged(string $ip, string $storage = ''): bool
+    {
+        $online = $this->online($storage);
+        if($online){
+            $sip = $this->get("_online_session_id");
+            if($sip !== null && $sip !== '' & $sip != $ip){
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -279,7 +315,7 @@ class Session
             ini_set('session.gc_maxlifetime', (string) $this->config->expiration);
         }
 
-        if (!empty($this->config->savePath)) {
+        if ($this->config->savePath !== '') {
             ini_set('session.save_path', $this->config->savePath);
         }
 
@@ -287,5 +323,6 @@ class Session
         ini_set('session.use_strict_mode', '1');
         ini_set('session.use_cookies', '1');
         ini_set('session.use_only_cookies', '1');
+        $this->manager->setConfig($cookieParams);
     }
 }
