@@ -1,0 +1,40 @@
+{
+    "name": "nanoblocktech/shipping-calculator",
+    "type": "library",
+    "description": "PHP class to determines shipping fee based on origin latitude and lonitude of customer from business location.",
+    "license": "MIT",
+    "keywords": ["PHP", "luminova", "distance calculation", "shipping calculation"],
+    "authors": [
+        {
+            "name": "Ujah Chigozie",
+            "email": "ujahchigozie@gmail.com"
+        },
+       {
+            "name": "Nanoblock Technology",
+            "email": "code@nanoblocktech.com"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/laravel/shipping-calculator/issues",
+        "source": "https://github.com/nanoblocktech/shipping-calculator"
+    },
+    
+    "require": {
+       "php": "^7.0 || ^8.0"
+    },
+     "extra": {
+        "branch-alias": {
+            "dev-master": "0.1-dev"
+        }
+    },
+    "autoload": {
+        "psr-4": { 
+            "Luminova\\ExtraUtils\\": "src/" 
+        }
+  },
+  "config": {
+        "sort-packages": true
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
+}

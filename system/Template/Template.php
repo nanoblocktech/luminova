@@ -10,8 +10,7 @@
 namespace Luminova\Template;
 
 use Luminova\Exceptions\ViewNotFoundException; 
-use Luminova\Exceptions\ErrorException; 
-use Luminova\Exceptions\NotFoundException; 
+use Luminova\Exceptions\RuntimeException; 
 use Luminova\Exceptions\ClassException;
 use Luminova\Exceptions\InvalidObjectException; 
 use Luminova\Exceptions\InvalidException; 
@@ -21,53 +20,63 @@ use Luminova\Config\Configuration;
 use \Exception;
 use Luminova\Exceptions\AppException; 
 
-class Template { 
-    /** Holds the default project template engine
+trait Template { 
+    /** 
+     * Holds the default project template engine
      * @var string DEFAULT_TEMPLATE 
     */
     public const DEFAULT_TEMPLATE = ".php";
 
-    /** Holds the project template engine for smarty
+    /** 
+     * Holds the project template engine for smarty
     * @var string SMARTY_TEMPLATE 
     */
     public const SMARTY_TEMPLATE = ".tpl";
 
-    /** Holds the project base directory
+    /** 
+     * Holds the project base directory
      * @var string $baseTemplateDir __DIR__
     */
     private string $baseTemplateDir;
 
-    /** Holds the project template filename
+    /** 
+     * Holds the project template filename
      * @var string $templateFile 
     */
     private string $templateFile = "404";
 
-    /** Holds the project template directory
+    /**
+     *  Holds the project template directory
      * @var string $templateDir 
     */
     private string $templateDir = '';
 
-    /** Holds the template engin file extension 
+    /** 
+     * Holds the template engin file extension 
      * @var string $templateEngin 
     */
     private string $templateEngin = ".php";
 
-    /** Holds the project template file directory path
+    /** 
+     * Holds the project template file directory path
      * @var string $templateFolder 
     */
     private string $templateFolder = "resources/views";
 
-    /** Holds the view template optimize file directory path
+    /** 
+     * Holds the view template optimize file directory path
      * @var string $optimizerFolder 
     */
     private string $optimizerFolder = "writeable/caches/optimize";
 
-    /** Holds the view template optimize full file directory path
+    /** 
+     * Holds the view template optimize full file directory path
      * @var string $optimizerFile 
     */
     private string $optimizerFile = '';
 
-    /** Holds the sub view template directory path
+    /** 
+     * Holds the sub view template directory path
      * @var string $optimizerFile 
     */
     private string $subViewFolder = '';
@@ -77,36 +86,35 @@ class Template {
     */
     private string $assetsFolder = "assets";
 
-    /** Holds the router active page name
+    /** 
+     * Holds the router active page name
      * @var string $activeView 
     */
     private string $activeView = '';
 
-    /** Holds the array attributes
-     * @var array $attributesMapper 
+    /** 
+     * Holds the array attributes
+     * @var array $attributes 
     */
-    private array $attributesMapper = [];
+    private array $attributes = [];
 
-    /** Holds the array classes
-     * @var array $attributesMapper 
+    /** 
+     * Holds the array classes
+     * @var array $classes 
     */
-    private array $classMapper = [];
+    private array $classes = [];
 
-    /** Ignore view optimization
+    /** 
+     * Ignore view optimization
      * @var array $ignoreViewOptimizer 
     */
     private array $ignoreViewOptimizer = [];
 
-    /** Holds template project root
+    /** 
+     * Holds template project root
      * @var string $appPublicFolder 
     */
     private string $appPublicFolder = '';
-
-    /**
-     * Holds router param value to share across
-     * @var mixed $paramAttributes 
-    */
-    private mixed $paramAttributes = null;
 
     /**
      * Holds template html content
@@ -122,7 +130,7 @@ class Template {
 
     /**
      * Holds current router request base
-     *  @var string $currentRequestBase 
+     * @var string $currentRequestBase 
     */
     private string $currentRequestBase = '/';
 
@@ -134,46 +142,28 @@ class Template {
 
      /**
      * Response cache key
-     *  @var string|null $responseCacheKey 
+     * @var string|null $responseCacheKey 
     */
     private ?string $responseCacheKey = null;
 
     /**
      * Response cache expiry
-     *  @var int|null $responseCacheExpiry 
+     * @var int|null $responseCacheExpiry 
     */
     private ?int $responseCacheExpiry = null;
 
     /**
      * Should optimize view base
-     *  @var bool $optimizeBase 
+     * @var bool $optimizeBase 
     */
     private bool $optimizeBase = true;
 
      /**
      * Should ignore codeblock minification
-     *  @var bool $ignoreCodeblock 
+     * @var bool $ignoreCodeblock 
     */
     private bool $ignoreCodeblock = false;
 
-    /**
-     * Holds system keywords
-     * @var array SYSTEM_VARIABLES
-    */
-    private const SYSTEM_VARIABLES = [
-        "Template",
-        "Application",
-        "BaseApplication",
-        "instance",
-        "class",
-       //"function",
-        "static",
-        "object",
-        "this",
-        "self",
-        //"Compress",
-        "Optimizer"
-    ];
 
     /** 
     * Initialize class construct
@@ -184,40 +174,35 @@ class Template {
     {
         $this->baseTemplateDir = Configuration::getRootDirectory($dir);
     }
+    
 
     /** 
-    * Get public class member 
+    * Get property from $this->attributes or $this->classes
     *
     * @param string $key property name 
     *
-    * @throws NotFoundException
     * @return mixed 
     */
     public function __get(string $key): mixed 
     {
-        $property = $this->getter($key);
-        if($property == null) {
-            throw new NotFoundException("Property name: $key is not found.");
-            //NotFoundException::throwException("Property name: $key is not found.");
+        if (array_key_exists($key, $this->attributes)) {
+            return $this->attributes[$key];
         }
-        return $property;
+
+        return $this->getClass($key);
     }
 
     /** 
-    * Get property without exception throw
+    * Get registered class object $this->classes
     *
-    * @param string $key property name 
+    * @param string $key object class name 
     *
-    * @return mixed 
+    * @return object|null 
     */
-    private function getter(string $key): mixed 
+    public function getClass(string $key): ?object 
     {
-        if (array_key_exists($key, $this->attributesMapper)) {
-            return $this->attributesMapper[$key] ?? null;
-        } 
-
-        if (array_key_exists($key, $this->classMapper)) {
-            return $this->classMapper[$key] ?? null;
+        if (isset($this->classes[$key])) {
+            return $this->classes[$key];
         } 
 
         return $this->{$key} ?? null;
@@ -225,10 +210,13 @@ class Template {
 
     /** 
     * Set view level 
+    *
     * @param int $level level
+    *
     * @return self $this
     */
-    public function setLevel(int $level): self{
+    public function setLevel(int $level): self
+    {
         $this->relativeLevel = $level;
         return $this;
     }
@@ -261,7 +249,9 @@ class Template {
 
     /** 
     * Set current view base folder
+    *
     * @param string $base the base directory
+    *
     * @return self $this
     */
     public function setBasePath(string $base): self
@@ -272,6 +262,7 @@ class Template {
    
     /** 
     * Get view root folder
+    *
     * @return string root
     */
     public function getRootDir(): string
@@ -284,7 +275,9 @@ class Template {
     
     /** 
     * Set the template directory path
+    *
     * @param string $path the file path directory
+    *
     * @return self $this
     */
     public function setTemplatePath(string $path): self
@@ -295,7 +288,9 @@ class Template {
 
     /** 
     * Set template engine 
+    *
     * @param string $engin template engine name
+    *
     * @return self $this
     */
     public function setTemplateEngin(string $engin): self
@@ -306,7 +301,9 @@ class Template {
 
     /** 
     * Set sub view folder
+    *
     * @param string $path folder name
+    *
     * @return self $this
     */
     public function setFolder(string $path): self
@@ -332,6 +329,7 @@ class Template {
         }else{
             throw new InvalidException('Invalid argument, $viewName required (string or array), ' . gettype($viewName) . ' is given instead');
         }
+        
         return $this;
     }
 
@@ -351,12 +349,15 @@ class Template {
         }
         $this->templateFile = "{$this->templateDir}{$viewName}{$this->templateEngin}";
         $this->activeView = $viewName;
+
         return $this;
     }
 
     /** 
     * redirect to template view
+    *
     * @param string $viewName view name
+    *
     * @return void
     */
     public function redirect(string $viewName = ''): void 
@@ -371,7 +372,9 @@ class Template {
 
     /** 
     * redirect to url view
+    *
     * @param string $url view name
+    *
     * @return void 
     */
     public function redirectTo(string $url): void 
@@ -400,99 +403,63 @@ class Template {
      * @param string|object $classNameOrInstance The class name or instance to register.
      * @param object|null $classInstance The class instance (optional).
      * @return self $this
-     * @throws ErrorException If there is an error during registration.
+     * 
+     * @throws RuntimeException If there is an error during registration.
      * @throws ClassException If the class does not exist.
      * @throws InvalidObjectException If an invalid object is provided.
-     */
-    public function registerClass(string|object $classNameOrInstance, ?object $classInstance = null): self {
+    */
+    public function registerClass(string|object $classNameOrInstance, ?object $classInstance = null): self 
+    {
         if (empty($classNameOrInstance)) {
-            throw new ErrorException("Error: Empty class name or invalid input.");
+            throw new RuntimeException("Error: Empty class name or invalid input.");
         }
 
         if (is_object($classNameOrInstance)) {
             $classNameOrInstance = get_class($classNameOrInstance);
         }
 
-        if (!is_string($classNameOrInstance) || $classNameOrInstance === false) {
-            throw new ErrorException("Invalid class name: {$classNameOrInstance}. Expected a string.");
+        if (!is_string($classNameOrInstance) || $classNameOrInstance === '') {
+            throw new RuntimeException("Invalid class name: '{$classNameOrInstance}'. Expected a non-empty string.");
         }
 
         if ($classInstance === null) {
             if (class_exists($classNameOrInstance)) {
                 $classInstance = new $classNameOrInstance();
             } else {
-                throw new ClassException("Class not found: {$classNameOrInstance}");
+                throw new ClassException("Class not found: '{$classNameOrInstance}'");
             }
         } elseif (!is_object($classInstance)) {
             throw new InvalidObjectException("Invalid class instance provided.");
         }
 
-        $this->classMapper[$classNameOrInstance] = $classInstance;
+        $this->classes[$classNameOrInstance] = $classInstance;
+        
         return $this;
     }
 
     /**
-     * Sets project template options
+     * Sets project template options.
      * 
      * @param  array $attributes
      * 
      * @return self
-     * @throws ErrorException
-     */
-   
+     * @throws RuntimeException If there is an error setting the attributes.
+    */
     public function setAttributes(array $attributes): self
     {
         if (!is_array($attributes)) {
-            throw new ErrorException("Attributes must be an array");
+            throw new RuntimeException("Invalid attributes: '{$attributes}'. Expected an array.");
         }
+
         foreach ($attributes as $name => $value) {
-            if (!is_string($name)) {
-                throw new ErrorException("Invalid attribute name: $name");
+            if (empty($name) || !is_string($name)) {
+                throw new RuntimeException("Invalid attribute name: '{$name}'. Attribute names must be non-empty strings.");
             }
 
-            if (in_array($name, self::SYSTEM_VARIABLES)) {
-                throw new ErrorException("Invalid attribute name: $name");
-            }
-
-            if (empty($value)) {
-                throw new ErrorException("Invalid class object for attribute $name");
-            }
-            $this->attributesMapper["_{$name}"] = $value;
+            $this->attributes["_{$name}"] = $value;
         }
 
         return $this;
-    }
-
-    /**
-     * Attach an object to a server
-     *
-     * Accepts an instantiated object to use when handling requests.
-     *
-     * @param object $param
-     * @return self
-     * @throws InvalidObjectException|ErrorException
-     */
-    public function setParam(object $param): self{
-        if (empty($param) || !is_object($param)) {
-            throw new InvalidObjectException($param);
-        }
-
-        if (isset($this->paramAttributes)) {
-            throw new ErrorException('An object has already been registered');
-        }
-
-        $this->paramAttributes = $param;
-        return $this;
-    }
-
-    /** 
-     * Get object instance
-     * 
-     * @return mixed
-    */
-    public function getParam(): mixed
-    {
-        return $this->paramAttributes;
     }
 
     /** 
@@ -505,7 +472,7 @@ class Template {
         return $this->contents;
     }
 
-     /** 
+    /** 
     * Get base view file directory
     *
     * @return string path
@@ -539,9 +506,11 @@ class Template {
 
     /** 
      * Cache response use before respond() method
+     * 
      * @param string $cacheKey Cache key
      * @param int|null $expire Cache expiration
-     * @return Template $this
+     * 
+     * @return self $this
     */
     public function cache(string $cacheKey, ?int $expiry = null): self 
     {
@@ -552,8 +521,10 @@ class Template {
 
     /** 
      * Cache response
+     * 
      * @param mixed $content Cache key
      * @param string $type Cache type [json, html, xml, text]
+     * 
      * @return void
     */
     public function respond(mixed $content, string $type): void 
@@ -583,32 +554,7 @@ class Template {
         }
 
         if(Configuration::getBoolean("enable.compression")){
-            $compress = new Compress();
-            // Set cache control for application cache
-            $compress->setCacheControl(Configuration::getBoolean("cache.control"));
-
-            // Set response compression level
-            $compress->setCompressionLevel(Configuration::getInt("compression.level", 6));
-
-            $compress->setIgnoreCodeblock($this->ignoreCodeblock);
-        
-            switch($type){
-                case "json":
-                    $compress->json( $content );
-                break;
-                case "text":
-                    $compress->text( $content );
-                break;
-                case "html": 
-                    $compress->html( $content );
-                break;
-                case "xml": 
-                    $compress->html( $content );
-                break;
-                default:
-                    $compress->run($content, $type);
-                break;
-            }
+            $compress = $this->renderWithMinification($content, $type);
             $result = 0;
             $saveContent = $compress->getMinified();
             $saveInfo = $compress->getInfo();
@@ -617,6 +563,7 @@ class Template {
         if ($shouldSaveCache && $optimizer !== null && $saveContent != null) {
             $optimizer->saveCache($saveContent, null, $saveInfo);
         }
+
         $this->responseCacheKey = null;
         $this->responseCacheExpiry = null;
         exit($result);
@@ -624,12 +571,15 @@ class Template {
 
     /** 
     * Creates and Render template by including the accessible global variable within the template file.
+    *
     * @param array $options additional parameters to pass in the template file
     *
     * @return void
     * @throws ViewNotFoundException
     */
-    private function renderViewContent(array $options = []): void {
+    private function renderViewContent(array $options = []): void 
+    {
+        
         $shouldSaveCache = false;
         $optimizer = null;
         if (!defined('ALLOW_ACCESS')){
@@ -637,6 +587,9 @@ class Template {
         }
   
         try {
+            if (!file_exists($this->templateFile)) {
+                throw new ViewNotFoundException($this->activeView);
+            }
             /* if($this->templateEngin == self::SMARTY_ENGINE){
             $smarty = new \Smarty\Smarty();
             $smarty->setTemplateDir($this->templateDir);
@@ -653,23 +606,14 @@ class Template {
             }
             $smarty->display($this->activeView . '.tpl');
             }else{*/
-            /*
-                can access key as variable
-                extract($options);
-            */
-            $this->setAttributes($options);
-
-            if(isset($this->classMapper["Meta"])  && is_object($this->classMapper["Meta"])){
-                $this->classMapper["Meta"]->setTitle($this->_title);
-            }elseif (property_exists($this, 'Meta') && is_object($this->Meta)) {
-                $this->Meta->setTitle($this->_title);
-            }
-
+                /*
+                    can access key as variable
+                    extract($options);
+                */
+                $this->setAttributes($options);
+                
             //}
 
-            if (!file_exists($this->templateFile)) {
-                throw new ViewNotFoundException($this->activeView);
-            }
         
             // Set the project script execution time
             set_time_limit(Configuration::getInt("script.execution.limit", 90));
@@ -688,6 +632,12 @@ class Template {
                     exit(0);
                 }
                 
+            }
+
+            $metaTag = $this->getClass('Meta');
+
+            if($metaTag !== null && is_object($metaTag)){
+                $metaTag->setTitle($this->_title ?? '');
             }
 
             /**
@@ -722,10 +672,33 @@ class Template {
 
     /** 
     * Display view content compress if enabled 
+    *
+    * @param mixed $contents view contents
+    * @param Optimizer $optimizer optimizer 
+    * @param string $type content type
+    * @param bool $save 
+    *
+    * @return void 
+    */
+    private function displayCompressedContent(mixed $contents, ?Optimizer $optimizer = null, string $type = 'html', bool $save = false): void
+    {
+        $compress = $this->renderWithMinification($contents, $type);
+ 
+        if ($save && $optimizer !== null) {
+            $optimizer->saveCache($compress->getMinified(), Configuration::copyright(), $compress->getInfo());
+        }
+    }
+
+    /** 
+    * Render minification
+    *
     * @param mixed $contents view contents
     * @param string $type content type
+    *
+    * @return Compress 
     */
-    private function displayCompressedContent(mixed $contents, ?Optimizer $optimizer = null, string $type = 'html', bool $save = false): void{
+    private function renderWithMinification(mixed $contents, string $type = 'html'): Compress 
+    {
         $compress = new Compress();
         // Set cache control for application cache
         $compress->setCacheControl(Configuration::getBoolean("cache.control"));
@@ -745,16 +718,14 @@ class Template {
                 $compress->html( $contents );
             break;
             case "xml": 
-                $compress->html( $contents );
+                $compress->xml( $contents );
             break;
             default:
                 $compress->run($contents, $type);
             break;
         }
 
-        if ($save && $optimizer !== null) {
-            $optimizer->saveCache($compress->getMinified(), Configuration::copyright(), $compress->getInfo());
-        }
+        return $compress;
     }
 
     /** 
@@ -824,9 +795,13 @@ class Template {
             }
         }
 
-        if(isset($options["title"])){
+        /*if(isset($options["title"])){
             $options["title"] = self::addTitleSuffix($options["title"]);
         }else{
+            $options["title"] = self::toTitle($options["active"], true);
+        }*/
+
+        if(!isset($options["title"])){
             $options["title"] = self::toTitle($options["active"], true);
         }
 
@@ -858,16 +833,17 @@ class Template {
     *
     * @return bool 
     */
-    private function shouldOptimize(): bool {
+    private function shouldOptimize(): bool 
+    {
         return $this->optimizeBase && Configuration::getBoolean("enable.optimize.page") && !in_array($this->activeView, $this->ignoreViewOptimizer);
     }
 
     /** 
     * Fixes the broken css,image & links when added additional slash(/) at the router link
     * The function will add the appropriate relative base based on how many invalid link detected.
-
+    *
     * @param int $level the directory level from base directory controller/foo(1) controller/foo/bar(2)
-
+    *
     * @return string relative path 
     */
     private function calculateLevel(int $level = 0): string 
@@ -958,28 +934,34 @@ class Template {
 
     /** 
     * Convert view name to title
+    *
     * @param string $view view name
     * @param string $suffix view title suffix
+    *
     * @return string view title
     */
-    private static function toTitle(string $view, bool $suffix = false): string {
+    private static function toTitle(string $view, bool $suffix = false): string 
+    {
         $view = str_replace(['_', '-'], ' ', $view);
         $view = ucwords($view);
         $view = str_replace(',', '', $view);
-        return ($suffix ? self::addTitleSuffix($view) : $view);
+        return ($suffix ? self::addTitleSuffix($view) : trim($view));
     }
 
     /** 
     * Add title suffix to view name title
+    *
     * @param string $title view name
+    *
     * @return string view title
     */
-    private static function addTitleSuffix(string $title): string{
+    private static function addTitleSuffix(string $title): string
+    {
         $appName = Configuration::getVariables("app.name");
         if (strpos($title, "| {$appName}") === false) {
             $title = " {$title} | {$appName}";
         }
-        return $title;
+        return trim($title);
     }
     
 }

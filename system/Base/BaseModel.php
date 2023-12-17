@@ -12,7 +12,7 @@ namespace Luminova\Base;
 
 use Luminova\Models\Model;
 
-class BaseModel  extends Model{
+abstract class BaseModel  extends Model{
     
     /**
      * Magic method getter

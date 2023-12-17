@@ -1165,6 +1165,7 @@ class Query extends Conn {
 
     /**
      * Check if array is a nested array
+     * And its associative array
      * 
      * @param array $array
      * 
@@ -1172,10 +1173,21 @@ class Query extends Conn {
     */
     private function isNestedArray(array $array): bool 
     {
-        //return count($array) > 0 && is_array($array[0]);
-        return count($array) > 0 && is_array($array[0]) && array_values($array) === $array;
-    }
+        if (count($array) === 0) {
+            return false;
+        }
 
+        if (isset($array[0]) && is_array($array[0])){
+            $key = array_key_first($array[0]);
+            if(is_string($key)){
+                return true;
+            }
+        }
+
+        return false;
+        //return count($array) > 0 && isset($array[0]) && is_array($array[0]) && array_values($array) !== $array;
+    }
+    
     /**
      * Reset query conditions
      * @return void 

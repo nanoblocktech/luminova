@@ -8,6 +8,7 @@
  * @license See LICENSE file
  */
 namespace Luminova\Command;
+
 class TextUtils {
     public const ANSI_RESET = 0;
     public const ANSI_BOLD = 1;

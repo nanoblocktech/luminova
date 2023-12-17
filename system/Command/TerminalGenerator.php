@@ -9,6 +9,7 @@
  */
 namespace Luminova\Command;
 use Luminova\Command\Terminal;
-abstract class TerminalGenerator extends Terminal{
+abstract class TerminalGenerator extends Terminal
+{
 
 }

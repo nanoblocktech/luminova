@@ -15,13 +15,13 @@ use Luminova\Config\DotEnv;
 use Luminova\Template\Template;
 use Luminova\Config\Configuration;
 
-class Application extends Template {
-
+class Application {
+    use Template;
     /**
      * Base Application instance
      *
      * @var Application|null
-     */
+    */
     private static $instance = null;
 
     /**
@@ -62,16 +62,6 @@ class Application extends Template {
         // Set the project base path
         $this->setBasePath($this->getBasePath());
     }
-
-    /**
-     * Get project assets relative directory 
-     *
-     * @return string
-     */
-   /* public function getAssets(): string 
-    {
-        return (Configuration::isProduction() ? "/" : $this->getBasePath()) . "{$this->assetsFolder}/";
-    }*/
 
     /**
      * Get the current view paths, segments uri

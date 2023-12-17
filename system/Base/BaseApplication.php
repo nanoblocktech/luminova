@@ -12,30 +12,34 @@ namespace Luminova\Base;
 
 use Luminova\Application\Application;
 
-class BaseApplication extends Application {
+abstract class BaseApplication extends Application {
     
     /**
      * Magic method getter
+     * Get properties from template class 
      *
-     * @param string $key property key
+     * @param string $key property or attribute key
      * 
      * @return ?mixed return property else null
     */
     public function __get(string $key): mixed
     {
-        return $this->{$key} ?? null;
+        $attr = parent::__get($key);
+        if($attr === null) {
+            return $this->{$key} ?? null;
+        }
+
+        return $attr;
     }
-    
-     /**
-     * Magic method isset
-     * Check if property is set
+
+    /**
+     * Get project assets relative directory 
      *
-     * @param string $key property key
-     * 
-     * @return bool 
-    */
-    public function __isset(string $key): bool
+     * @return string
+     */
+   /* public function getAssets(): string 
     {
-        return isset($this->{$key});
-    }
+        return (Configuration::isProduction() ? "/" : $this->getBasePath()) . "{$this->assetsFolder}/";
+    }*/
+
 }

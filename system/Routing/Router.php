@@ -372,8 +372,6 @@ class Router {
                         }
                    
                         if (in_array($result, $routeInstances)) {  
-                        //if (in_array($result, $routeInstances) && Bootstrap::WEB !== $result) {  
-                            //Make sure is not web instance
                             $this->baseRoute .= '/' . $result;
                         }
                     

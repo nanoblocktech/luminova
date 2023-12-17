@@ -1,0 +1,17 @@
+includes:
+	- phpstan.includes.php
+
+parameters:
+	phpVersion: 80100
+	tmpDir: builds/phpstan
+	level: 6
+	paths:
+		- src
+	excludePaths:
+		- test/*
+	checkMissingIterableValueType: false
+	checkGenericClassInNonGenericObjectType: false
+	checkMissingCallableSignature: true
+	treatPhpDocTypesAsCertain: false
+  	checkOctaneCompatibility: true
+  	checkModelProperties: truee

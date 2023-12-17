@@ -1,0 +1,113 @@
+{
+    "name": "kreait/firebase-php",
+    "description": "Firebase Admin SDK",
+    "keywords": ["firebase", "google", "sdk", "api", "database"],
+    "type": "library",
+    "homepage": "https://github.com/kreait/firebase-php",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jérôme Gamez",
+            "homepage": "https://github.com/jeromegamez"
+        }
+    ],
+    "support": {
+        "docs": "https://firebase-php.readthedocs.io",
+        "issues": "https://github.com/kreait/firebase-php/issues",
+        "source": "https://github.com/kreait/firebase-php"
+    },
+    "funding": [
+        {
+            "type": "github",
+            "url": "https://github.com/sponsors/jeromegamez"
+        }
+    ],
+    "require": {
+        "php": "^7.4|^8.0",
+        "ext-ctype": "*",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "ext-openssl": "*",
+        "beste/clock": "^2.1",
+        "beste/json": "^1.0",
+        "fig/http-message-util": "^1.1",
+        "google/auth": "^1.21",
+        "google/cloud-core": "^1.44.2",
+        "google/cloud-storage": "^1.26.2",
+        "guzzlehttp/guzzle": "^7.4.5",
+        "kreait/firebase-tokens": "^3.0",
+        "lcobucci/jwt": "^4.1",
+        "mtdowling/jmespath.php": "^2.6.1",
+        "psr/cache": "^1.0.1|^2.0|^3.0",
+        "psr/log": "^1.1|^2.0|^3.0",
+        "riverline/multipart-parser": "^2.0.8",
+        "symfony/polyfill-php80": "^1.23",
+        "symfony/polyfill-php81": "^1.23"
+    },
+    "require-dev": {
+        "google/cloud-firestore": "^1.25.1",
+        "phpstan/extension-installer": "^1.1",
+        "phpstan/phpstan": "^1.8.2",
+        "phpstan/phpstan-phpunit": "^1.1.1",
+        "phpunit/phpunit": "^9.5.22",
+        "symfony/var-dumper": "^5.4|^6.1.3"
+    },
+    "suggest": {
+        "google/cloud-firestore": "^1.0 to use the Firestore component"
+    },
+    "autoload": {
+        "psr-4": {
+            "Kreait\\Firebase\\": "src/Firebase"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Kreait\\Firebase\\Tests\\": "tests"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "phpstan/extension-installer": true
+        }
+    },
+    "scripts": {
+        "install-tools": [
+            "@install-php-cs-fixer",
+            "@install-rector"
+        ],
+        "install-php-cs-fixer": [
+            "mkdir --parents tools/php-cs-fixer",
+            "composer require --dev --working-dir=tools/php-cs-fixer beste/php-cs-fixer-config"
+        ],
+        "install-rector": [
+            "mkdir --parents tools/rector",
+            "composer require --working-dir=tools/rector rector/rector"
+        ],
+        "cs": [
+            "tools/php-cs-fixer/vendor/bin/php-cs-fixer fix --diff"
+        ],
+        "rector": [
+            "tools/rector/vendor/bin/rector --dry-run"
+        ],
+        "rector-fix": [
+            "tools/rector/vendor/bin/rector"
+        ],
+        "test": [
+            "vendor/bin/phpstan",
+            "vendor/bin/phpunit --testsuite=unit"
+        ],
+        "test-coverage": [
+            "Composer\\Config::disableProcessTimeout",
+            "XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-html=.build/coverage"
+        ]
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-7.x": "7.x-dev",
+            "dev-6.x": "6.x-dev",
+            "dev-5.x": "5.x-dev",
+            "dev-4.x": "4.x-dev"
+        }
+    }
+}
