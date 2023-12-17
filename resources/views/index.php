@@ -1,4 +1,6 @@
-<?php ALLOW_ACCESS || die("Access Denied");?>
+<?php 
+use Luminova\Config\Configuration;
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -214,10 +216,10 @@
 
     <div class="info">
 
-        <h1>Welcome to <?= $this->copyright() ?></h1>
+        <h1>Welcome to <?= Configuration::copyright() ?></h1>
 
         <h2>Simple framework built for speed and keeping your existing coding skills going.</h2>
-        <p>Environment: <?= self::getEnvironment() ?></p>
+        <p>Environment: <?= Configuration::getEnvironment() ?></p>
 
     </div>
 

@@ -13,12 +13,12 @@ class Configuration {
     /**
     * @var string $version version name
     */
-    public static $version = '1.5.6';
+    public static $version = '1.5.8';
 
     /**
     * @var int $versionCode version code
     */
-    public static $versionCode = 155;
+    public static $versionCode = 158;
 
     /**
      * Minimum required php version
