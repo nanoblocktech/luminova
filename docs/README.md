@@ -172,7 +172,7 @@ To show controller command list `php index.php user -list`
 
 ```php
 namespace App\Controllers;
-use Luminova\Command\BaseCommand;
+use Luminova\Base\BaseCommand;
 class Foo extends BaseCommand {
 
     protected string $group = 'custom';
@@ -265,7 +265,7 @@ In other to add custom configurations you need to initialize your `__construct`,
 
 ```php 
 namespace App\Controllers;
-use \Luminova\BaseApplication;
+use \Luminova\Base\BaseApplication;
 class Application extends BaseApplication  
 {
     public function __construct(string $dir = __DIR__){
@@ -382,8 +382,8 @@ An example of controller should be like
 
 ```php 
 namespace App\Controllers;
-use Luminova\Controller;
-class UserController extends Controller
+use Luminova\Base\BaseController;
+class UserController extends BaseController
 {
 
 }
@@ -399,8 +399,8 @@ To create a model you must do that inside `app/controllers/Models/`, your `UserM
 
 ```php
 namespace App\Controllers\Models;
-use Luminova\Models\Model;
-class UserModel extends Model
+use Luminova\Base\BaseModel;
+class UserModel extends BaseModel
 {
   
 }
@@ -413,9 +413,9 @@ Since you are going to be working on `UserController`, make sure to initialize i
 
 ```php
 namespace App\Controllers;
-use Luminova\Controller;
+use Luminova\Base\BaseController;
 use App\Controllers\Models\UserModel;
-class UserController extends Controller
+class UserController extends BaseController
 {
     public function __construct(){
         parent::__construct();
