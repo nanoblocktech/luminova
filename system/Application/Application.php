@@ -16,7 +16,12 @@ use Luminova\Template\Template;
 use Luminova\Config\Configuration;
 
 class Application {
+    /**
+     * Use Template trait class
+     * @var Template
+    */
     use Template;
+
     /**
      * Base Application instance
      *
@@ -87,6 +92,7 @@ class Application {
      * Get the base application instance as a singleton.
      *
      * @param string $dir The project root directory
+     * 
      * @return self BaseApplication
      */
     public static function getInstance(string $dir = __DIR__): static 
@@ -96,5 +102,4 @@ class Application {
         }
         return static::$instance;
     }
-
 }

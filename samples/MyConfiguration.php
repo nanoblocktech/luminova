@@ -9,6 +9,7 @@
  */
 namespace App\Controllers\Config;
 use Luminova\Config\Configuration;
+
 class MyConfiguration extends Configuration{
 
 }

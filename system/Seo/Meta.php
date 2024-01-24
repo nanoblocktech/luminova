@@ -18,7 +18,7 @@ class Meta{
     /**
      * @var object $manifest meta object json.
     */
-    private object $manifest;
+    private ?object $manifest = null;
 
     /**
      * @var array $defaultConfig default configuration
@@ -183,7 +183,7 @@ class Meta{
     {
         $config = array_replace($this->defaultConfig, array_filter($this->extendedConfig));
         
-        $param = ($config[$key]??null);
+        $param = $config[$key] ?? '';
         if(is_array($param)){
             $value = $param;
         }else{

@@ -10,10 +10,7 @@
 $app = require_once __DIR__ . '/../bootstrap/load.php';
 
 use Luminova\Routing\Bootstrap;
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
 define('PUBLIC_PATH', __DIR__ . DIRECTORY_SEPARATOR);
-
 if (getcwd() . DIRECTORY_SEPARATOR !== PUBLIC_PATH) {
     chdir(PUBLIC_PATH);
 }
@@ -23,7 +20,7 @@ if (getcwd() . DIRECTORY_SEPARATOR !== PUBLIC_PATH) {
 */
 $webErrorHandler = function () use ($app) {
     $app->render("404")->view([
-        "error_url" => $app->getView()
+        "error_view" => $app->getView()
     ]);
 };
 
@@ -31,6 +28,7 @@ $webErrorHandler = function () use ($app) {
 * Define a function for the API error handler
 */
 $apiErrorHandler = function () use($app){
+    header("HTTP/1.0 404 Not Found");
     header("Content-type: application/json");
     exit(json_encode([
         "error" => [

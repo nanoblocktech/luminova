@@ -9,8 +9,8 @@
  */
 require_once __DIR__ . '/../system/plugins/autoload.php';
 use \App\Controllers\Application;
-
 $minPhpVersion = '8.0';
+
 if (version_compare(PHP_VERSION, $minPhpVersion, '<')) {
     $message = sprintf(
         'Your PHP version must be %s or higher to run PHP Luminova framework. Current version: %s',

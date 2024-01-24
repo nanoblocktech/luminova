@@ -17,149 +17,161 @@ use Luminova\Exceptions\InvalidException;
 use Luminova\Cache\Compress;
 use Luminova\Cache\Optimizer;
 use Luminova\Config\Configuration;
+use App\Controllers\Config\Template as TemplateConfig;
 use \Exception;
 use Luminova\Exceptions\AppException; 
 
 trait Template { 
     /** 
-     * Holds the default project template engine
-     * @var string DEFAULT_TEMPLATE 
-    */
-    public const DEFAULT_TEMPLATE = ".php";
-
-    /** 
-     * Holds the project template engine for smarty
-    * @var string SMARTY_TEMPLATE 
-    */
-    public const SMARTY_TEMPLATE = ".tpl";
-
-    /** 
      * Holds the project base directory
+     * 
      * @var string $baseTemplateDir __DIR__
     */
-    private string $baseTemplateDir;
+    private string $baseTemplateDir = '';
 
     /** 
      * Holds the project template filename
+     * 
      * @var string $templateFile 
     */
-    private string $templateFile = "404";
+    private string $templateFile = '';
 
     /**
-     *  Holds the project template directory
+     * Holds the project template directory
+     * 
      * @var string $templateDir 
     */
     private string $templateDir = '';
 
     /** 
      * Holds the template engin file extension 
+     * 
      * @var string $templateEngin 
     */
-    private string $templateEngin = ".php";
+    private string $templateEngin = 'default';
 
     /** 
      * Holds the project template file directory path
+     * 
      * @var string $templateFolder 
     */
-    private string $templateFolder = "resources/views";
+    private string $templateFolder = 'resources/views';
 
     /** 
      * Holds the view template optimize file directory path
+     * 
      * @var string $optimizerFolder 
     */
     private string $optimizerFolder = "writeable/caches/optimize";
 
     /** 
      * Holds the view template optimize full file directory path
+     * 
      * @var string $optimizerFile 
     */
     private string $optimizerFile = '';
 
     /** 
      * Holds the sub view template directory path
+     * 
      * @var string $optimizerFile 
     */
     private string $subViewFolder = '';
 
-    /** Holds template assets folder
+    /** 
+     * Holds template assets folder
+     * 
      * @var string $assetsFolder 
     */
-    private string $assetsFolder = "assets";
+    private string $assetsFolder = 'assets';
 
     /** 
      * Holds the router active page name
+     * 
      * @var string $activeView 
     */
     private string $activeView = '';
 
     /** 
      * Holds the array attributes
+     * 
      * @var array $attributes 
     */
     private array $attributes = [];
 
     /** 
      * Holds the array classes
+     * 
      * @var array $classes 
     */
     private array $classes = [];
 
     /** 
      * Ignore view optimization
+     * 
      * @var array $ignoreViewOptimizer 
     */
     private array $ignoreViewOptimizer = [];
 
     /** 
      * Holds template project root
+     * 
      * @var string $appPublicFolder 
     */
     private string $appPublicFolder = '';
 
     /**
      * Holds template html content
+     * 
      * @var string $contents 
     */
     private string $contents = '';
 
     /**
      * Holds relative file position depth 
+     * 
      * @var int $relativeLevel 
     */
     private int $relativeLevel = 0;
 
     /**
      * Holds current router request base
+     * 
      * @var string $currentRequestBase 
     */
     private string $currentRequestBase = '/';
 
     /**
      * Holds directory separator
-     *  @var string $ds 
+     * 
+     * @var string $ds 
     */
     private static $ds = DIRECTORY_SEPARATOR;
 
      /**
      * Response cache key
+     * 
      * @var string|null $responseCacheKey 
     */
     private ?string $responseCacheKey = null;
 
     /**
      * Response cache expiry
+     * 
      * @var int|null $responseCacheExpiry 
     */
     private ?int $responseCacheExpiry = null;
 
     /**
      * Should optimize view base
+     * 
      * @var bool $optimizeBase 
     */
     private bool $optimizeBase = true;
 
      /**
      * Should ignore codeblock minification
+     * 
      * @var bool $ignoreCodeblock 
     */
     private bool $ignoreCodeblock = false;
@@ -173,6 +185,10 @@ trait Template {
     public function __construct(string $dir =__DIR__)
     {
         $this->baseTemplateDir = Configuration::getRootDirectory($dir);
+        $this->templateEngin = TemplateConfig::ENGINE;
+        $this->templateFolder = TemplateConfig::$templateFolder;
+        $this->optimizerFolder = TemplateConfig::$optimizerFolder;
+        $this->assetsFolder = TemplateConfig::$assetsFolder;
     }
     
 
@@ -300,6 +316,18 @@ trait Template {
     }
 
     /** 
+    * Get template engine 
+    *
+    * @return string $$engin template extension
+    */
+    private function getTemplateEngin(): string
+    {
+        $engin = $this->templateEngin === 'smarty' ? '.tpl' : '.php';
+
+        return $engin;
+    }
+
+    /** 
     * Set sub view folder
     *
     * @param string $path folder name
@@ -347,7 +375,7 @@ trait Template {
         if($this->subViewFolder !== ''){
             $this->templateDir .= $this->subViewFolder . self::$ds;
         }
-        $this->templateFile = "{$this->templateDir}{$viewName}{$this->templateEngin}";
+        $this->templateFile = "{$this->templateDir}{$viewName}{$this->getTemplateEngin()}";
         $this->activeView = $viewName;
 
         return $this;
@@ -590,7 +618,7 @@ trait Template {
             if (!file_exists($this->templateFile)) {
                 throw new ViewNotFoundException($this->activeView);
             }
-            /* if($this->templateEngin == self::SMARTY_ENGINE){
+            /* if($this->templateEngin === 'smarty'){
             $smarty = new \Smarty\Smarty();
             $smarty->setTemplateDir($this->templateDir);
             // $smarty->setCompileDir('templates_c');
@@ -627,11 +655,10 @@ trait Template {
             if ($this->shouldOptimize()) {
                 $shouldSaveCache = true;
                 $optimizer = new Optimizer(Configuration::getVariables("page.optimize.expiry"), $this->optimizerFile);
-                $optimizer->setKey($this->templateFile);
+                $optimizer->setKey($this->getTemplateBaseUri());
                 if ($optimizer->hasCache() && $optimizer->getCache()) {
                     exit(0);
                 }
-                
             }
 
             $metaTag = $this->getClass('Meta');

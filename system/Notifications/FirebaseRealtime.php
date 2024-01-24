@@ -46,12 +46,14 @@ class FirebaseRealtime {
 		return $table->getChild($rowId)->getChild($columnId)->set($data);
 	}*/
 
-    public function insert($rowId, array $data): array {
+    public function insert($rowId, array $data): mixed 
+	{
         $table = $this->database->getReference($this->getTable());
 		return $table->getChild($rowId)->set($data);
 	}
 
-    public function update($rowId, array $data): array {
+    public function update($rowId, array $data): mixed 
+	{
         $table = $this->database->getReference($this->getTable());
 		return $table->getChild($rowId)->set($data);
 	}

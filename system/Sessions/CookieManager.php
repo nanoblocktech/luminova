@@ -100,13 +100,14 @@ class CookieManager implements SessionInterface {
      * get data from session
      * 
      * @param string $index key to get
+     * @param mixed $default default value 
      * 
      * @return mixed
     */
-    public function get(string $index): mixed
+    public function get(string $index, mixed $default = null): mixed
     {
         $data = $this->getContents();
-        return $data[$index]??null;
+        return $data[$index]??$default;
     }
 
     /** 

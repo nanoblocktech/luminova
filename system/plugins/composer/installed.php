@@ -3,7 +3,7 @@
         'name' => 'nanoblocktech/luminova',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'fc0e02ecc5f2254a6664b57dca9bb08c94c14623',
+        'reference' => '7861b28d8b58a9b61d4e2078481cf455ea086cfa',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'nanoblocktech/luminova' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'fc0e02ecc5f2254a6664b57dca9bb08c94c14623',
+            'reference' => '7861b28d8b58a9b61d4e2078481cf455ea086cfa',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../../',
             'aliases' => array(),

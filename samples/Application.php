@@ -8,7 +8,7 @@
  * @license See LICENSE file
  */
 namespace App\Controllers;
-use \Luminova\BaseApplication;
+use \Luminova\Base\BaseApplication;
 
 class Application extends BaseApplication  {
     public function __construct(string $dir = __DIR__){

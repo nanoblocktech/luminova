@@ -8,6 +8,7 @@
  * @license See LICENSE file
  */
 namespace Luminova\Logger;
+
 interface LoggerInterface {
      /**
      * Log an emergency message.

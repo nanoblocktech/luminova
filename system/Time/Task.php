@@ -113,6 +113,40 @@ class Task
     }
 
     /**
+     * Check if a certain amount of minutes has passed since the given timestamp.
+     *
+     * @param int|string $timestamp Either a Unix timestamp or a string representing a date/time.
+     * @param int $minutes The number of minutes to check against.
+     * @param DateTimeZone|null $timezone Optional timezone. If null, the default timezone is used.
+     *
+     * @return bool True if the specified minutes have passed, false otherwise.
+    */
+    public static function hasPassed($timestamp, int $minutes, ?DateTimeZone $timezone = null): bool {
+
+        $dateTimestamp = is_numeric($timestamp) ? new DateTime("@$timestamp"): DateTime::createFromFormat('Y-m-d H:i:s', $timestamp);
+
+        if (!$dateTimestamp) {
+            return false;
+        }
+
+        // Set the timezone if provided, or use the default timezone
+        if ($timezone !== null) {
+            $dateTimestamp->setTimezone($timezone);
+        }
+
+        $dateTimeNow = new DateTime("now", $timezone);
+
+        // Calculate the interval between the two DateTime objects
+        $interval = $dateTimeNow->diff($dateTimestamp);
+
+        // Get the total minutes difference
+        $minutesDifference = $interval->days * 24 * 60 + $interval->h * 60 + $interval->i;
+
+        return $minutesDifference >= $minutes;
+    }
+
+
+    /**
      * Function to format date and time.
      *
      * @param string $date

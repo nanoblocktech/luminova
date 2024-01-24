@@ -8,14 +8,16 @@
  * @license See LICENSE file
  */
 namespace App\Controllers;
-use \Luminova\Controller;
-class Home extends Controller {
+
+use Luminova\Base\BaseController;
+
+class Home extends BaseController {
     /**
     * Extending  Luminova\Controller; in your controller
     * You will have access for request and validation class instance
     */
     public function page(): void
     {
-        $this->render("index")->view();
+        $this->app->render("index")->view();
     }
 }

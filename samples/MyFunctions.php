@@ -9,8 +9,7 @@
  */
 namespace App\Controllers;
 use Luminova\Functions\Functions;
+
 class MyFunctions extends Functions{
-    public function __construct(){
-        
-	}
+
 }

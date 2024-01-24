@@ -8,8 +8,9 @@
  * @license See LICENSE file
  */
 namespace App\Controllers\Models;
-use Luminova\Models\Model;
-class UserModel extends Model
+use Luminova\Base\BaseModel;
+
+class UserModel extends BaseModel
 {
     /**
      *  Table name should be specified in child models.

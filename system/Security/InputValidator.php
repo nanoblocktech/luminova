@@ -11,7 +11,10 @@
 namespace Luminova\Security;
 use Luminova\Security\ValidatorInterface;
 use Luminova\Functions\Functions;
-class InputValidator implements ValidatorInterface{
+use Luminova\Functions\IPAddress;
+
+class InputValidator implements ValidatorInterface
+{
     /**
      * @var array $errors validated errors messages
     */
@@ -147,8 +150,8 @@ class InputValidator implements ValidatorInterface{
             'alphabet' => preg_match("/^[A-Za-z]+$/", $value) !== false,
             'url' => filter_var($value, FILTER_VALIDATE_URL) !== false,
             'uuid' => Functions::is_uuid($value), //$version = (int) $param;
-            'ip' => Functions::isIpAddress($value, (int) $param),
-            'phone' => Functions::isPhoneNumber($value),
+            'ip' => IPAddress::isValid($value, (int) $param),
+            'phone' => Functions::is_phone($value),
             'decimal' => preg_match('/^-?\d+(\.\d+)?$/', $value) === 1,
             'binary' => ctype_print($value) && !preg_match('/[^\x20-\x7E\t\r\n]/', $value),
             'hexadecimal' => ctype_xdigit($value),

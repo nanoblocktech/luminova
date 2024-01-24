@@ -8,7 +8,9 @@
  * @license See LICENSE file
  */
 namespace Luminova\Functions;
-class Functions{
+
+class Functions
+{
 	public const INT = "int";
 	public const CHAR = "char";
 	public const STR = "str";
@@ -44,8 +46,7 @@ class Functions{
 	/**
 	* Class constructor
 	*/
-	public function __construct(){
-	}
+	public function __construct(){}
 
 
 	public static function toName(string $string, string $type = "name", string $symbol = ""): string{
@@ -61,11 +62,27 @@ class Functions{
       	return false;
   	}
 
-	public static function sanitizeText(string $text): string {
-		$text = preg_replace('/<([^>]+)>(.*?)<\/\1>|<([^>]+) \/>/', '<i style="color:darkred;">⚠️ Content Blocked</i>', $text); 
+	/**
+	 * Format text before display or saving 
+	 * By matching links, email, phone, hashtags and mentions with a link representation
+	 * And replace multiple new lines
+	 * 
+	 * @param string $text
+	 * @param string $target link target action
+	 * @param string $blocked Replace blocked word with
+	 * 
+	 * @return string $text
+	*/
+	public static function sanitizeText(string $text, ?string $target = null, ?string $blocked = null): string 
+	{
+		$blockedContent = $blocked || '<i style="color:darkred;">⚠️ Content Blocked</i>';
+
+		$targetTo = ($target !== null ? "target='{$target}'" : '');
+
+		$text = preg_replace('/<([^>]+)>(.*?)<\/\1>|<([^>]+) \/>/', $blockedContent, $text); 
 
 		// Replace website links
-		$text = preg_replace('/(https?:\/\/(?:www\.)?\S+(?:\.(?:[a-z]+)))/i', '<a href="$1" target="_blank">$1</a>', $text);
+		$text = preg_replace('/(https?:\/\/(?:www\.)?\S+(?:\.(?:[a-z]+)))/i', '<a href="$1" ' . $targetTo . '>$1</a>', $text);
 
 		// Replace mentions, excluding email-like patterns
 		$text = preg_replace('/@(\w+)(?![@.]|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}\b)/', '<a href="@$1">@$1</a>', $text);
@@ -80,13 +97,24 @@ class Functions{
 		$text = preg_replace('/#(\w+)/', '<a href="#$1">#$1</a>', $text);
 
 		$text = nl2br($text);
+
 		return $text;
 	}
 
 
-	public static function filterText(string $text, bool $all = true): string {
+	/**
+	 * Filter and sanitize text before saving to database 
+	 * 
+	 * @param string $text
+	 * @param bool $all
+	 * 
+	 * @return string $text
+	*/
+	public static function filterText(string $text, bool $all = true): string 
+	{
+		$pattern = ($all ? '/<[^>]+>/' : '/<(?!\/?b(?=>|\s.*>))[^>]+>/');
 		$text = preg_replace('/<([^>]+)>(.*?)<\/\1>|<([^>]+) \/>/', '⚠️', $text); 
-		$text = ($all ? preg_replace('/<[^>]+>/', '', $text) : preg_replace('/<(?!\/?b(?=>|\s.*>))[^>]+>/', '', $text));
+		$text = preg_replace($pattern, '', $text) ;
 		$text = htmlentities($text);
 		return $text;
 	}
@@ -197,28 +225,30 @@ class Functions{
 		};
 	}
 
-
 	/**
-	 * Check if timestamp has passed certain minutes
+	 * Check if a certain amount of minutes has passed since the given timestamp.
 	 *
-	 * @param mixed|string|int $timestamp stored timestamp
-	 * @param int $minutes expiry minutes
-	 * @return bool 
+	 * @param int|string $timestamp Either a Unix timestamp or a string representing a date/time.
+	 * @param int $minutes The number of minutes to check against.
+	 *
+	 * @return bool True if the specified minutes have passed, false otherwise.
 	 */
-	public static function timeHasPassed(mixed $timestamp, int $minutes): bool {
+	public static function timeHasPassed($timestamp, int $minutes): bool {
 		if (is_numeric($timestamp)) {
-			$timestamp = (int)$timestamp;
+			$timestamp = (int) $timestamp;
 		} else {
 			$timestamp = strtotime($timestamp);
 			if ($timestamp === false) {
 				return false;
 			}
 		}
-	
+
 		$timeDifference = time() - $timestamp;
 		$minutesDifference = $timeDifference / 60;
+
 		return $minutesDifference >= $minutes;
 	}
+
 	
 
 	/**
@@ -291,20 +321,26 @@ class Functions{
 		return hash('sha256', $uuid);
 	}
 
-	/** 
-	* Checks if string is a valid email address
-	* @param string|email $email email address to validate
-	* @return bool true or false
-	*/
-	public static function is_email(string $email): bool 
+	/**
+	 * Checks if string is a valid email address
+	 * 
+	 * @param string $email email address to validate
+	 * 
+	 * @return bool true or false
+	 */
+	public static function is_email(string $email): bool
 	{
-		if(preg_match("/^([a-zA-Z0-9])+([a-zA-Z0-9\._-])*@([a-zA-Z0-9_-])+([a-zA-Z0-9\._-]+)+$/", $email) or filter_var($email, FILTER_SANITIZE_EMAIL) !== false){
-			return true;
-		}else if(filter_var($email, FILTER_VALIDATE_INT) !== FALSE){
+		if(filter_var($email, FILTER_VALIDATE_EMAIL) !== false){
 			return true;
 		}
+
+		if(preg_match("/^([a-zA-Z0-9])+([a-zA-Z0-9\._-])*@([a-zA-Z0-9_-])+([a-zA-Z0-9\._-]+)+$/", $email)){
+			return true;
+		}
+
 		return false;
 	}
+
 
 	/** 
 	* Checks if string is a valid phone number
@@ -313,111 +349,39 @@ class Functions{
 	*
 	* @return bool true or false
 	*/
-	public static function isPhoneNumber(mixed $phone) {
+	public static function is_phone(string|int $phone): bool 
+	{
 		// Remove any non-digit characters
 		$phone = preg_replace('/\D/', '', $phone);
 	
 		// Check if the phone number is numeric and has a valid length
 		if (is_numeric($phone) && (strlen($phone) >= 10 && strlen($phone) <= 15)) {
 			return true;
-		} else {
-			return false;
 		}
-	}
 
-	public static function is_phone(mixed $phone): bool 
-	{
-		return self::isPhoneNumber($phone);
+		return false;
 	}
 
 	/**
-	 * Check if an IP address is valid.
-	 *
-	 * @param string $ipAddress The IP address to validate.
-	 * @param int    $version   The IP version to validate (4 for IPv4, 6 for IPv6).
-	 *
-	 * @return bool True if the IP address is valid, false otherwise.
+	 * Checks if string is a valid email address or phone number
+	 * 
+	 * @param string $input email address or phone number to validate
+	 * 
+	 * @return bool true or false
 	 */
-	public static function isIpAddress(string $ipAddress, int $version = 0): bool 
+	public static function is_email_or_phone(string $input): bool
 	{
-		return match ($version) {
-			4 => filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false,
-			6 => filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) !== false,
-			default => filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6) !== false
-		};
-	}
-
-	public static function isValidIpAddress(string $ipAddress, int $version = 0): bool 
-	{
-		return self::isIpAddress($ipAddress, $version);
-	}
-
-	public static function is_ip(string $ipAddress, int $version = 0): bool 
-	{
-		return self::isIpAddress($ipAddress, $version);
-	}
-
-	/**
-	 * Convert an IP address to its numeric representation (IPv4 or IPv6).
-	 *
-	 * @param string $ipAddress The IP address to convert.
-	 *
-	 * @return int|string Numeric IP address or empty string on error.
-	 */
-	public static function ipToNumeric(string $ipAddress): mixed
-	{
-		if (self::isValidIpAddress($ipAddress, 4)) {
-			return ip2long($ipAddress);
-		} elseif (self::isValidIpAddress($ipAddress, 6)) {
-			return inet_pton($ipAddress);
+		if (self::is_email($input) || self::is_phone($input)) {
+			return true;
 		}
-
-		return '';
+		
+		return false;
 	}
 
-	public static function ipAddressToNumeric(string $ipAddress): mixed
-	{
-		return self::ipToNumeric($ipAddress);
+	public static function isPhoneNumber(mixed $phone) {
+		return self::is_phone($phone);
 	}
 
-	/**
-	 * Convert a numeric IP address to its string representation (IPv4 or IPv6).
-	 *
-	 * @param int|string $ipAddress The numeric IP address to convert.
-	 *
-	 * @return string IP address in string format or empty string on error.
-	 */
-	public static function toIpAddress(int|string $numericIp): string
-	{
-		$ip = ''; 
-		// Check if it's binary (IPv6) or numeric (IPv4).
-		if (is_numeric($numericIp)) {
-			// Convert numeric (IPv4) to human-readable IPv4 address.
-			$ip = long2ip($numericIp);
-		}elseif (is_string($numericIp)) {
-			// Convert binary (IPv6) to human-readable IPv6 address.
-			$ip = inet_ntop($numericIp);
-		}
-		return $ip !== false ? $ip : '';
-	}
-
-	public static function numericToIpAddress(int|string $numericIp): string
-	{
-		return self::toIpAddress($numericIp);
-	}
-
-	/*	public static function numericToIpAddress($ipAddress) 
-	{
-		if (is_numeric($ipAddress)) {
-			if (filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-				return long2ip($ipAddress);
-			} elseif (filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
-				return inet_ntop($ipAddress);
-			}
-		}
-
-		return '';
-	}*/
 
 	/** 
 	 * Determine password strength, if it meet all rules
@@ -645,29 +609,6 @@ class Functions{
 		return $badge;
 	}
 
-
-	/**
-	 * Get the client's IP address.
-	 *
-	 * @return string The client's IP address or 'PROXY' if not found.
-	 */
-	public static function IP(): string {
-		$headersToCheck = [
-			'HTTP_CLIENT_IP',
-			'HTTP_X_FORWARDED_FOR',
-			'HTTP_X_FORWARDED',
-			'HTTP_FORWARDED_FOR',
-			'HTTP_FORWARDED',
-			'REMOTE_ADDR',
-		];
-
-		foreach ($headersToCheck as $header) {
-			if (isset($_SERVER[$header]) && filter_var($_SERVER[$header], FILTER_VALIDATE_IP)) {
-				return $_SERVER[$header];
-			}
-		}
-		return 'PROXY';
-	}
 
 	/**
 	 * Get a list of time hours in 12-hour format with 30-minute intervals.

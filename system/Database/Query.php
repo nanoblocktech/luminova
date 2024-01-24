@@ -11,6 +11,7 @@ namespace Luminova\Database;
 use Luminova\Exceptions\DatabaseException;
 use \Luminova\Cache\FileSystemCache;
 use \Luminova\Config\Configuration;
+use \Luminova\Database\QueryBuilder;
 //use \Luminova\Arrays\ArrayCountable;
 
 class Query extends Conn {  
@@ -121,6 +122,12 @@ class Query extends Conn {
     * @var array $bindValues 
     */
     private array $bindValues = [];
+
+    /**
+    * Query builder 
+    * @var string $buildQuery 
+    */
+    private string $buildQuery = '';
 
 
     /**
@@ -522,7 +529,7 @@ class Query extends Conn {
     /**
      * Select from table,
      * @param array $rows select columns
-     * @return object|null returns selected rows.
+     * @return object|null|array returns selected rows.
      */
     public function select(array $columns = ["*"]): mixed 
     {
@@ -606,38 +613,6 @@ class Query extends Conn {
     }
 
     /**
-     * Select on record from table,
-     * @param string $buildQuery database query string
-     * @param string $result query return type
-     * @return mixed|null returns selected row.
-     */
-    public function builder(string $buildQuery, string $result = 'all'): mixed 
-    {
-        if (empty($buildQuery)) {
-            throw new DatabaseException("Builder operation without a query condition is not allowed.");
-        }
-
-        if($this->cache !== null && $this->hasCache == "HAS_CACHE"){
-            $response = $this->cache->retrieveCache($this->cacheKey);
-            $this->cacheKey = '';
-            $this->resetDefaults();
-            return $response;
-        }
-
-        try {
-            if($this->cache === null){
-                return $this->returnBuilder($buildQuery, $result);
-            }
-            return $this->cache->onExpired($this->cacheKey, function() use($buildQuery, $result) {
-                return $this->returnBuilder($buildQuery, $result);
-            });
-        } catch (DatabaseException $e) {
-            $e->handle();
-        }
-        return null;
-    }
-
-    /**
      * Bind placeholder values to builder
      * 
      * @param array $values
@@ -651,15 +626,90 @@ class Query extends Conn {
     }
 
     /**
+     * Select on record from table,
+     * 
+     * @param string $buildQuery database query string
+     * @param string|bool $result query return type or false to return QueryBuilder instance 
+     * 
+     * @return mixed|null returns selected row.
+     */
+    public function builder(string $buildQuery, string|bool $result = 'all'): mixed 
+    {
+        if (empty($buildQuery)) {
+            throw new DatabaseException("Builder operation without a query condition is not allowed.");
+        }
+
+        if($this->cache !== null && $this->hasCache == "HAS_CACHE"){
+            $response = $this->cache->retrieveCache($this->cacheKey);
+            $this->cacheKey = '';
+            $this->resetDefaults();
+            return $response;
+        }
+
+        try {
+    
+            if($this->cache === null || $result === false){
+                return $this->returnBuilder($buildQuery, $result);
+            }
+
+            return $this->cache->onExpired($this->cacheKey, function() use($buildQuery, $result) {
+                return $this->returnBuilder($buildQuery, $result);
+            });
+        } catch (DatabaseException $e) {
+            $e->handle();
+        }
+
+        return false;
+    }
+
+    /**
+     * Bind placeholder values to builder
+     * 
+     * @param string $query
+     * 
+     * @return self
+    */
+    public function query(string $query): self 
+    {
+        $this->buildQuery = $query;
+        return $this;
+    }
+
+    /**
+     * Execute query
+     * Execute does not support cache method
+     * 
+     * @param array $binds binds placeholder to query
+     * 
+     * @return QueryBuilder QueryBuilder
+     * @throws DatabaseException
+    */
+    public function execute(?array $binds = null): QueryBuilder 
+    {
+        if($this->buildQuery === ''){
+            throw new DatabaseException("Execute operation without a query condition is not allowed.");
+        }
+
+        if($binds === null || $binds === []){
+            $this->bindValues = [];
+        }else{
+            $this->bindValues = $binds;
+        }
+
+        return $this->returnBuilder($this->buildQuery, false);
+    }
+
+
+    /**
      * Return custom builder result from table
      * 
      * @param string $buildQuery query
      * @param string $result return result type
      * 
-     * @return mixed
+     * @return mixed|QueryBuilder false to return QueryBuilder
      * @throws DatabaseException
     */
-    private function returnBuilder(string $buildQuery, string $result): mixed 
+    private function returnBuilder(string $buildQuery, string|bool $result): mixed 
     {
         if($this->bindValues === []){
             $this->db->query($buildQuery);
@@ -667,20 +717,25 @@ class Query extends Conn {
             $this->db->prepare($buildQuery);
             foreach ($this->bindValues as $key => $value) {
                 if(!is_string($key) || $key === '?'){
-                    throw new DatabaseException("Invalid bind placeholder {$key}, placeholder key must be same with your table mapped column key");
+                    throw new DatabaseException("Invalid bind placeholder {$key}, placeholder key must be same with your table mapped column key, example :foo");
                 }
                 $this->db->bind($this->trimPlaceholder($key), $value);
             }
             $this->db->execute();
         }
-        $response = match ($result) {
-            'one' => $this->db->getOne(),
-            'count' => $this->db->rowCount(),
-            'total' => $this->db->getInt(),
-            'object' => $this->db->getAllObject(),
-            'lastId' => $this->db->getLastInsertId(),
-            default => $this->db->getAll(),
-        };
+        if($result === false){
+            $clone = clone $this->db;
+            $response = new QueryBuilder($clone);
+        }else{
+            $response = match ($result) {
+                'all' => $this->db->getAll(),
+                'one' => $this->db->getOne(),
+                'total' => $this->db->getInt(),
+                'object' => $this->db->getAllObject(),
+                'lastId' => $this->db->getLastInsertId(),
+                default => $this->db->rowCount(),
+            };
+        }
         $this->resetDefaults();
         return $response;
     }
@@ -847,7 +902,7 @@ class Query extends Conn {
      * 
      * @return int returns affected row counts.
      */
-    public function update(?array $setValues = null, int $limit = 0): int 
+    public function update(?array $setValues = null, int $limit = 1): int 
     {
         if (empty($setValues) && $this->querySetValues === []) {
             self::error("Update operation without SET values is not allowed.");
@@ -938,13 +993,46 @@ class Query extends Conn {
         return 0;
     }
 
+    /**
+     * Begin a transaction
+     * 
+     * @return self 
+    */
+    public function transaction(): self 
+    {
+        $this->db->beginTransaction();
 
-     /**
+        return $this;
+    }
+
+    /**
+     * Commit a transaction
+     * 
+     * @return void 
+    */
+    public function commit(): void 
+    {
+        $this->db->commit();
+    }
+
+    /**
+     * Rollback a transaction to default
+     * 
+     * @return void 
+    */
+    public function rollback(): void 
+    {
+        $this->db->rollback();
+    }
+
+    /**
      * Delete all records in a table 
      * And alter table auto increment to 1
+     * 
      * @param bool $transaction row limit
+     * 
      * @return bool returns true if completed
-     */
+    */
 
     public function truncate(bool $transaction = true): bool {
         try {
@@ -1210,6 +1298,7 @@ class Query extends Conn {
         $this->hasCache = 'NO_CACHE';
         $this->cache = null;
         $this->bindValues = [];
+        $this->buildQuery = '';
         $this->db->free();
     }
 }

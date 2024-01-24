@@ -44,9 +44,11 @@ interface SessionInterface {
     /** 
      * get data from session
      * @param string $index key to het
+     * @param mixed $default default value 
+     * 
      * @return mixed
     */
-    public function get(string $index): mixed;
+    public function get(string $index, mixed $default): mixed;
 
     /** 
      * Get data from specified storage instance

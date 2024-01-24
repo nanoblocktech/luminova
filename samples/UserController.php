@@ -8,16 +8,13 @@
  * @license See LICENSE file
  */
 namespace App\Controllers;
-use Luminova\Controller;
+use Luminova\Base\BaseController;
 use App\Controllers\Models\UserModel;
 
-class UserController extends Controller
+class UserController extends BaseController
 {
     /** @var \ Luminova\Http\Request $this->request */
+    /** @var \ Luminova\Application $this->app */
     /** @var \Luminova\Security\InputValidator $this->validate */
 
-    public function __construct(){
-        parent::__construct();
-
-    }
 }

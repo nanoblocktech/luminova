@@ -97,12 +97,13 @@ class SessionManager implements SessionInterface {
      * get data from session
      * 
      * @param string $index key to het
+     * @param mixed $default default value 
      * 
      * @return mixed
     */
-    public function get(string $index): mixed
+    public function get(string $index, mixed $default = null): mixed
     {
-        return $_SESSION[$this->storage][$index]??null;
+        return $_SESSION[$this->storage][$index]??$default;
     }
 
     /** 
