@@ -10,13 +10,14 @@
 namespace Luminova\Command;
 use Luminova\Config\Configuration;
 use Luminova\Command\Terminal;
+use Luminova\Command\Commands;
+
 class Console {
     /**
      * Static terminal instance
      * @var Terminal $instance 
     */
-
-    private $instance = null;
+    private static $instance = null;
 
     /**
      * Initialized terminal instance
@@ -32,6 +33,7 @@ class Console {
 
     /**
      * Initialize console instance
+     * 
      * @param bool $suppress Suppress header if no header is detected
     */
     public function __construct(bool $suppress)
@@ -41,6 +43,7 @@ class Console {
 
     /**
      * Get novakit static CLI instance 
+     * 
      * @return Terminal
     */
     public static function getTerminal(): Terminal
@@ -55,23 +58,29 @@ class Console {
      * Run CLI
      * @param Terminal $cli novakit cli instance
      * @param callable $callback Optional callback function
+     * 
      * @return void
     */
     public function run(Terminal $cli, callable $callback = null): void
     {
-        //$params  = array_merge(Terminal::getArguments(), Terminal::getOptions());
-        //var_export($params);
-       // echo "We are in cli mode";
         $this->cli = $cli;
-        $this->printHeader();
-        if(is_callable($callback)){
-            $callback();
+        $this->cli::parseCommands($this->cli::parseCommandLine($_SERVER['argv'] ?? []), false);
+
+        if(Commands::hasCommand($this->cli::getCommand())){
+            $params  = array_merge($this->cli::getArguments(), $this->cli::getOptions());
+            $this->printHeader();
+            Commands::run($this->cli, $params);
+            if(is_callable($callback)){
+                $callback();
+            }
         }
-        exit(0);
+    
+        exit(1);
     }
 
     /**
      * Print CLI header
+     * 
      * @return void
     */
     private function printHeader(): void
@@ -81,5 +90,4 @@ class Console {
        }
        $this->cli::header(Configuration::$version);
     }
-
 }

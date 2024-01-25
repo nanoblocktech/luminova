@@ -426,6 +426,11 @@ class Request
         return $body;
     }
 
+    /**
+	 * Get authorization header
+     * 
+     * @return string
+	*/
     public function getAuthorization(): string
     {
 		return Header::getAuthorization();
@@ -447,7 +452,7 @@ class Request
 		return null;
 	}
 
-     /**
+    /**
      * Is CLI?
      *
      * Test to see if a request was made from the command line.
@@ -465,6 +470,8 @@ class Request
 
     /**
      * Check if the current connection is secure
+     * 
+     * @return bool 
     */
     public function isSecure(): bool
     {
@@ -472,42 +479,82 @@ class Request
     }
 
     /**
+     * Check if request is ajax request
      * Test to see if a request contains the HTTP_X_REQUESTED_WITH header.
+     * 
+     * @return bool 
     */
     public function isAJAX(): bool
     {
-        return !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+        $with = $_SERVER['HTTP_X_REQUESTED_WITH']??'';
+        return $with !== '' && strtolower($with) === 'xmlhttprequest';
     }
 
-    // Get the URI
+    /**
+     * Get request url
+     * 
+     * @return string 
+    */
     public function getUri(): string
     {
         return $_SERVER['REQUEST_URI'];
     }
 
-    // Get the user agent as an array
-    public function getUserAgent(): array
+    /**
+     * Get user browser info
+     * 
+     * @return array 
+    */
+    public function getBrowser(): array
     {
         return get_browser(null, true);
     }
 
-    // Get the user agent as a string
-    public function getAgentString(): string
+    /**
+     * Get user agent string
+     * 
+     * @return string 
+    */
+    public function getUserAgent(): string
     {
-        $userAgent = $this->getUserAgent();
-        return $userAgent['browser'] . ' on ' . $userAgent['platform'];
+        $browser = $this->getBrowser();
+        return $browser['browser'] . ' on ' . $browser['platform'];
     }
 
+    /**
+     * Check if request header exist
+     * 
+     * @param string $headerName
+     * 
+     * @return bool 
+    */
     public function hasHeader(string $headerName): bool
     {
         return array_key_exists($headerName, $_SERVER);
     }
 
+    /**
+     * Get request header by key name.
+     * 
+     * @param string $headerName
+     * 
+     * @return Header|null header instance
+    */
     public function header(string $headerName): ?Header
     {
         if ($this->hasHeader($headerName)) {
             return new Header($_SERVER[$headerName]);
         }
         return null;
+    }
+
+    /**
+     * Get request headers.
+     *
+     * @return array The request headers
+    */
+    public function getHeaders(): array 
+    {
+        return Header::getHeaders();
     }
 }

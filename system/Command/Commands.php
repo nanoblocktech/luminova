@@ -10,6 +10,7 @@
 namespace Luminova\Command;
 use Luminova\Command\Terminal;
 use Luminova\Command\TerminalGenerator;
+use Luminova\Command\Server;
 use Luminova\Command\TextUtils;
 class Commands{
 
@@ -149,6 +150,14 @@ class Commands{
 
             ]
         ],
+        'server' => [
+            'name' => '',
+            'usage' => '',
+            'description' => "Hmmm",
+            'options' => [
+
+            ]
+        ],
     ];
 
 
@@ -200,12 +209,15 @@ class Commands{
             'db:select' => function () {
                 echo "TODO Database select";
             },
+            'server' => function ($options) {
+                (new Server)->run($options);
+            },
         ];
 
         // Check if the command exists in the mapping
         if (array_key_exists($caller, $commandMap)) {
             // Execute the associated action
-            $commandMap[$caller]();
+            $commandMap[$caller]($options);
         } else {
             // Handle unknown command
             echo "Handle Unknown command: $caller\n";

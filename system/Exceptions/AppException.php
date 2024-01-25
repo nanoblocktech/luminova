@@ -10,6 +10,7 @@
 namespace Luminova\Exceptions;
 use \Exception;
 use Luminova\Config\Configuration;
+use Luminova\Logger\Logger;
 
 class AppException extends Exception
 {
@@ -41,12 +42,10 @@ class AppException extends Exception
 
     /**
      * Handle the exception based on the production environment.
-     *
-     * @param bool|null $production  Indicates whether it's a production environment (default: false).
      * 
      * @throws $this Exception
      */
-    public function handle(?bool $production = false): void
+    public function handle(): void
     {
         if (Configuration::isProduction()) {
             $this->logException();
@@ -63,13 +62,9 @@ class AppException extends Exception
      */
     public function logException(): void
     {
-        $logDirectory = Configuration::getRootDirectory(__DIR__) . "/writeable/log/";
-        $logFile = $logDirectory . "exception.log";
+        $message = "Exception: {$this->getMessage()}";
 
-        if (!is_dir($logDirectory)) {
-            mkdir($logDirectory, 0755, true);
-        }
-        file_put_contents($logFile, "Exception: {$this->getMessage()}" . PHP_EOL, FILE_APPEND);
+        (new Logger())->log('exception', $message);
     }
 
     /**

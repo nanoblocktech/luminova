@@ -9,35 +9,21 @@
  * @license See LICENSE file
  */
 
- // Refuse to run when called from php-cgi
+// Refuse to run when called from php-cgi
 if (strpos(PHP_SAPI, 'cgi') === 0) {
     exit("The cli tool is not supported when running php-cgi. It needs php-cli to function!\n\n");
-}
-
-// Check PHP version.
-$minPhpVersion = '8.0';
-if (version_compare(PHP_VERSION, $minPhpVersion, '<')) {
-    $message = sprintf(
-        'Your PHP version must be %s or higher to run Luminova. Current version: %s',
-        $minPhpVersion,
-        PHP_VERSION
-    );
-
-    exit($message);
 }
 
 // We want errors to be shown when using it from the CLI.
 error_reporting(-1);
 ini_set('display_errors', '1');
 
-// Path to the front controller
-define('PUBLIC_PATH', __DIR__ . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR);
+// Location of the framework bootstrap file.
+require __DIR__ . '/bootstrap/autoload.php';
 
 // Ensure the current directory is pointing to the front controller's directory
-chdir(PUBLIC_PATH);
+chdir(FRONT_CONTROLLER);
 
-// Location of the framework bootstrap file.
-require __DIR__ . '/system/plugins/autoload.php';
 
 // Load environment settings from .env files into $_SERVER and $_ENV
 Luminova\Config\DotEnv::register(__DIR__ . DIRECTORY_SEPARATOR . '.env');
@@ -46,7 +32,7 @@ Luminova\Config\DotEnv::register(__DIR__ . DIRECTORY_SEPARATOR . '.env');
 $paths = new Luminova\Config\SystemPaths();
 
 // Define ENVIRONMENT
-if (! defined('ENVIRONMENT')) {
+if (!defined('ENVIRONMENT')) {
     define('ENVIRONMENT', getenv('app.environment.mood', 'production'));
 }
 
@@ -55,7 +41,6 @@ if (($suppress = array_search('--no-header', $_SERVER['argv'], true) !== false))
     unset($_SERVER['argv'][$suppress]);
     $suppress = true;
 }
-
 
 // Initialize our Console
 $console = new  Luminova\Command\Console($suppress);

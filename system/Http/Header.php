@@ -22,7 +22,7 @@ class Header
      * Get all request headers.
      *
      * @return array The request headers
-     */
+    */
     public static function getHeaders(): array
     {
         $headers = [];
@@ -152,7 +152,7 @@ class Header
     */
     public static function getAuthorization(): string
     {
-		$headers = null;
+		$headers = '';
 		if (isset($_SERVER['Authorization'])) {
 			$headers = trim($_SERVER["Authorization"]);
 		}else if (isset($_SERVER['HTTP_AUTHORIZATION'])) { //Nginx or fast CGI

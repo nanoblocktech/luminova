@@ -18,6 +18,8 @@ class Logger implements LoggerInterface
      *
      * @param string $message The emergency message to log.
      * @param array $context Additional context data (optional).
+     * 
+     * @return void 
      */
     public function emergency(string $message, array $context = []): void
     {
@@ -29,6 +31,8 @@ class Logger implements LoggerInterface
      *
      * @param string $message The alert message to log.
      * @param array $context Additional context data (optional).
+     * 
+     * @return void 
      */
     public function alert(string $message, array $context = []): void
     {
@@ -40,6 +44,8 @@ class Logger implements LoggerInterface
      *
      * @param string $message The critical message to log.
      * @param array $context Additional context data (optional).
+     * 
+     * @return void 
      */
     public function critical(string $message, array $context = []): void
     {
@@ -51,6 +57,8 @@ class Logger implements LoggerInterface
      *
      * @param string $message The error message to log.
      * @param array $context Additional context data (optional).
+     * 
+     * @return void 
      */
     public function error(string $message, array $context = []): void
     {
@@ -62,6 +70,8 @@ class Logger implements LoggerInterface
      *
      * @param string $message The warning message to log.
      * @param array $context Additional context data (optional).
+     * 
+     * @return void 
      */
     public function warning(string $message, array $context = []): void
     {
@@ -73,6 +83,8 @@ class Logger implements LoggerInterface
      *
      * @param string $message The notice message to log.
      * @param array $context Additional context data (optional).
+     * 
+     * @return void 
      */
     public function notice(string $message, array $context = []): void
     {
@@ -84,6 +96,8 @@ class Logger implements LoggerInterface
      *
      * @param string $message The info message to log.
      * @param array $context Additional context data (optional).
+     * 
+     * @return void 
      */
     public function info(string $message, array $context = []): void
     {
@@ -95,6 +109,8 @@ class Logger implements LoggerInterface
      *
      * @param string $message The debug message to log.
      * @param array $context Additional context data (optional).
+     * 
+     * @return void 
      */
     public function debug(string $message, array $context = []): void
     {
@@ -107,16 +123,24 @@ class Logger implements LoggerInterface
      * @param string $level The log level (e.g., "emergency," "error," "info").
      * @param string $message The message to log.
      * @param array $context Additional context data (optional).
+     * 
+     * @return void 
      */
     public function log(string $level, string $message, array $context = []): void
     {
-        $logDirectory = Configuration::getRootDirectory(__DIR__) . "writable/log/";
-        $logFile = $logDirectory . "{$level}.log";
+        $path = Configuration::getRootDirectory(__DIR__) . '/writeable/log/';
+        $filepath = $path . "{$level}.log";
 
-        if (!is_dir($logDirectory)) {
-            mkdir($logDirectory, 0755, true);
+        if (!is_dir($path)) {
+            mkdir($path, 0755, true);
         }
-        $logEntry = $message . "\nContext: " . print_r($context, true) . PHP_EOL;
-        file_put_contents($logFile, $logEntry . PHP_EOL, FILE_APPEND);
+
+        if( $context !== []){
+            $message .= "\nContext: " . print_r($context, true);
+        }
+
+        $message .= PHP_EOL;
+
+        file_put_contents($filepath, $message, FILE_APPEND);
     }
 }

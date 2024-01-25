@@ -10,9 +10,10 @@
 $app = require_once __DIR__ . '/../bootstrap/load.php';
 
 use Luminova\Routing\Bootstrap;
-define('PUBLIC_PATH', __DIR__ . DIRECTORY_SEPARATOR);
-if (getcwd() . DIRECTORY_SEPARATOR !== PUBLIC_PATH) {
-    chdir(PUBLIC_PATH);
+define('PUBLIC_CONTROLLER', __DIR__ . DIRECTORY_SEPARATOR);
+
+if (getcwd() . DIRECTORY_SEPARATOR !== PUBLIC_CONTROLLER) {
+    chdir(PUBLIC_CONTROLLER);
 }
 
 /*

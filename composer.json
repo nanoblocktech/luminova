@@ -34,37 +34,7 @@
     "autoload": {
         "psr-4": {
             "Luminova\\": "system/",
-            "Luminova\\Application\\": "system/Application/",
-            "Luminova\\Controller\\": "system/Controller/",
-            "Luminova\\Base\\": "system/Base/",
-            "Luminova\\Cache\\": "system/Cache/",
-            "Luminova\\Exceptions\\": "system/Exceptions/",
-            "Luminova\\Config\\": "system/Config/",
-            "Luminova\\Logger\\": "system/Logger/",
-            "Luminova\\Sessions\\": "system/Sessions/",
-            "Luminova\\Security\\": "system/Security/",
-            "Luminova\\Security\\Encryption\\": "system/Security/Encryption/",
-            "Luminova\\Seo\\": "system/Seo/",
-            "Luminova\\Database\\": "system/Database/",
-            "Luminova\\Database\\Drivers\\": "system/Database/Drivers/",
-            "Luminova\\Functions\\": "system/Functions/",
-            "Luminova\\Command\\": "system/Command/",
-            "Luminova\\Arrays\\": "system/Arrays/",
-            "Luminova\\Composer\\": "system/Composer/",
-            "Luminova\\Router\\": "system/Router/",
-            "Luminova\\Template\\": "system/Template/",
-            "Luminova\\Time\\": "system/Time/",
-            "Luminova\\Models\\": "system/Models/",
-            "Luminova\\Http\\": "system/Http/",
-            "Luminova\\Http\\Client\\": "system/Http/Client/",
-            "Luminova\\Errors\\": "system/Errors/",
-            "Luminova\\Languages\\": "system/Languages/",
-            "Luminova\\Notifications\\": "system/Notifications/",
-            "Luminova\\Storage\\": "system/Storage/",
-            "Luminova\\Utils\\": "system/Utils/",
-            "App\\Controllers\\": "app/Controllers/",
-            "App\\Controllers\\Models\\": "app/Controllers/Models/",
-            "App\\Controllers\\Config\\": "app/Controllers/Config/"
+            "App\\Controllers\\": "app/Controllers/"
         } 
     }, 
     "autoload-dev": {

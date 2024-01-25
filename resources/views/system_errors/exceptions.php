@@ -14,11 +14,11 @@ $errorId = uniqid('error', true);
         <?= preg_replace('#[\r\n\t ]+#', ' ', file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'debug.css')) ?>
     </style>
 
-    <script>
+    <!--<script>
         <?= file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'debug.js') ?>
-    </script>
+    </script>-->
 </head>
-<body onload="init()">
+<body>
 
     <!-- Header -->
     <div class="header">
@@ -224,7 +224,7 @@ $errorId = uniqid('error', true);
                         </tr>
                         <tr>
                             <td>User Agent</td>
-                            <td><?= htmlspecialchars($request->getAgentString()) ?></td>
+                            <td><?= htmlspecialchars($request->getUserAgent()) ?></td>
                         </tr>
 
                     </tbody>
@@ -325,7 +325,7 @@ $errorId = uniqid('error', true);
             <p>
                 Displayed at <?= htmlspecialchars(date('H:i:sa')) ?> &mdash;
                 PHP: <?= htmlspecialchars(PHP_VERSION) ?>  &mdash;
-                CodeIgniter: <?= htmlspecialchars($this->config::$version) ?> --
+                Luminova: <?= htmlspecialchars($this->config::$version) ?> --
                 Environment: <?= ENVIRONMENT ?>
             </p>
 

@@ -483,7 +483,7 @@ class Terminal {
      * php index.php user -v --v -name=John --name=John
      *
      * @param string|null $prefix You may specify a string with which to prompt the user.
-     */
+    */
     public static function input(?string $prefix = null): string
     {
         if (static::$isReadline && ENVIRONMENT !== 'testing') {
@@ -539,7 +539,6 @@ class Terminal {
         static::$isColored = $stdout;
     }
 
-    
     /**
      * Print text to CLI with newline.
      * 
@@ -623,7 +622,7 @@ class Terminal {
         static::fwrite(STDOUT, "\033[1A");
     }
 
-     /**
+    /**
      * Returns the given text with the correct color codes for a foreground and
      * optionally a background color.
      *
@@ -633,7 +632,7 @@ class Terminal {
      * @param int|null $format Optionally apply text formatting.
      *
      * @return string A colored text if color is supported
-     */
+    */
     public static function color(string $text, string $foreground, ?string $background = null, ?int $format = null): string
     {
         if (!static::$isColored) {
@@ -658,12 +657,12 @@ class Terminal {
         }
     }
 
-     /**
+    /**
      * Check if the stream resource supports colors.
      *
      * @param resource $resource STDIN/STDOUT
      * @return bool 
-     */
+    */
     public static function resourceSupportColor($resource): bool
     {
         if (self::isColorDisabled()) {
@@ -701,6 +700,28 @@ class Terminal {
 
     /**
      * Parse command line queries to static::$options
+     * This method is being called in router to parse commands
+     * 
+     * @param array $values arguments 
+     * 
+     * @return int
+    */
+    public static function parseCommands(array $values, bool $run = true): int
+    {
+        static::$commandsOptions = $values;
+        if($run){
+            $argument = static::getArgument(1);
+            if($argument === 'help'){
+                return 1;
+            }elseif($argument === 'list'){
+                return 1;
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Parse command line queries to static::$options
      * 
      * @param array $arguments arguments $_SERVER['argv']
      * 
@@ -709,13 +730,31 @@ class Terminal {
     public static function parseCommandLine(array $arguments): array
     {
         $optionValue = false;
-        array_shift($arguments); //Remove the front controller file
+        $caller = $arguments[0] ?? '';
         $result = [
-            'caller' => implode(' ', $arguments),
-            'command' => $arguments[0]??'',
+            'caller' => '',
+            'command' => '',
             'arguments' => [],
             'options' => [],
         ];
+        if ($caller === 'php' || preg_match('/^.*\.php$/', $caller)) {
+            array_shift($arguments); //Remove the front controller file
+            $result['caller'] = implode(' ', $arguments);
+            $result['command'] = $arguments[0]??'';
+        }else{
+            $hasSpace = array_reduce($arguments, function ($carry, $item) {
+                return $carry || strpos($item, ' ') !== false;
+            }, false);
+
+            $callerCommend = $arguments;
+            if ($hasSpace) {
+                $callerCommend = implode(' ', $arguments);
+                $callerCommend = $callerCommend[0];
+            }
+            $result['caller'] = $callerCommend;
+            $result['command'] = $arguments[1]??'';
+        }
+
         unset($arguments[0]); // Unset command name 
         
         foreach ($arguments as $i => $arg) {
@@ -773,26 +812,6 @@ class Terminal {
     }
 
     /**
-     * Parse command line queries to static::$options
-     * This method is being called in router to parse commands
-     * 
-     * @param array $values arguments 
-     * 
-     * @return int
-    */
-    public static function parseCommands(array $values): int
-    {
-        static::$commandsOptions = $values;
-        $argument = static::getArgument(1);
-        if($argument === 'help'){
-            return 1;
-        }elseif($argument === 'list'){
-            return 1;
-        }
-        return 0;
-    }
-
-    /**
      * Get command argument by index number
      * 
      * @param int $index
@@ -827,7 +846,7 @@ class Terminal {
         return static::$commandsOptions['command'] ?? null;
     }
 
-     /**
+    /**
      * Get command caller command string
      * The full passed command, options and arguments 
      * 
@@ -874,8 +893,7 @@ class Terminal {
      * @param string $name Option key name
      * 
      * @return string|array|null
-     */
- 
+    */
     public static function getOption(string $name): mixed
     {
         if(isset(static::$commandsOptions[$name])){
@@ -910,7 +928,7 @@ class Terminal {
             !array_key_exists('REQUEST_METHOD', $_SERVER);
     }
 
-     /**
+    /**
      * Checks whether the no color is available in environment
      *
      * @return bool 
@@ -952,7 +970,6 @@ class Terminal {
      *
      * @return bool
     */
-
     public static function isWindows(): bool 
     {
         return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
@@ -968,7 +985,16 @@ class Terminal {
         return strpos(PHP_OS, 'Darwin') !== false;
     }
 
-    public static function systemHasCommand(string $command, array $options): bool{
+    /**
+     * Checks whether system has requested command
+     *
+     * @param string $command
+     * @param array $options
+     * 
+     * @return bool
+    */
+    public static function systemHasCommand(string $command, array $options): bool
+    {
         //echo "Searching: $command";
         if(Commands::hasCommand($command)){
             $cli = new Terminal();
@@ -976,9 +1002,17 @@ class Terminal {
             Commands::run($cli, $options);
             return true;
         }
+
         return false;
     }
 
+    /**
+     * Print help
+     *
+     * @param array $help
+     * 
+     * @return void
+    */
     public static function printHelp(array $help): void
     {
         foreach($help as $key => $value){
@@ -1042,7 +1076,7 @@ class Terminal {
      * Get the PHP script path.
      *
      * @return string
-     */
+    */
     public static function phpScript(): string 
     {
         return PHP_BINARY;

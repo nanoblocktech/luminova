@@ -13,40 +13,10 @@ class ComposerStaticInit9c155849e043191fc1df7e0b46712cd7
         ),
         'L' => 
         array (
-            'Luminova\\Utils\\' => 15,
-            'Luminova\\Time\\' => 14,
-            'Luminova\\Template\\' => 18,
-            'Luminova\\Storage\\' => 17,
-            'Luminova\\Sessions\\' => 18,
-            'Luminova\\Seo\\' => 13,
-            'Luminova\\Security\\Encryption\\' => 29,
-            'Luminova\\Security\\' => 18,
-            'Luminova\\Router\\' => 16,
-            'Luminova\\Notifications\\' => 23,
-            'Luminova\\Models\\' => 16,
-            'Luminova\\Logger\\' => 16,
-            'Luminova\\Languages\\' => 19,
-            'Luminova\\Http\\Client\\' => 21,
-            'Luminova\\Http\\' => 14,
-            'Luminova\\Functions\\' => 19,
-            'Luminova\\Exceptions\\' => 20,
-            'Luminova\\Errors\\' => 16,
-            'Luminova\\Database\\Drivers\\' => 26,
-            'Luminova\\Database\\' => 18,
-            'Luminova\\Controller\\' => 20,
-            'Luminova\\Config\\' => 16,
-            'Luminova\\Composer\\' => 18,
-            'Luminova\\Command\\' => 17,
-            'Luminova\\Cache\\' => 15,
-            'Luminova\\Base\\' => 14,
-            'Luminova\\Arrays\\' => 16,
-            'Luminova\\Application\\' => 21,
             'Luminova\\' => 9,
         ),
         'A' => 
         array (
-            'App\\Controllers\\Models\\' => 23,
-            'App\\Controllers\\Config\\' => 23,
             'App\\Controllers\\' => 16,
         ),
     );
@@ -56,129 +26,9 @@ class ComposerStaticInit9c155849e043191fc1df7e0b46712cd7
         array (
             0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
         ),
-        'Luminova\\Utils\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Utils',
-        ),
-        'Luminova\\Time\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Time',
-        ),
-        'Luminova\\Template\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Template',
-        ),
-        'Luminova\\Storage\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Storage',
-        ),
-        'Luminova\\Sessions\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Sessions',
-        ),
-        'Luminova\\Seo\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Seo',
-        ),
-        'Luminova\\Security\\Encryption\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Security/Encryption',
-        ),
-        'Luminova\\Security\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Security',
-        ),
-        'Luminova\\Router\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Router',
-        ),
-        'Luminova\\Notifications\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Notifications',
-        ),
-        'Luminova\\Models\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Models',
-        ),
-        'Luminova\\Logger\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Logger',
-        ),
-        'Luminova\\Languages\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Languages',
-        ),
-        'Luminova\\Http\\Client\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Http/Client',
-        ),
-        'Luminova\\Http\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Http',
-        ),
-        'Luminova\\Functions\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Functions',
-        ),
-        'Luminova\\Exceptions\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Exceptions',
-        ),
-        'Luminova\\Errors\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Errors',
-        ),
-        'Luminova\\Database\\Drivers\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Database/Drivers',
-        ),
-        'Luminova\\Database\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Database',
-        ),
-        'Luminova\\Controller\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Controller',
-        ),
-        'Luminova\\Config\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Config',
-        ),
-        'Luminova\\Composer\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Composer',
-        ),
-        'Luminova\\Command\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Command',
-        ),
-        'Luminova\\Cache\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Cache',
-        ),
-        'Luminova\\Base\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Base',
-        ),
-        'Luminova\\Arrays\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Arrays',
-        ),
-        'Luminova\\Application\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/system/Application',
-        ),
         'Luminova\\' => 
         array (
             0 => __DIR__ . '/../../..' . '/system',
-        ),
-        'App\\Controllers\\Models\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/app/Controllers/Models',
-        ),
-        'App\\Controllers\\Config\\' => 
-        array (
-            0 => __DIR__ . '/../../..' . '/app/Controllers/Config',
         ),
         'App\\Controllers\\' => 
         array (
@@ -210,6 +60,7 @@ class ComposerStaticInit9c155849e043191fc1df7e0b46712cd7
         'Luminova\\Command\\Colors' => __DIR__ . '/../../..' . '/system/Command/Colors.php',
         'Luminova\\Command\\Commands' => __DIR__ . '/../../..' . '/system/Command/Commands.php',
         'Luminova\\Command\\Console' => __DIR__ . '/../../..' . '/system/Command/Console.php',
+        'Luminova\\Command\\Server' => __DIR__ . '/../../..' . '/system/Command/Server.php',
         'Luminova\\Command\\Terminal' => __DIR__ . '/../../..' . '/system/Command/Terminal.php',
         'Luminova\\Command\\TerminalGenerator' => __DIR__ . '/../../..' . '/system/Command/TerminalGenerator.php',
         'Luminova\\Command\\TextUtils' => __DIR__ . '/../../..' . '/system/Command/TextUtils.php',
@@ -231,6 +82,7 @@ class ComposerStaticInit9c155849e043191fc1df7e0b46712cd7
         'Luminova\\Database\\QueryBuilder' => __DIR__ . '/../../..' . '/system/Database/QueryBuilder.php',
         'Luminova\\Email\\Mailer' => __DIR__ . '/../../..' . '/system/Email/Mailer.php',
         'Luminova\\Errors\\Codes' => __DIR__ . '/../../..' . '/system/Errors/Codes.php',
+        'Luminova\\Errors\\Error' => __DIR__ . '/../../..' . '/system/Errors/Error.php',
         'Luminova\\Exceptions\\AppException' => __DIR__ . '/../../..' . '/system/Exceptions/AppException.php',
         'Luminova\\Exceptions\\ClassException' => __DIR__ . '/../../..' . '/system/Exceptions/ClassException.php',
         'Luminova\\Exceptions\\DatabaseException' => __DIR__ . '/../../..' . '/system/Exceptions/DatabaseException.php',

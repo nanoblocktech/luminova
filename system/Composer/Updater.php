@@ -97,7 +97,7 @@ class Updater{
             }
         }
 
-        rmdir($source);
+       // rmdir($source);
         echo "Removed directory: $source\n";
     }
 
