@@ -62,7 +62,6 @@ class Server extends BaseCommand
          // Set the Front Controller path as Document Root.
         $docRoot = escapeshellarg(PUBLIC_PATH);
 
-        // Get the party started.
         Terminal::writeln('=================================== PHP FRAMEWORK ======================================');
         Terminal::writeln('
         L       U     U   M       M   IIII   N     N   OOOO   V           V   AAAAA

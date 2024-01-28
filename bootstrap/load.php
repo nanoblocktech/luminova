@@ -7,8 +7,7 @@
  * @copyright (c) Nanoblock Technology Ltd
  * @license See LICENSE file
 */
-//error_reporting(E_ALL);
-//ini_set('display_errors', '1');
+
 require_once __DIR__ . '/autoload.php';
 
 use \App\Controllers\Application;

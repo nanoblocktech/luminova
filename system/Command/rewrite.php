@@ -16,22 +16,16 @@ $uri = urldecode(
     parse_url('https://luminova.com' . $_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? ''
 );
 
-// All request handle by index.php file.
 $_SERVER['SCRIPT_NAME'] = '/index.php';
 $_SERVER['LOCAL_SERVER_INSTANCE'] = 'local.server';
-
-
-// Full path
 $path = $_SERVER['DOCUMENT_ROOT'] . DIRECTORY_SEPARATOR . ltrim($uri, '/');
 
-// If $path is an existing file or folder within the public folder
-// then let the request handle it like normal.
+// If $path is an existing file or folder within the public folder handle request
 if ($uri !== '/' && (is_file($path) || is_dir($path))) {
     return false;
 }
 
 unset($uri, $path);
 
-// Otherwise, we'll load the index file and let
-// the framework handle the request from here.
+// handle the request from from controller index.
 require_once $_SERVER['DOCUMENT_ROOT'] . DIRECTORY_SEPARATOR . 'index.php';
