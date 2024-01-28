@@ -8,25 +8,27 @@
  * @license See LICENSE file
  */
 namespace Luminova\Database\Drivers;
-use Luminova\Database\DatabaseInterface;
+use Luminova\Database\Drivers\DriversInterface;
 use Luminova\Config\Database;
 use Luminova\Exceptions\DatabaseException;
 use Luminova\Exceptions\InvalidException;
 use Luminova\Exceptions\InvalidObjectException;
 use \PDO;
+use \PDOStatement;
 use \PDOException;
 use \stdClass;
 
-class PdoDriver implements DatabaseInterface {
+class PdoDriver implements DriversInterface 
+{
     /**
     * @var PDO $connection PDO Database connection instance
     */
-    private PDO $connection; 
+    private ?PDO $connection = null; 
 
     /**
-    * @var object $stmt pdo statement object
+    * @var PDOStatement $stmt pdo statement object
     */
-    private $stmt;
+    private ?PDOStatement $stmt = null;
 
     /**
     * @var bool $onDebug debug mode flag
@@ -79,35 +81,52 @@ class PdoDriver implements DatabaseInterface {
     }
 
     /**
+     * Get driver name
+     * 
+     * @return string Database driver name
+    */
+    public function getDriver(): string
+    {
+        return 'pdo';
+    }
+
+    /**
      * Sets the debug mode.
      *
      * @param bool $debug The debug mode.
-     * @return PdoDriver The current class instance.
+     * 
+     * @return self The current class instance.
      */
-    public function setDebug(bool $debug): PdoDriver {
+    public function setDebug(bool $debug): self 
+    {
         $this->onDebug = $debug;
+
         return $this;
     }
 
     /**
      * Initializes the database connection.
      * This method is called internally and should not be called directly.
+     * 
+     * @return void 
      * @throws DatabaseException If no driver is specified
      */
-    private function initializeDatabase(): void {
-        // Check if a database connection already exists or if the configuration is empty.
-        if (!empty($this->connection)) {
+    private function initializeDatabase(): void 
+    {
+        if ($this->connection !== null) {
             return;
         }
 
   
         // Define options for the PDO connection.
         $options = [
-            PDO::ATTR_PERSISTENT => true, 
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION 
+            PDO::ATTR_EMULATE_PREPARES   => false,
+            PDO::ATTR_PERSISTENT => $this->config->persistent, 
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION ,
+            //PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, //make the default fetch be an associative array
         ];
 
-        // Based on the database version, create the corresponding database connection.
+
         if ($this->config->version === "mysql") {
             $this->createMySqlConnection($options);
         } elseif ($this->config->version === "pgsql") {
@@ -115,8 +134,7 @@ class PdoDriver implements DatabaseInterface {
         } elseif ($this->config->version === "sqlite" && !empty($this->config->sqlite_path)) {
             $this->createSQLiteConnection($options);
         } else {
-            // Handle the case when no valid database driver is found for the specified version.
-            DatabaseException::throwException("No database driver found for version '{$this->config->version}'", $this->config->production); 
+            DatabaseException::throwException("No database driver found for version '{$this->config->version}'"); 
         }
     }
 
@@ -131,7 +149,7 @@ class PdoDriver implements DatabaseInterface {
         try {
             $this->connection = new PDO($connectionDsn, $this->config->username, $this->config->password, $options);
         } catch (PDOException $e) {
-            DatabaseException::throwException($e->getMessage(), $this->config->production);
+            DatabaseException::throwException($e->getMessage());
         }
     }
 
@@ -142,12 +160,12 @@ class PdoDriver implements DatabaseInterface {
      * @return void
      */
     private function createPostgreSQLConnection(array $options): void {
-        $connectionDsn = "pgsql:host={$this->config->host} port={$this->config->port} dbname={$this->config->database}";
-        $connectionDsn .= " user={$this->config->username} password={$this->config->password}";
+        $dns = "pgsql:host={$this->config->host} port={$this->config->port} dbname={$this->config->database}";
+        $dns .= " user={$this->config->username} password={$this->config->password}";
         try {
-            $this->connection = new PDO($connectionDsn, null, null, $options);
+            $this->connection = new PDO($dns, null, null, $options);
         } catch (PDOException $e) {
-            DatabaseException::throwException($e->getMessage(), $this->config->production);
+            DatabaseException::throwException($e->getMessage());
         }
     }
 
@@ -161,7 +179,7 @@ class PdoDriver implements DatabaseInterface {
         try {
             $this->connection = new PDO("sqlite:/" . $this->config->sqlite_path, null, null, $options);
         } catch (PDOException $e) {
-            DatabaseException::throwException($e->getMessage(), $this->config->production);
+            DatabaseException::throwException($e->getMessage());
         }
     }
 
@@ -169,12 +187,49 @@ class PdoDriver implements DatabaseInterface {
     /**
      * Returns the error information for the last statement execution.
      *
-     * @return string The error information array.
+     * @return string The error information.
      */
     public function error(): string 
     {
-        return '';
+        return $this->stmt?->errorInfo()[2] ?? $this->connection?->errorInfo()[2];
     }
+
+    /**
+     * Returns the error information.
+     *
+     * @return array The error information.
+     */
+    public function errors(): array 
+    {
+        return [
+            'statement' => [
+                'errno' => $this->stmt?->errorCode() ?? null,
+                'error' => $this->stmt?->errorInfo()[2] ?? null
+            ],
+            'connection' => [
+                'errno' => $this->connection?->errorCode() ?? null,
+                'error' => $this->connection?->errorInfo()[2] ?? null
+            ]
+        ];
+    }
+
+    /**
+     * Returns the error information for the last statement execution.
+     *
+     * @return array $info The error information array.
+     */
+    public function info(): array 
+    {
+        // Get driver-specific information
+        $driverInfo = $this->connection?->getAttribute(PDO::ATTR_CONNECTION_STATUS);
+
+        // Parse the information into an associative array
+        preg_match_all('/(\S[^:]+): (\S+)/', $driverInfo, $matches);
+        $info = array_combine($matches[1], $matches[2]);
+
+        return $info;
+    }
+
 
     /**
      * Dumps the debug information for the last statement execution.
@@ -190,10 +245,13 @@ class PdoDriver implements DatabaseInterface {
      * Prepares a statement for execution.
      *
      * @param string $query The SQL query.
-     * @return PdoDriver The current class instance.
+     * 
+     * @return self The current class instance.
      */
-    public function prepare(string $query): PdoDriver {
+    public function prepare(string $query): self 
+    {
         $this->stmt = $this->connection->prepare($query);
+
         return $this;
     }
 
@@ -201,10 +259,13 @@ class PdoDriver implements DatabaseInterface {
      * Executes a query.
      *
      * @param string $query The SQL query.
-     * @return PdoDriver The current class instance.
+     * 
+     * @return self The current class instance.
      */
-    public function query(string $query): PdoDriver {
+    public function query(string $query): self
+    {
         $this->stmt = $this->connection->query($query);
+
         return $this;
     }
 
@@ -214,8 +275,15 @@ class PdoDriver implements DatabaseInterface {
      * @param string $query The SQL query.
      * @return int The affected row counts
      */
-    public function exec(string $query): int {
-        return $this->connection->exec($query);
+    public function exec(string $query): int 
+    {
+        $result = $this->connection->exec($query);
+
+        if($result === false){
+            return 0;
+        }
+
+        return $result;
     }
 
     /**
@@ -253,19 +321,19 @@ class PdoDriver implements DatabaseInterface {
      * @param null|int    $type  The parameter type.
      *
      * @return int The parameter type.
-     */
-    public function getType(mixed $value, ?int $type = null) : mixed 
+    */
+    public function getType(mixed $value, ?int $type = null): mixed 
     {
-        if (is_null($type)) {
-            switch (true) {
-                case is_int($value): $type = self::PARAM_INT; break;
-                case is_bool($value): $type = self::PARAM_BOOL; break;
-                case is_null($value): $type = self::PARAM_NULL; break;
-                default: $type = self::PARAM_STRING;
-            }
-        }
+        $type ??= match (true) {
+            is_int($value) => self::PARAM_INT,
+            is_bool($value) => self::PARAM_BOOL,
+            is_null($value) => self::PARAM_NULL,
+            default => self::PARAM_STRING,
+        };
+
         return $type;
     }
+
 
     /**
      * Binds a value to a parameter.
@@ -274,9 +342,9 @@ class PdoDriver implements DatabaseInterface {
      * @param mixed       $value The parameter value.
      * @param null|int    $type  The parameter type.
      *
-     * @return PdoDriver The current class instance.
+     * @return self The current class instance.
      */
-    public function bind(string $param, mixed $value, mixed $type = null): PdoDriver 
+    public function bind(string $param, mixed $value, mixed $type = null): self 
     {
         $this->stmt->bindValue($param, $value, $this->getType($value, $type));
         return $this;
@@ -289,9 +357,9 @@ class PdoDriver implements DatabaseInterface {
      * @param mixed       $value The parameter value.
      * @param null|int    $type  The parameter type.
      *
-     * @return PdoDriver The current class instance.
+     * @return self The current class instance.
      */
-    public function param(string $param, mixed $value, mixed $type = null): PdoDriver 
+    public function param(string $param, mixed $value, mixed $type = null): self 
     {
         $this->stmt->bindParam($param, $value, $this->getType($value, $type));
         return $this;
@@ -301,6 +369,7 @@ class PdoDriver implements DatabaseInterface {
      * Executes the prepared statement.
      * @param array $values execute statement with values
      * @throws DatabaseException 
+     * 
      * @return void
     */
     public function execute(?array $values = null): void 
@@ -308,7 +377,7 @@ class PdoDriver implements DatabaseInterface {
         try {
             $this->stmt->execute($values);
         } catch (PDOException $e) {
-            DatabaseException::throwException($e->getMessage(), $this->config->production);
+            DatabaseException::throwException($e->getMessage());
         }
     }
 
@@ -356,21 +425,51 @@ class PdoDriver implements DatabaseInterface {
         return $response??0;
     }
 
+     /**
+     * Fetches all rows as an array or stdClass object.
+     *
+     * @param string $type The type of result to fetch ('object' or 'array').
+     * 
+     * @return array|stdClass The result containing the rows.
+    */
+    public function getResult(string $type = 'object'): array|stdClass
+    {
+        $result = ($type === 'object') ? new stdClass : [];
+
+        $count = 0;
+
+        while ($row = $this->stmt->fetchObject()) {
+            $count++;
+            if($type === 'object'){
+                $result->$count = (object) $row;
+            }else{
+                $result[$count] = (array) $row;
+            }
+        }
+
+        return $result;
+    }
+
     /**
      * Fetches all rows as a stdClass object.
      *
      * @return stdClass The stdClass object containing the result rows.
-     */
-    public function getAllObject(): stdClass 
+    */ 
+    public function getObject(): stdClass 
     {
-        $result = new stdClass;
-        $count = 0;
-        while ($row = $this->stmt->fetchObject()) {
-            $count++;
-            $result->$count = $row;
-        }
-        return $result;
+        return $this->getResult('object');
     }
+
+    /**
+     * Fetches all rows as a array.
+     *
+     * @return array The array containing the result rows.
+    */
+    public function getArray(): array 
+    {
+        return $this->getResult('array');;
+    }
+
 
     /**
      * Returns the ID of the last inserted row or sequence value.
@@ -384,7 +483,9 @@ class PdoDriver implements DatabaseInterface {
 
     /**
      * Frees up the statement cursor and sets the statement object to null.
-     */
+     * 
+     * @return void
+    */
     public function free(): void 
     {
         if ($this->stmt !== null) {
@@ -392,9 +493,12 @@ class PdoDriver implements DatabaseInterface {
             $this->stmt = null;
         }
     }
-     /**
+
+    /**
      * Frees up the statement cursor and close database connection
-     */
+     * 
+     * @return void
+    */
     public function close(): void 
     {
         $this->free();

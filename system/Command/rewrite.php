@@ -18,6 +18,8 @@ $uri = urldecode(
 
 // All request handle by index.php file.
 $_SERVER['SCRIPT_NAME'] = '/index.php';
+$_SERVER['LOCAL_SERVER_INSTANCE'] = 'local.server';
+
 
 // Full path
 $path = $_SERVER['DOCUMENT_ROOT'] . DIRECTORY_SEPARATOR . ltrim($uri, '/');

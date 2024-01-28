@@ -60,7 +60,7 @@ class Application {
         //Configuration::__construct($dir);
 
         // If the document root is not changed to "public", manually enable the app to use "public" as the default
-        if (!Configuration::isProduction()) {
+        if (Configuration::usePublic()) {
             $this->setDocumentRoot("public");
         }
 

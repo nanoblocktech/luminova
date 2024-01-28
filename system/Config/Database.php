@@ -24,9 +24,9 @@ class Database
 
     /**
      * The hostname or IP address of the database server.
-     * @var string $host 
+     * @var string $host [localhost, 127.0.0.1]
      */
-    public string $host = 'localhost';
+    public string $host = 'localhost'; 
 
     /**
      * The version of the database server.
@@ -67,6 +67,12 @@ class Database
     /**
      * The name of the database to connect to.
      * @var string $database 
-     */
+    */
     public string $database = '';
+
+    /**
+     * persistent database connection
+     * @var bool $persistent 
+    */
+    public bool $persistent = true;
 }

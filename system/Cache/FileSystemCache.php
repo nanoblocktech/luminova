@@ -8,37 +8,40 @@
  * @license See LICENSE file
  */
 namespace Luminova\Cache;
+
 use \Luminova\Cache\FileCacheItem;
 use \Luminova\Exceptions\ErrorException;
 use \Generator;
-class FileSystemCache {
+
+class FileSystemCache 
+{
      /**
      * Cache expiry time 7 days
      * @var int TTL_7DAYS constant
      */
     public const TTL_7DAYS = 7 * 24 * 60 * 60;
 
-     /**
+    /**
      * Cache expiry time 24 hours
      * @var int TTL_24HR constant
-     */
+    */
     public const TTL_24HR = 24 * 60 * 60;
 
-     /**
+    /**
      * Cache expiry time 30 minutes 
      * @var int TTL_30MIN constant
-     */
+    */
     public const TTL_30MIN = 30 * 60;
     /**
      * Hold the cache extension type PHP
      * @var string PHP constant
-     */
+    */
     public const PHP = ".catch.php";
 
-     /**
+    /**
      * Hold the cache extension type JSON
      * @var string JSON constant
-     */
+    */
     public const JSON = ".json";
 
      /**

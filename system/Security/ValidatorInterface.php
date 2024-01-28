@@ -51,7 +51,7 @@ interface ValidatorInterface {
      * 
      * @return void 
     */
-    public function addError($field, $ruleName, $message = ''): void;
+    public function addError(string $field, string $ruleName, string $message = 'Validation failed for %s.'): void;
 
     /**
      * Set rules array array with optional messages

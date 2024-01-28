@@ -240,6 +240,7 @@ use Luminova\Config\Configuration;
     <p>The corresponding controller for this page can be found at:</p>
 
     <pre><code>app/Controllers/Welcome.php</code></pre>
+    <p><?php echo $_SERVER['LOCAL_SERVER_INSTANCE'];?></p>
 
 </section>
 

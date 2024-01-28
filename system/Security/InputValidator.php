@@ -173,7 +173,8 @@ class InputValidator implements ValidatorInterface
      * 
      * @return bool
     */
-    private static function isEmpty(mixed $value) {
+    private static function isEmpty(mixed $value) 
+    {
         return $value === null || $value === '' || strlen($value) < 1;
     }    
 
@@ -186,7 +187,8 @@ class InputValidator implements ValidatorInterface
      * @param string $list string list
      * @return array $matches
     */
-    public static function listToArray(string $list): array {
+    public static function listToArray(string $list): array 
+    {
         $matches = [];
     
         preg_match_all("/'([^']+)'/", $list, $matches);
@@ -275,7 +277,8 @@ class InputValidator implements ValidatorInterface
      * @deprecated This method will be removed in a future release use getErrorLine instead
      * @return string Error message
     */
-    public function getErrorByIndices(int $indexField = 0, int $indexErrors = 0){
+    public function getErrorByIndices(int $indexField = 0, int $indexErrors = 0): string 
+    {
         return $this->getErrorLine($indexField, $indexErrors);
     }
 
@@ -288,7 +291,7 @@ class InputValidator implements ValidatorInterface
      * 
      * @return void 
     */
-    public function addError($field, $ruleName, $message = 'Validation failed for %s.'): void
+    public function addError(string $field, string $ruleName, string $message = 'Validation failed for %s.'): void
     {
         $message = sprintf($message, $field);
         $this->errors[$field][] = $this->errorMessages[$field][$ruleName] ?? $message;
@@ -300,9 +303,10 @@ class InputValidator implements ValidatorInterface
      * @param array $message optional pass response message for validation
      * @return self InputValidator instance 
     */
-    public function setRules(array $rules, array $messages = []): self{
+    public function setRules(array $rules, array $messages = []): self
+    {
         $this->validationRules = $rules;
-        if(!empty($messages)){
+        if($messages !== []){
             $this->errorMessages = $messages;
         }
         return $this;
@@ -314,7 +318,8 @@ class InputValidator implements ValidatorInterface
      * @param array $messages optional pass response message for rule validation
      * @return self InputValidator instance 
     */
-    public function addRule(string $field, string $rules, array $messages = []): self{
+    public function addRule(string $field, string $rules, array $messages = []): self
+    {
         $this->validationRules[$field] = $rules;
         if(!empty($message)){
             $this->errorMessages[$field] = $messages;
@@ -327,7 +332,8 @@ class InputValidator implements ValidatorInterface
      * @param array $messages messages to set
      * @return self InputValidator instance 
     */
-    public function setMessages(array $messages): self{
+    public function setMessages(array $messages): self
+    {
         $this->errorMessages = $messages;
         return $this;
     }
@@ -338,7 +344,8 @@ class InputValidator implements ValidatorInterface
      * @param array $messages messages to set
      * @return self InputValidator instance 
     */
-    public function addMessage(string $field, array $messages): self{
+    public function addMessage(string $field, array $messages): self
+    {
         $this->errorMessages[$field] = $messages;
         return $this;
     }

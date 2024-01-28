@@ -7,31 +7,53 @@
  * @copyright (c) Nanoblock Technology Ltd
  * @license See LICENSE file
  */
-namespace Luminova\Database;
+namespace Luminova\Database\Drivers;
 use \stdClass;
 
-interface DatabaseInterface  {
+interface DriversInterface  
+{
+    /**
+     * Get driver name
+     * 
+     * @return string Database driver name
+    */
+    public function getDriver(): string;
+
     /**
      * Sets the debug mode.
      *
      * @param bool $debug The debug mode.
      * @return self The current class instance.
-     */
+    */
     public function setDebug(bool $debug): self;
 
     /**
      * Returns the error information for the last statement execution.
      *
      * @return string The error information array.
-     */
+    */
     public function error(): string;
+
+    /**
+     * Returns the error information.
+     *
+     * @return array The error information.
+     */
+    public function errors(): array;
 
     /**
      * Dumps the debug information for the last statement execution.
      *
      * @return string|null The debug information or null if debug mode is off.
      */
-    public function dumpDebug(): mixed ;
+    public function dumpDebug(): mixed;
+
+    /**
+     * Returns the error information for the last statement execution.
+     *
+     * @return array $info The error information array.
+    */
+    public function info(): array;
 
     /**
      * Prepares a statement for execution.
@@ -113,6 +135,7 @@ interface DatabaseInterface  {
     /**
      * Executes the prepared statement.
      * @param array $values execute statement with values
+     * 
      * @throws DatabaseException 
      * @return void
     */
@@ -147,11 +170,27 @@ interface DatabaseInterface  {
     public function getInt(): int;
 
     /**
+     * Fetches all rows as an array or stdClass object.
+     *
+     * @param string $type The type of result to fetch ('object' or 'array').
+     * 
+     * @return array|stdClass The result containing the rows.
+    */
+    public function getResult(string $type = 'object'): array|stdClass;
+
+    /**
      * Fetches all rows as a stdClass object.
      *
      * @return stdClass The stdClass object containing the result rows.
      */
-    public function getAllObject(): stdClass;
+    public function getObject(): stdClass;
+
+    /**
+     * Fetches all rows as a array.
+     *
+     * @return array The array containing the result rows.
+    */
+    public function getArray(): array;
 
     /**
      * Returns the ID of the last inserted row or sequence value.
@@ -162,11 +201,15 @@ interface DatabaseInterface  {
 
     /**
      * Frees up the statement cursor and sets the statement object to null.
+     * 
+     * @return void
      */
     public function free(): void;
 
      /**
      * Frees up the statement cursor and close database connection
+     * 
+     * @return void
      */
     public function close(): void;
 }

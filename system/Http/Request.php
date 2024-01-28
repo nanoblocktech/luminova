@@ -90,28 +90,53 @@ class Request
     
     /**
      * @var array $body Http request body
-     */
+    */
     private array $body;
 
+    /**
+     * @var array $methods Http request methods
+    */
+    private array $methods = [
+        'GET', 'POST', 'PUT',
+        'DELETE', 'OPTIONS', 'PATCH',
+        'HEAD', 'CONNECT', 'TRACE',
+        'PROPFIND', 'MKCOL', 'COPY', 'MOVE', 'LOCK', 'UNLOCK'
+    ];
 
+    /**
+     * Initializes
+    */
     public function __construct()
     {
+
         $this->get = $_GET;
         $this->post = $_POST;
-        $this->put = $this->parseRequestBody('PUT');
-        $this->delete = $this->parseRequestBody('DELETE');
-        $this->options = $this->parseRequestBody('OPTIONS');
-        $this->patch = $this->parseRequestBody('PATCH');
-        $this->head = $this->parseRequestBody('HEAD');
-        $this->connect = $this->parseRequestBody('CONNECT');
-        $this->trace = $this->parseRequestBody('TRACE');
-        $this->propfind = $this->parseRequestBody('PROPFIND');
-        $this->mkcol = $this->parseRequestBody('MKCOL');
-        $this->copy = $this->parseRequestBody('COPY');
-        $this->move = $this->parseRequestBody('MOVE');
-        $this->lock = $this->parseRequestBody('LOCK');
-        $this->unlock = $this->parseRequestBody('UNLOCK');
+        
+        foreach ($this->methods as $method) {
+            if( $method !== 'POST' && $method !== 'GET'){
+                $property = strtolower($method);
+                $this->{$property} = $this->parseRequestBody($method);
+            }
+        }
+        
         $this->body = $this->parseRequestBody();
+    }
+
+    /**
+     * Get a value from the Specified request method.
+     *
+     * @param string $method
+     * @param string $key
+     * @param mixed $default
+     * 
+     * @return mixed
+     */
+    public function find(string $method, string $key, mixed $default = null): mixed
+    {
+        $property = strtolower($method);
+        $value = isset($this->methods[$method]) ? $this->{$property}[$key] : $default;
+
+        return $value ?? $default;
     }
 
     /**

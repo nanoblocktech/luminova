@@ -29,10 +29,10 @@ class Bootstrap {
     public const CLI = 'cli';
 
      /** 
-     * Default CLI controller type
-     * @var string CLI
+     * Default CONSOLE controller type
+     * @var string CONSOLE
     */
-    public const ADMIN = 'console';
+    public const CONSOLE = 'console';
 
     /**
      * @var string $type

@@ -176,14 +176,40 @@ class Configuration {
         return (self::getEnvironment() == "production");
     }
 
-    /**
+   /**
      * Check if the application is running locally.
      *
      * @return bool
      */
     public static function isLocal(): bool
     {
-        return ($_SERVER['SERVER_NAME'] === "localhost");
+        $isCliServer = isset($_SERVER['LOCAL_SERVER_INSTANCE']);
+        $host = $_SERVER['SERVER_NAME'] ?? '';
+        $isLocal = strpos($host, 'localhost') !== false || strpos($host, '127.0.0.1') !== false;
+
+        return $isCliServer || $isLocal;
+    }
+
+    /**
+     * Check if the application is running on local server.
+     *
+     * @return bool
+    */
+    public static function isLocalServer(): bool
+    {
+        return isset($_SERVER['LOCAL_SERVER_INSTANCE']);
+    }
+
+    /**
+     * Check if the application should use custom public as path 
+     * If the local server is not running and not on production server
+     * If the document root is not changed to "public", manually enable the app to use "public" as the default
+     *
+     * @return bool
+    */
+    public static function usePublic(): bool
+    {
+        return !self::isLocalServer() && !self::isProduction();
     }
 
     /**

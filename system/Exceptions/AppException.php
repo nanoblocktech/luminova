@@ -80,7 +80,7 @@ class AppException extends Exception
     public static function throwException(string $message, ?bool $production = null, int $code = 500): void
     {
         $throw = new self($message, $code);
-        $throw->handle($production === null ? Configuration::isProduction() :  $production);
+        $throw->handle();
     }
     
 }

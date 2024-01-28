@@ -16,13 +16,13 @@ use Luminova\Database\Drivers\PdoDriver;
 use Luminova\Config\Database;
 
  /**
-  * Class Conn
+  * Class Connection
   *
   * Manages database connections based on configuration.
   *
   * @package Luminova\Database
-  */
-class Conn
+*/
+class Connection
 {
     /** 
       * Database connection instance 
@@ -34,7 +34,7 @@ class Conn
     private static $instance = null;
  
      /**
-      * Conn constructor.
+      * Connection constructor.
       *
       * Initializes the database connection based on configuration.
       * @throws DatabaseException|InvalidException|InvalidObjectException If fails
@@ -46,7 +46,7 @@ class Conn
      }
  
      /**
-      * Get the singleton instance of Conn.
+      * Get the singleton instance of Connection.
       *
       * @return object Database connection instance.
       *  @throws DatabaseException|InvalidException|InvalidObjectException If fails
@@ -57,6 +57,7 @@ class Conn
         if (self::$instance === null) {
             self::$instance = new self();
         }
+        
         return self::$instance;
         // return self::$instance->db;
     }

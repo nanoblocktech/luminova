@@ -59,15 +59,28 @@ class Server extends BaseCommand
         $php  = escapeshellarg($options['php'] ?? PHP_BINARY);
         $host = $options['host'] ?? 'localhost';
         $port = (int) ($options['port'] ?? 8080) + $this->portOffset;
+         // Set the Front Controller path as Document Root.
+        $docRoot = escapeshellarg(PUBLIC_PATH);
 
         // Get the party started.
-        Terminal::write('Luminova development server started on http://' . $host . ':' . $port, 'green');
+        Terminal::writeln('=================================== PHP FRAMEWORK ======================================');
+        Terminal::writeln('
+        L       U     U   M       M   IIII   N     N   OOOO   V           V   AAAAA
+        L       U     U   MM     MM    II    NN    N  O    O   V         V   A     A
+        L       U     U   M M   M M    II    N N   N  O    O    V       V    A     A
+        L       U     U   M  M M  M    II    N  N  N  O    O     V     V     AAAAAAA
+        L       U     U   M   M   M    II    N   N N  O    O      V   V      A     A
+        L       U     U   M       M    II    N    NN  O    O       V V       A     A
+        LLLLLL   UUUUU    M       M   IIIII  N     N   OOOO         V        A     A
+        ');
+        Terminal::writeln('=================================== PHP FRAMEWORK ======================================');
         Terminal::newLine();
-        Terminal::write('Press Control-C to stop.');
+        Terminal::writeln('Starting PHP Luminova development server');
+        Terminal::writeln('Listening on http://' . $host . ':' . $port, 'green');
+        Terminal::writeln('Document root is ' . $docRoot, 'green');
+        Terminal::writeln('Press Ctrl-C to stop.');
         Terminal::newLine();
-
-        // Set the Front Controller path as Document Root.
-        $docRoot = escapeshellarg(PUBLIC_PATH);
+        
 
         // Mimic Apache's mod_rewrite functionality with user settings.
         $rewrite = escapeshellarg(__DIR__ . '/rewrite.php');

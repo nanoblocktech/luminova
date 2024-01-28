@@ -191,7 +191,7 @@ class Router {
      * @param callable|string $callback Callback function to execute
      * @param array $options Optional options
     */
-    public function beforeCommand(callable|string $pattern, callable|string $callback = null, array $options = []): void
+    public function authenticate(callable|string $pattern, callable|string $callback = null, array $options = []): void
     {
         if(is_callable($pattern)){
             $callback = $pattern;
@@ -656,6 +656,7 @@ class Router {
     private function execute(callable|string $callback, array $arguments = []): bool
     {
         $result = true;
+        //$arguments[] = $this;
         if(is_callable($callback)) {
             $result = call_user_func_array($callback, $arguments);
         } elseif (stripos($callback, '::') !== false) {

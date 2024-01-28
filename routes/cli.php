@@ -7,7 +7,7 @@
 /*
 * Register before middleware
 * A global middleware that run before and after each command is executed
-$router->beforeCommand(function(){
+$router->authenticate(function(){
     return Terminal::STATUS_OK;
 });
 */

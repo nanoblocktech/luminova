@@ -8,100 +8,103 @@
  * @license See LICENSE file
  */
 namespace Luminova\Database;
-use Luminova\Exceptions\DatabaseException;
+use Luminova\Database\Connection;
+use \Luminova\Exceptions\DatabaseException;
 use \Luminova\Cache\FileSystemCache;
 use \Luminova\Config\Configuration;
-use \Luminova\Database\QueryBuilder;
+use \Luminova\Database\Results\Statements;
+
 //use \Luminova\Arrays\ArrayCountable;
 
-class Query extends Conn {  
+class Query extends Connection {  
     /**
-    *Class instance
-    *@var object $instance 
+    * Class instance
+    * @var object $instance 
     */
     private static $instance = null;
 
     /**
-    *Table name to query
-    *@var string $databaseTable 
+    * Table name to query
+    * @var string $databaseTable 
     */
     private string $databaseTable = '';
 
     /**
-    *Table name to join query
-    *@var string $databaseJoinTable 
+    * Table name to join query
+    * @var string $databaseJoinTable 
     */
     private string $databaseJoinTable = '';
 
     /**
-    *Table join query type
-    *@var string $databaseJoinType 
+    * Table join query type
+    * @var string $databaseJoinType 
     */
     private string $databaseJoinType = '';
 
     /**
-    *Table join bind parameters
-    *@var array $databaseJoinSelectors 
+    * Table join bind parameters
+    * @var array $databaseJoinSelectors 
     */
     private array $databaseJoinSelectors = [];
 
     /**
-    *Table query order limit offset and count query 
-    *@var string $queryLimit 
+    * Table query order limit offset and count query 
+    * @var string $queryLimit 
     */
     private string $queryLimit = '';
 
     /**
-    *Table query order rows 
-    *@var string $queryOrder 
+    * Table query order rows 
+    * @var string $queryOrder 
     */
     private string $queryOrder = '';
 
     /**
-    *Table query group column by
-    *@var string $queryGroup 
+    * Table query group column by
+    * @var string $queryGroup 
     */
     private string $queryGroup = '';
 
     /**
-    *Table query where column
-    *@var string $queryWhere 
+    * Table query where column
+    * @var string $queryWhere 
     */
     private string $queryWhere = '';
 
     /**
     * Table query where column value
-    *@var string $queryWhereValue 
+    * @var string $queryWhereValue 
     */
     private string $queryWhereValue = '';
 
     /**
-    *Table query and query column
-    *@var array $queryWhereConditions 
+    * Table query and query column
+    * @var array $queryWhereConditions 
     */
     private array $queryWhereConditions = [];
 
     /**
-    *Table query update set values
-    *@var array $querySetValues 
+    * able query update set values
+    * @var array $querySetValues 
     */
     private array $querySetValues = [];
 
     /**
-    *Cache flag u
-    *@var string $hasCache 
+    * Has Cache flag
+    * @var bool $hasCache 
     */
-    private string $hasCache = "NO_CACHE";
+    private bool $hasCache = false;
+
 
     /**
-    *Cache class instance
-    *@var FileSystemCache $cache 
+    * Cache class instance
+    * @var FileSystemCache $cache 
     */
-    private $cache = null;
+    private ?FileSystemCache $cache = null;
 
     /**
-    *Cache key
-    *@var string $cacheKey 
+    * Cache key
+    * @var string $cacheKey 
     */
     private string $cacheKey = "default";
 
@@ -165,7 +168,7 @@ class Query extends Conn {
         Class cloning
     */
     private function __clone() {
-        $this->resetDefaults();
+        $this->reset();
     }
     
     /*
@@ -197,7 +200,7 @@ class Query extends Conn {
 
     /**
     * Class Singleton
-    * @return Query object $instance
+    * @return self object $instance
     */
     public static function getInstance(): self 
     {
@@ -213,7 +216,7 @@ class Query extends Conn {
      * @param string $table The table name
      * @param string $as table alias
      * 
-     * @return Query $this Class instance.
+     * @return self $this Class instance.
      */
     public function table(string $table, string $as = ''): self
     {
@@ -230,9 +233,9 @@ class Query extends Conn {
      * @param string $type The join type
      * @param string $as join table alias
      * 
-     * @return Query $this Class instance.
+     * @return self $this Class instance.
      */
-    public function join(string $table, string $type = "INNER", string $as = ''): Query
+    public function join(string $table, string $type = "INNER", string $as = ''): self
     {
         $this->databaseJoinType = $type;
         $this->databaseJoinTable = $table;
@@ -247,9 +250,9 @@ class Query extends Conn {
      * 
      * @param array $selectors Join selectors ['key = table_key', 'u.key = u2.key']
      * 
-     * @return Query $this Class instance.
+     * @return self $this Class instance.
      */
-    public function on(array $selectors): Query
+    public function on(array $selectors): self
     {
         $this->databaseJoinSelectors = $selectors;
         return $this;
@@ -261,9 +264,9 @@ class Query extends Conn {
      * @param string $table The table name
      * @param string $as join table alias
      * 
-     * @return Query $this Class instance.
+     * @return self $this Class instance.
      */
-    public function innerJoin(string $table, string $as = ''): Query
+    public function innerJoin(string $table, string $as = ''): self
     {
         $this->join($table, "INNER", $as);
         return $this;
@@ -276,9 +279,9 @@ class Query extends Conn {
      * @param string $table The table name
      * @param string $as join table alias
      * 
-     * @return Query $this Class instance.
+     * @return self $this Class instance.
      */
-    public function leftJoin(string $table, string $as = ''): Query
+    public function leftJoin(string $table, string $as = ''): self
     {
         $this->join($table, "LEFT", $as);
         return $this;
@@ -286,22 +289,27 @@ class Query extends Conn {
 
     /**
      * Set query limit
+     * 
+     * @param int $limit limit threshold 
      * @param int $offset start offset query limit
-     * @param int $count limit threshold
-     * @return Query class instance.
+     * 
+     * @return self class instance.
      */
-    public function limit(int $offset = 0, int $count = 50): Query
+    public function limit(int $limit = 0, int $offset = 0): self
     {
-        $this->queryLimit = " LIMIT {$offset},{$count}";
+        if($limit > 0){
+            $this->queryLimit = " LIMIT {$offset},{$limit}";
+        }
         return $this;
     }
 
     /**
      * Set query order
      * @param string $order uid ASC, name DESC
-     * @return Query class instance.
+     * 
+     * @return self class instance.
      */
-    public function order(string $order): Query 
+    public function order(string $order): self 
     {
         $this->queryOrder = " ORDER BY {$order}";
         return $this;
@@ -309,10 +317,12 @@ class Query extends Conn {
 
     /**
      * Set query grouping
+     * 
      * @param string $group group by column name
-     * @return Query class instance.
+     * 
+     * @return self class instance.
      */
-    public function group(string $group): Query 
+    public function group(string $group): self 
     {
         $this->queryGroup = " GROUP BY {$group}";
         return $this;
@@ -320,11 +330,13 @@ class Query extends Conn {
 
     /**
      * Set query where
+     * 
      * @param string $column column name
      * @param mixed $key column key value
-     * @return Query class instance.
+     * 
+     * @return self class instance.
      */
-    public function where(string $column, mixed $key): Query
+    public function where(string $column, mixed $key): self
     {
         $this->queryWhereValue = $key;
         $this->queryWhere = " WHERE {$column} = :where_column";
@@ -347,9 +359,10 @@ class Query extends Conn {
      * Set update columns and values
      * @param string $column column name
      * @param string|int $key column key value
-     * @return Query class instance.
+     * 
+     * @return self class instance.
      */
-    public function set(string $column, mixed $value): Query
+    public function set(string $column, mixed $value): self
     {
         $this->querySetValues[] = [ "column" => $column, "value" => $value];
         return $this;
@@ -359,9 +372,10 @@ class Query extends Conn {
      * Set query where or | and or
      * @param string $column column name
      * @param mixed $key column key value
-     * @return Query class instance.
+     * 
+     * @return self class instance.
      */
-    public function or(string $column, mixed $key): Query
+    public function or(string $column, mixed $key): self
     {
         $this->queryWhereConditions[] = ["type" => "OR", "column" => $column, "key" => $key];
         return $this;
@@ -373,9 +387,10 @@ class Query extends Conn {
      * @param mixed $key column key value
      * @param string $columnOr column name
      * @param mixed $keyOr column key value
-     * @return Query class instance.
+     * 
+     * @return self class instance.
      */
-    public function andOr(string $column, mixed $key, string $columnOr, mixed $keyOr): Query
+    public function andOr(string $column, mixed $key, string $columnOr, mixed $keyOr): self
     {
         $this->queryWhereConditions[] = [
             "type" => "AND_OR", 
@@ -392,10 +407,12 @@ class Query extends Conn {
      *
      * @param mixed $input The object to convert to an array.
      * @return mixed The resulting array representation of the object.
+     * 
      * @return array Finalized array representation of the object
      */
 
-    public function toArray(mixed $input = null): array {
+    public function toArray(mixed $input = null): array 
+    {
         if ($input === null) {
             return [];
         }
@@ -420,9 +437,10 @@ class Query extends Conn {
      * Set query where IN () expression
      * @param string $column column name
      * @param array $list of values
-     * @return Query class instance.
+     * 
+     * @return self class instance.
      */
-    public function in(string $column, array $list): Query
+    public function in(string $column, array $list): self
     {
         if (!empty($list)) {
             $values = implode(', ', array_map(function($item) {
@@ -444,9 +462,10 @@ class Query extends Conn {
      * @param string $search search value
      * @param array $list of values
      * @param string $method allow specifying the method for matching (e.g., > or =)
-     * @return Query class instance.
+     * 
+     * @return self class instance.
      */
-    public function inset(string $search, array $list, string $method = '='): Query
+    public function inset(string $search, array $list, string $method = '='): self
     {
         $values = implode(',', $list);
         $this->queryWhereConditions[] = [
@@ -470,28 +489,28 @@ class Query extends Conn {
      * Cache the query result using a specified storage.
      *
      * @param string $key The storage cache key
-     * @param string $filename Private storage filename hash name (optional): but is recommended to void storing large data in one file.
+     * @param string $storage Private storage name hash name (optional): but is recommended to void storing large data in one file.
      * @param int $expiry The cache expiry time in seconds (default: 7 days).
      * 
-     * @return Query $this class instance.
+     * @return self $this class instance.
      */
-    public function cache(string $key, string $filename = null, int $expiry = 7 * 24 * 60 * 60): self
+    public function cache(string $key, string $storage = null, int $expiry = 7 * 24 * 60 * 60): self
     {
-        $filename = $filename === null ? 'database_' . $this->databaseTable : $filename;
+        $storage = $storage === null ? 'database_' . $this->databaseTable ?? 'capture' : $storage;
         $this->cache = FileSystemCache::getInstance();
         $this->cache->setEnableCache(true);
         $this->cache->setExpire($expiry);
-        $this->cache->setFilename($filename);
+        $this->cache->setFilename($storage);
         $this->cache->setCacheLocation(self::getFilepath());
         $this->cache->create();
         $this->cacheKey = md5($key);
 
         // Check if the cache exists and handle expiration
         if ($this->cache->hasCached($this->cacheKey)) {
-            $this->hasCache = "HAS_CACHE";
+            $this->hasCache = true;
             if ($this->cache->hasExpired($this->cacheKey)) {
                 $this->cache->remove($this->cacheKey);
-                $this->hasCache = "NO_CACHE";
+                $this->hasCache = false;
             }
         }
 
@@ -502,6 +521,7 @@ class Query extends Conn {
      * Insert into table
      * @param array $values array of values to insert into table
      * @param bool $bind Use bind values and prepare statement instead of query
+     * 
      * @return int returns affected row counts.
      */
     public function insert(array $values, bool $bind = true): int 
@@ -529,14 +549,15 @@ class Query extends Conn {
     /**
      * Select from table,
      * @param array $rows select columns
+     * 
      * @return object|null|array returns selected rows.
      */
     public function select(array $columns = ["*"]): mixed 
     {
-        if($this->cache !== null && $this->hasCache == "HAS_CACHE"){
+        if($this->cache !== null && $this->hasCache){
             $response = $this->cache->retrieveCache($this->cacheKey);
             $this->cacheKey = '';
-            $this->resetDefaults();
+            $this->reset();
             return $response;
         }
 
@@ -608,7 +629,7 @@ class Query extends Conn {
             $this->db->query($selectQuery);
         }
         $return = $this->db->getAll();
-        $this->resetDefaults();
+        $this->reset();
         return $return;
     }
 
@@ -616,7 +637,7 @@ class Query extends Conn {
      * Bind placeholder values to builder
      * 
      * @param array $values
-     * 
+     * @deprecated Don't use this method anymore use execute instead
      * @return self
     */
     public function binds(array $values): self 
@@ -626,53 +647,36 @@ class Query extends Conn {
     }
 
     /**
-     * Select on record from table,
+     * Select on record from table using cache
      * 
-     * @param string $buildQuery database query string
-     * @param string|bool $result query return type or false to return QueryBuilder instance 
+     * @param string $query database query string
      * 
-     * @return mixed|null returns selected row.
+     * @return self $this 
+     * @throws DatabaseException when query is empty
      */
-    public function builder(string $buildQuery, string|bool $result = 'all'): mixed 
+    public function query(string $query): self 
     {
-        if (empty($buildQuery)) {
+        if (empty($query)) {
             throw new DatabaseException("Builder operation without a query condition is not allowed.");
         }
 
-        if($this->cache !== null && $this->hasCache == "HAS_CACHE"){
-            $response = $this->cache->retrieveCache($this->cacheKey);
-            $this->cacheKey = '';
-            $this->resetDefaults();
-            return $response;
-        }
+        $this->buildQuery = $query;
 
-        try {
-    
-            if($this->cache === null || $result === false){
-                return $this->returnBuilder($buildQuery, $result);
-            }
-
-            return $this->cache->onExpired($this->cacheKey, function() use($buildQuery, $result) {
-                return $this->returnBuilder($buildQuery, $result);
-            });
-        } catch (DatabaseException $e) {
-            $e->handle();
-        }
-
-        return false;
+        return $this;
     }
 
     /**
      * Bind placeholder values to builder
      * 
-     * @param string $query
+     * @param string $query SQL query string
      * 
+     * @deprecated Don't use this method anymore use query instead
      * @return self
+     * @throws DatabaseException when query is empty
     */
-    public function query(string $query): self 
+    public function builder(string $query): self 
     {
-        $this->buildQuery = $query;
-        return $this;
+        return $this->query($query);
     }
 
     /**
@@ -680,23 +684,42 @@ class Query extends Conn {
      * Execute does not support cache method
      * 
      * @param array $binds binds placeholder to query
+     * @param string $type [all, one, object, total, lastId, count or stmt]  or 'stmt' to return Statements
      * 
-     * @return QueryBuilder QueryBuilder
-     * @throws DatabaseException
+     * @return Statements|object|array|int|null Statements or null when failed
+     * @throws DatabaseException 
     */
-    public function execute(?array $binds = null): QueryBuilder 
+    public function execute(?array $binds = null, string $type = 'all'): mixed 
     {
+
+        if($type !== 'stmt' && $this->cache !== null && $this->hasCache){
+            $response = $this->cache->retrieveCache($this->cacheKey);
+            $this->cacheKey = '';
+            $this->reset();
+
+            return $response;
+        }
+
         if($this->buildQuery === ''){
-            throw new DatabaseException("Execute operation without a query condition is not allowed.");
+            throw new DatabaseException("Execute operation without a query condition is not allowed. call query() before execute()");
         }
 
-        if($binds === null || $binds === []){
-            $this->bindValues = [];
-        }else{
-            $this->bindValues = $binds;
+        $this->bindValues = ($binds === null || $binds === []) ? [] : $binds;
+
+        try {
+    
+            if($type === 'stmt' || $this->cache === null){
+                return $this->returnQuery($this->buildQuery, $type);
+            }
+
+            return $this->cache->onExpired($this->cacheKey, function() use($type) {
+                return $this->returnQuery($this->buildQuery, $type);
+            });
+        } catch (DatabaseException $e) {
+            $e->handle();
         }
 
-        return $this->returnBuilder($this->buildQuery, false);
+        return null;
     }
 
 
@@ -704,12 +727,12 @@ class Query extends Conn {
      * Return custom builder result from table
      * 
      * @param string $buildQuery query
-     * @param string $result return result type
+     * @param string $result return result type 
      * 
-     * @return mixed|QueryBuilder false to return QueryBuilder
+     * @return mixed|Statements false to return Statements
      * @throws DatabaseException
     */
-    private function returnBuilder(string $buildQuery, string|bool $result): mixed 
+    private function returnQuery(string $buildQuery, string $result): mixed 
     {
         if($this->bindValues === []){
             $this->db->query($buildQuery);
@@ -723,26 +746,30 @@ class Query extends Conn {
             }
             $this->db->execute();
         }
-        if($result === false){
+        if($result === 'stmt'){
             $clone = clone $this->db;
-            $response = new QueryBuilder($clone);
+            $response = new Statements($clone);
         }else{
             $response = match ($result) {
                 'all' => $this->db->getAll(),
                 'one' => $this->db->getOne(),
                 'total' => $this->db->getInt(),
-                'object' => $this->db->getAllObject(),
+                'object' => $this->db->getObject(),
+                'array' => $this->db->getArray(),
                 'lastId' => $this->db->getLastInsertId(),
                 default => $this->db->rowCount(),
             };
         }
-        $this->resetDefaults();
+
+        $this->reset();
+
         return $response;
     }
 
     /**
      * Select on record from table,
      * @param array $rows select columns
+     * 
      * @return object|null returns selected row.
      */
     public function find(array $columns = ["*"]): mixed 
@@ -751,10 +778,10 @@ class Query extends Conn {
             throw new DatabaseException("Find operation without a WHERE condition is not allowed.");
         }
 
-        if($this->cache !== null && $this->hasCache == "HAS_CACHE"){
+        if($this->cache !== null && $this->hasCache){
             $response = $this->cache->retrieveCache($this->cacheKey);
             $this->cacheKey = '';
-            $this->resetDefaults();
+            $this->reset();
             return $response;
         }
 
@@ -815,7 +842,7 @@ class Query extends Conn {
         }
         $this->db->execute();
         $return = $this->db->getOne();
-        $this->resetDefaults();
+        $this->reset();
         return $return;
     }
 
@@ -823,14 +850,15 @@ class Query extends Conn {
     /**
      * Select on record from table,
      * @param array $rows select columns
+     * 
      * @return int returns selected row.
     */
     public function total(string $column = "*"): int 
     {
-        if($this->cache !== null && $this->hasCache == "HAS_CACHE"){
+        if($this->cache !== null && $this->hasCache){
             $response = $this->cache->retrieveCache($this->cacheKey);
             $this->cacheKey = '';
-            $this->resetDefaults();
+            $this->reset();
             return $response??0;
         }
            
@@ -859,6 +887,7 @@ class Query extends Conn {
         } catch (DatabaseException $e) {
             $e->handle();
         }
+        
         return 0;
     }
 
@@ -891,7 +920,7 @@ class Query extends Conn {
             $this->db->execute();
         }
         $total = $this->db->getInt();
-        $this->resetDefaults();
+        $this->reset();
         return $total;
     }
 
@@ -941,7 +970,7 @@ class Query extends Conn {
                 
                 $this->db->execute();
                 $return = $this->db->rowCount();
-                $this->resetDefaults();
+                $this->reset();
                 return $return;
             } catch (DatabaseException $e) {
                 $e->handle();
@@ -953,9 +982,9 @@ class Query extends Conn {
     /**
      * Delete from table
      * @param int $limit row limit
+     * 
      * @return int returns affected row counts.
      */
-
     public function delete(int $limit = 0): int
     {
          if ($this->queryWhere === '') {
@@ -984,13 +1013,23 @@ class Query extends Conn {
                 }
                 $this->db->execute();
                 $rowCount = $this->db->rowCount();
-                $this->resetDefaults();
+                $this->reset();
                 return $rowCount;
             } catch (DatabaseException $e) {
                 $e->handle();
             }
         }
         return 0;
+    }
+
+    /**
+     * Get errors 
+     * 
+     * @return array 
+    */
+    public function errors(): array 
+    {
+        return $this->db->errors();
     }
 
     /**
@@ -1034,7 +1073,8 @@ class Query extends Conn {
      * @return bool returns true if completed
     */
 
-    public function truncate(bool $transaction = true): bool {
+    public function truncate(bool $transaction = true): bool 
+    {
         try {
             if ($transaction) {
                 $this->db->beginTransaction();
@@ -1066,10 +1106,11 @@ class Query extends Conn {
     {
         try {
             $return = $this->db->exec("DROP TABLE IF EXISTS {$this->databaseTable}");
-            $this->resetDefaults();
+            $this->reset();
+
             return $return;
         } catch (DatabaseException $e) {
-            $e->handle(Configuration::isProduction());
+            $e->handle();
         }
         return 0;
     }
@@ -1077,16 +1118,18 @@ class Query extends Conn {
     /**
      * Create a new table if it doesn't exist
      * @param array $columns table columns and options
+     * 
      * @return int returns affected row counts.
      */
     public function createTable(array $columns): int 
     {
         try {
             $return = $this->db->exec("CREATE TABLE IF NOT EXISTS {$this->databaseTable} ($columns)");
-            $this->resetDefaults();
+            $this->reset();
+
             return $return;
         } catch (DatabaseException $e) {
-            $e->handle(Configuration::isProduction());
+            $e->handle();
         }
         return 0;
     }
@@ -1112,9 +1155,11 @@ class Query extends Conn {
 
     /**
      * Get table column instance 
+     * 
      * @return Columns column class instance
      */
-    public function withColumns() : Columns{
+    public function withColumns() : Columns
+    {
         return new Columns($this->databaseTable);
     }
 
@@ -1141,7 +1186,7 @@ class Query extends Conn {
 
         $this->db->query($insertQuery);
         $return = $this->db->rowCount();
-        $this->resetDefaults();
+        $this->reset();
         return $return;
     }
 
@@ -1153,7 +1198,6 @@ class Query extends Conn {
      */
     private function executeInsertPrepared(array $columns, array $values): int 
     {
-  
         $placeholders = implode(', ', array_map(function ($col) {
             return ":$col";
         }, $columns));
@@ -1170,7 +1214,7 @@ class Query extends Conn {
             $this->db->execute();
         }
         $return = $this->db->rowCount();
-        $this->resetDefaults();
+        $this->reset();
         return $return;
     } 
 
@@ -1185,6 +1229,7 @@ class Query extends Conn {
     {
         $dotPosition = strpos($input, '.');
         $placeholder = ($dotPosition !== false) ? substr($input, $dotPosition + 1) : $input;
+
         return ":$placeholder";
     }
     
@@ -1245,9 +1290,13 @@ class Query extends Conn {
 
     /**
      * Throw an exception 
+     * 
      * @param string $message
+     * 
+     * @throws DatabaseException
      */
-    private static function error(string $message) {
+    private static function error(string $message): void
+    {
         DatabaseException::throwException($message);
     }
 
@@ -1273,14 +1322,14 @@ class Query extends Conn {
         }
 
         return false;
-        //return count($array) > 0 && isset($array[0]) && is_array($array[0]) && array_values($array) !== $array;
     }
     
     /**
-     * Reset query conditions
+     * Reset query conditions and Free database resources
+     * 
      * @return void 
     */
-    private function resetDefaults(): void 
+    public function reset(): void 
     {
         $this->databaseTable = ''; 
         $this->jointTableAlias = '';
@@ -1295,10 +1344,32 @@ class Query extends Conn {
         $this->queryWhereValue = '';
         $this->queryWhereConditions = [];
         $this->querySetValues = [];
-        $this->hasCache = 'NO_CACHE';
+        $this->hasCache = false;
         $this->cache = null;
         $this->bindValues = [];
         $this->buildQuery = '';
+        if($this->db->getDriver() === 'pdo'){
+            $this->db->free();
+        }
+    }
+
+    /**
+     * Free database resources
+     * 
+     * @return void 
+    */
+    public function free(): void 
+    {
         $this->db->free();
+    }
+
+    /**
+     * Close database connection
+     * 
+     * @return void 
+    */
+    public function close(): void 
+    {
+        $this->db->close();
     }
 }

@@ -694,8 +694,6 @@ trait Template {
             exit(0);
         } catch (AppException $e) {
             $this->handleException($e, $options);
-        } catch (Exception $e) {
-            $this->handleException($e, $options);
         }
     }
 
