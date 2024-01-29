@@ -7,7 +7,7 @@
  * @copyright (c) Nanoblock Technology Ltd
  * @license See LICENSE file
 */
-namespace Luminova\Command;
+namespace Luminova\Command\Novakit;
 
 use Luminova\Command\Terminal;
 use Luminova\Base\BaseCommand;
@@ -27,7 +27,7 @@ class Server extends BaseCommand
     /**
      * @var string $group command group
     */
-    protected string $group = 'Luminova';
+    protected string $group = 'Server';
 
     /**
      * @var string $name command name
@@ -45,7 +45,6 @@ class Server extends BaseCommand
         '--port' => 'The HTTP Host Port [default: "8080"]',
     ];
 
-    //php novakit server --host localhost --port 3030
 
     /**
      * @param array $options terminal options

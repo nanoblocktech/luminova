@@ -453,6 +453,7 @@ class Router {
     private function runAsCli(): bool
     {
         $result = true;
+
         if (isset($this->cliMiddlewareRoutes[$this->requestedMethod])) {
             $result = $this->handleCommand($this->cliMiddlewareRoutes[$this->requestedMethod]);
         }
@@ -591,16 +592,18 @@ class Router {
     private function handleCommand(array $routes): bool
     {
         $error = false;
+      
+        $commands = Terminal::parseCommands($_SERVER['argv'] ?? []);
         foreach ($routes as $route) {
             if ($route['controller']) {
-                $queries = Terminal::getQueries();
+                $queries = Terminal::getRequestCommands();
                 $controllerView = trim($queries['view'], '/');
                 $is_match = $this->patternMatches($route['pattern'], $queries['view'], $matches);
                 if ($is_match || $controllerView === $route['pattern']) {
                     if ($is_match) {
                         $parameter = self::processFindMatches($matches);
                     } else {
-                        $parameter = [Terminal::parseCommandLine($_SERVER['argv'] ?? [])];
+                        $parameter = [$commands];
                     }
     
                     $error = $this->execute($route['callback'], $parameter);
@@ -609,15 +612,15 @@ class Router {
                     }
                 }
             } elseif ($this->commandName === $route['pattern'] || $route['middleware']) {
-                $parameter = [Terminal::parseCommandLine($_SERVER['argv'] ?? [])];
+                $parameter = [$commands];
                 $error = $this->execute($route['callback'], $parameter);
 
                 if (!$route['middleware'] || (!$error && $route['middleware'])) {
                     break;
                 }
             }else {
-                $parameter = Terminal::parseCommandLine($_SERVER['argv'] ?? []);
-                if(Terminal::systemHasCommand($this->commandName, $parameter)){
+               
+                if(Terminal::systemHasCommand($this->commandName, $commands)){
                    $error = true;
                    break;
                 }
@@ -678,36 +681,43 @@ class Router {
      * @throws ErrorException if method is not callable or doesn't exist
     */
 
-    private function reflectionClassLoader(string $controller, string $method, array $arguments = []): bool {
+    private function reflectionClassLoader(string $controller, string $method, array $arguments = []): bool 
+    {
         $namespaces = $this->getNamespaces(); 
         $throw = true;
-    
+        $isCommand = isset($arguments[0]['command']) && Terminal::isCommandLine();
+        $method = ($isCommand ? 'run' : $method); // Only call run method for CLI
+
         foreach ($namespaces as $namespace) {
             $className = $namespace . '\\' . $controller;
 
             try {
-                $class = new ReflectionClass($className);
+                $checkClass = new ReflectionClass($className);
               
-                if (!$class->isInstantiable() || 
-                    !($class->isSubclassOf(BaseCommand::class) || 
-                        $class->isSubclassOf(BaseController::class) ||
-                        $class->isSubclassOf(BaseApplication::class))) {
+                if (!$checkClass->isInstantiable() || 
+                    !($checkClass->isSubclassOf(BaseCommand::class) || 
+                        $checkClass->isSubclassOf(BaseController::class) ||
+                        $checkClass->isSubclassOf(BaseApplication::class))) {
                     continue;
                 }
-       
-                $classMethod = new ReflectionMethod($className, $method);
-                if ($classMethod->isPublic() && (!$classMethod->isAbstract())) {
-                    $class = null;
-                    if (!$classMethod->isStatic()) {
-                        $class = new $className();
+                
+                $checkMethod = new ReflectionMethod($className, $method);
+                if ($checkMethod->isPublic() && !$checkMethod->isAbstract()) {
+                    if($checkMethod->isStatic()) {
+                        ErrorException::throwException("Static method is not allowed in controller, please make '$method' none static.");
+                        return false;
                     }
-    
-                    if(isset($arguments[0]['command']) && Terminal::isCommandLine() && $class !== null) {
-                        [$throw, $result] = $this->invokeCommandArgs($arguments, $className, $classMethod);
+
+                    $newClass = new $className();
+
+                    if($isCommand && $newClass !== null) {
+                        [$throw, $result] = $this->invokeCommandArgs($newClass, $arguments, $className, $checkMethod);
                     }else{
-                        $result = $classMethod->invokeArgs($class, $arguments);
+                        $result = $checkMethod->invokeArgs($newClass, $arguments);
                     }
-                    unset($class);
+                    
+                    unset($newClass);
+                    
                     return self::getStatus($result);
                 }
             } catch (ReflectionException $e) {
@@ -726,47 +736,48 @@ class Router {
     /**
      * Invoke class using reflection method
      *
+     * @param object $newClass Class instance
      * @param array $arguments Pass arguments to reflection method
      * @param string $className Invoking class name
      * @param ReflectionMethod $method Controller class method
      *
      * @return array<bool, bool> 
     */
-    private function invokeCommandArgs(array $arguments, string $className, ReflectionMethod $method): array
+    private function invokeCommandArgs(object $newClass, array $arguments, string $className, ReflectionMethod $method): array
     {
         $result = false;
         $throw = true;
-        if (!$method->isStatic()) {
-            $class = new $className();
-            if (method_exists($class, 'parseCommands')) {
-                $commands = $arguments[0]??[];
-                $commandId = '_about_';
-                if(isset($class->group)) {
-                    $commandId .= $class->name;
-                    $commands[$commandId] = [
-                        'class' => $className, 
-                        'group' => $class->group,
-                        'name' => $class->name,
-                        'options' => $class->options,
-                        'usages' => $class->usages,
-                        'description' => $class->description
-                    ];
-                }
-                
-                $code = $class->parseCommands($commands);
-                if($code === 0) {
-                    if (array_key_exists('help', $commands['options'])) {
-                        $result = true;
-                        Terminal::printHelp($commands[$commandId]);
-                    }else{
-                        $result = $method->invokeArgs($class, $arguments);
-                    }
-                } elseif($code === 1) {
-                    $throw = false;
-                }
+
+        if (method_exists($newClass, 'registerCommands')) {
+            $commands = $arguments[0]??[];
+            $commandId = '_about_';
+            if(isset($newClass->group)) {
+                $commandId .= $newClass->name;
+                $commands[$commandId] = [
+                    'class' => $className, 
+                    'group' => $newClass->group,
+                    'name' => $newClass->name,
+                    'options' => $newClass->options,
+                    'usages' => $newClass->usages,
+                    'description' => $newClass->description
+                ];
             }
-            unset($class);
+           
+            $code = $newClass->registerCommands($commands);
+            if($code === 0) {
+                if (array_key_exists('help', $commands['options'])) {
+                    $result = true;
+                    Terminal::printHelp($commands[$commandId]);
+                }else{
+                    $result = $method->invokeArgs($newClass, $arguments);
+                }
+            } elseif($code === 1) {
+                $throw = false;
+            }
         }
+
+        unset($newClass);
+        
         return [$throw, $result];
     }
 
@@ -781,9 +792,10 @@ class Router {
     */
     private static function getStatus(mixed $result = null): bool
     {
-        if ($result === false || (is_int($result) && $result == 1)) {
+        if ($result === false || (is_int($result) && (int) $result === 1)) {
             return false;
         }
+
         return true;
     }
   

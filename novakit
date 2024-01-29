@@ -33,7 +33,7 @@ if (!defined('ENVIRONMENT')) {
 }
 
 // Show header information by default or if `--no-header` is passed suppress header.
-if (($noHeader = array_search('--no-header', $_SERVER['argv'], true) !== false)) {
+if (($noHeader = array_search('--no-header', $_SERVER['argv'], true)) !== false) {
     unset($_SERVER['argv'][$noHeader]);
     $noHeader = true;
 }
@@ -42,6 +42,5 @@ if (($noHeader = array_search('--no-header', $_SERVER['argv'], true) !== false))
 // Initialize Terminal CLI
 $console = new  Luminova\Command\Console($noHeader);
 
-
 // Run our console instance
-$console->run($console::getTerminal());
+$console->run($_SERVER['argv'] ?? []);

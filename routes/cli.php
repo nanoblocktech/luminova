@@ -13,3 +13,4 @@ $router->authenticate(function(){
 */
 
 $router->command("command", 'Command::run');
+$router->command("test", 'Command::test');

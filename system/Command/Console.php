@@ -12,18 +12,13 @@ use Luminova\Config\Configuration;
 use Luminova\Command\Terminal;
 use Luminova\Command\Commands;
 
-class Console {
+class Console 
+{
     /**
      * Static terminal instance
      * @var Terminal $instance 
     */
     private static $instance = null;
-
-    /**
-     * Initialized terminal instance
-     * @var Terminal $cli 
-    */
-    private ?Terminal $cli = null;
 
     /**
      * Is header suppressed?
@@ -56,38 +51,31 @@ class Console {
 
     /**
      * Run CLI
-     * @param Terminal $cli novakit cli instance
-     * @param callable $callback Optional callback function
+     * @param array $commands commands to execute
      * 
      * @return void
     */
-    public function run(Terminal $cli, callable $callback = null): void
+    public function run(array $commands): void
     {
-        $this->cli = $cli;
-        $this->cli::parseCommands($this->cli::parseCommandLine($_SERVER['argv'] ?? []), false);
-
-        if(Commands::hasCommand($this->cli::getCommand())){
-            $params  = array_merge($this->cli::getArguments(), $this->cli::getOptions());
-            $this->printHeader();
-            Commands::run($this->cli, $params);
-            if(is_callable($callback)){
-                $callback();
-            }
+        $result = 1;
+        $cli = static::getTerminal();
+        $commands = $cli::parseCommands($commands);
+        $cli::registerCommands($commands, false);
+        $command = $cli::getCommand();
+        if (!$this->noHeader) {
+            $cli::header(Configuration::$version);
         }
-    
-        exit(1);
-    }
 
-    /**
-     * Print CLI header
-     * 
-     * @return void
-    */
-    private function printHeader(): void
-    {
-       if ($this->noHeader) {
-           return;
-       }
-       $this->cli::header(Configuration::$version);
+        if('--version' === $command){
+            $cli::writeln('Novakit Command Line Tool');
+            $cli::writeln('version: ' . Configuration::$version, 'green');
+            exit(0);
+        }
+
+        $params  = array_merge($cli::getArguments(), $cli::getQueries());
+        
+        $result = Commands::run($cli, $params);
+
+        exit($result);
     }
 }

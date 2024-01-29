@@ -699,14 +699,15 @@ class Terminal {
     }
 
     /**
-     * Parse command line queries to static::$options
+     * Register command line queries to static::$options and run it
      * This method is being called in router to parse commands
      * 
      * @param array $values arguments 
+     * @param bool $run run command after it has been registered 
      * 
      * @return int
     */
-    public static function parseCommands(array $values, bool $run = true): int
+    public static function registerCommands(array $values, bool $run = true): int
     {
         static::$commandsOptions = $values;
         if($run){
@@ -725,9 +726,9 @@ class Terminal {
      * 
      * @param array $arguments arguments $_SERVER['argv']
      * 
-     * @return array
+     * @return array<string, mixed>
     */
-    public static function parseCommandLine(array $arguments): array
+    public static function parseCommands(array $arguments): array
     {
         $optionValue = false;
         $caller = $arguments[0] ?? '';
@@ -737,7 +738,7 @@ class Terminal {
             'arguments' => [],
             'options' => [],
         ];
-        if ($caller === 'php' || preg_match('/^.*\.php$/', $caller)) {
+        if ($caller === 'novakit' || $caller === 'php' || preg_match('/^.*\.php$/', $caller)) {
             array_shift($arguments); //Remove the front controller file
             $result['caller'] = implode(' ', $arguments);
             $result['command'] = $arguments[0]??'';
@@ -783,7 +784,7 @@ class Terminal {
      * Get the current command controller views
      * @return array $views
     */
-    public static function getQueries(): array
+    public static function getRequestCommands(): array
     {
         $views = [
             'view' => '',
@@ -857,23 +858,21 @@ class Terminal {
         return static::$commandsOptions['caller'] ?? null;
     }
 
-
     /**
      * Get options value 
      * 
      * @param string $name
      * 
-     * @return null|bool|string|int
+     * @return null|string|int
      */
-    public static function getValue(string $name): mixed
+    public static function getOption(string $name): mixed
     {
-        $options = self::getValues();
-        if (!array_key_exists($name, $options)) {
-            return null;
+        $options = self::getOptions();
+        if (array_key_exists($name, $options)) {
+            return $options[$name] ?? null;
         }
     
-        $val = $options[$name] ?? true;
-        return $val;
+        return null;
     }
 
     /**
@@ -881,20 +880,20 @@ class Terminal {
      * 
      * @return array static::$options['options']
     */
-    public static function getValues(): array
+    public static function getOptions(): array
     {
         return static::$commandsOptions['options']??[];
     }
 
     /**
-     * Gets a single command-line option.
+     * Gets a single query command-line by name.
      * If it doesn't exists return null
      *
      * @param string $name Option key name
      * 
      * @return string|array|null
     */
-    public static function getOption(string $name): mixed
+    public static function getQuery(string $name): mixed
     {
         if(isset(static::$commandsOptions[$name])){
             return static::$commandsOptions[$name];
@@ -903,11 +902,11 @@ class Terminal {
     }
 
     /**
-     * Returns the raw array of options found.
+     * Returns the raw array of requested query commands.
      * 
-     * @return array static::$options
+     * @return array static::$commandsOptions
     */
-    public static function getOptions(): array
+    public static function getQueries(): array
     {
         return static::$commandsOptions??[];
     }
@@ -997,9 +996,9 @@ class Terminal {
     {
         //echo "Searching: $command";
         if(Commands::hasCommand($command)){
-            $cli = new Terminal();
-            $cli->parseCommands($options);
-            Commands::run($cli, $options);
+            $terminal = new self();
+            $terminal->registerCommands($options);
+            Commands::run($terminal, $options);
             return true;
         }
 

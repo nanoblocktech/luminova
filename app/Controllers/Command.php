@@ -27,5 +27,13 @@ class Command extends BaseCommand {
         return parent::STATUS_OK;
 
     }
+
+    public function test(?array $params = []): int
+    {
+        var_export($this->getOptions());
+        $this->newLine();
+        return parent::STATUS_OK;
+
+    }
     
 }
