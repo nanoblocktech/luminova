@@ -8,9 +8,11 @@
  * @license See LICENSE file
  */
 namespace Luminova\Sessions;
+
 use Luminova\Sessions\SessionInterface;
 
-class SessionManager implements SessionInterface {
+class SessionManager implements SessionInterface 
+{
     /**
      * @var string $storage
     */

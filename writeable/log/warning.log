@@ -1,0 +1,2 @@
+Session: Sessions is enabled, and one exists. Please don't $session->start();
+Session: Sessions is enabled, and one exists. Please don't $session->start();

@@ -9,10 +9,24 @@
  */
 namespace Luminova\Logger;
 
-use Luminova\Config\Configuration;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
+use Luminova\Logger\NovaLogger;
 
 class Logger implements LoggerInterface
 {
+    private ?LoggerInterface $logger = null;
+
+    /**
+     * Set a logger instance on the object.
+     *
+     * @param LoggerInterface $logger The logger instance.
+    */
+    public function setLogger(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
+    }
+    
     /**
      * Log an emergency message.
      *
@@ -21,9 +35,9 @@ class Logger implements LoggerInterface
      * 
      * @return void 
      */
-    public function emergency(string $message, array $context = []): void
+    public function emergency($message, array $context = [])
     {
-        $this->log('emergency', $message, $context);
+        $this->log(LogLevel::EMERGENCY, $message, $context);
     }
 
     /**
@@ -34,9 +48,9 @@ class Logger implements LoggerInterface
      * 
      * @return void 
      */
-    public function alert(string $message, array $context = []): void
+    public function alert($message, array $context = [])
     {
-        $this->log('alert', $message, $context);
+        $this->log(LogLevel::ALERT, $message, $context);
     }
 
     /**
@@ -47,9 +61,9 @@ class Logger implements LoggerInterface
      * 
      * @return void 
      */
-    public function critical(string $message, array $context = []): void
+    public function critical($message, array $context = [])
     {
-        $this->log('critical', $message, $context);
+        $this->log(LogLevel::CRITICAL, $message, $context);
     }
 
     /**
@@ -60,9 +74,9 @@ class Logger implements LoggerInterface
      * 
      * @return void 
      */
-    public function error(string $message, array $context = []): void
+    public function error($message, array $context = [])
     {
-        $this->log('error', $message, $context);
+        $this->log(LogLevel::ERROR, $message, $context);
     }
 
     /**
@@ -73,9 +87,9 @@ class Logger implements LoggerInterface
      * 
      * @return void 
      */
-    public function warning(string $message, array $context = []): void
+    public function warning($message, array $context = [])
     {
-        $this->log('warning', $message, $context);
+        $this->log(LogLevel::WARNING, $message, $context);
     }
 
     /**
@@ -86,9 +100,9 @@ class Logger implements LoggerInterface
      * 
      * @return void 
      */
-    public function notice(string $message, array $context = []): void
+    public function notice($message, array $context = [])
     {
-        $this->log('notice', $message, $context);
+        $this->log(LogLevel::NOTICE, $message, $context);
     }
 
     /**
@@ -99,9 +113,9 @@ class Logger implements LoggerInterface
      * 
      * @return void 
      */
-    public function info(string $message, array $context = []): void
+    public function info($message, array $context = [])
     {
-        $this->log('info', $message, $context);
+        $this->log(LogLevel::INFO, $message, $context);
     }
 
     /**
@@ -112,35 +126,26 @@ class Logger implements LoggerInterface
      * 
      * @return void 
      */
-    public function debug(string $message, array $context = []): void
+    public function debug($message, array $context = [])
     {
-        $this->log('debug', $message, $context);
+        $this->log(LogLevel::DEBUG, $message, $context);
     }
 
     /**
-     * Log a message at a specified log level.
+     * Log a message.
      *
-     * @param string $level The log level (e.g., "emergency," "error," "info").
-     * @param string $message The message to log.
+     * @param string $level The log level.
+     * @param string $message The log message.
      * @param array $context Additional context data (optional).
-     * 
-     * @return void 
+     *
+     * @return void
      */
-    public function log(string $level, string $message, array $context = []): void
+    public function log($level, $message, array $context = [])
     {
-        $path = Configuration::getRootDirectory(__DIR__) . '/writeable/log/';
-        $filepath = $path . "{$level}.log";
+        $this->logger ??= new NovaLogger();
 
-        if (!is_dir($path)) {
-            mkdir($path, 0755, true);
+        if ($this->logger instanceof LoggerInterface) {
+            $this->logger->log($level, $message, $context);
         }
-
-        if( $context !== []){
-            $message .= "\nContext: " . print_r($context, true);
-        }
-
-        $message .= PHP_EOL;
-
-        file_put_contents($filepath, $message, FILE_APPEND);
     }
 }

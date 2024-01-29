@@ -12,10 +12,24 @@ namespace Luminova\Logger;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LogLevel;
+use Luminova\Logger\NovaLogger;
 
-class LoggerAware implements LoggerAwareInterface
+class LoggerAware implements LoggerInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
+
+    private ?LoggerInterface $logger = null;
+
+    /**
+     * Set a logger instance on the object.
+     *
+     * @param LoggerInterface $logger The logger instance.
+    */
+    public function setLogger(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
+    }
 
    /**
      * Log an emergency message.
@@ -23,9 +37,9 @@ class LoggerAware implements LoggerAwareInterface
      * @param string $message The emergency message to log.
      * @param array $context Additional context data (optional).
      */
-    public function emergency(string $message, array $context = []): void
+    public function emergency($message, array $context = []): void
     {
-        $this->log('emergency', $message, $context);
+        $this->log(LogLevel::EMERGENCY, $message, $context);
     }
 
     /**
@@ -34,9 +48,9 @@ class LoggerAware implements LoggerAwareInterface
      * @param string $message The alert message to log.
      * @param array $context Additional context data (optional).
      */
-    public function alert(string $message, array $context = []): void
+    public function alert($message, array $context = []): void
     {
-        $this->log('alert', $message, $context);
+        $this->log(LogLevel::ALERT, $message, $context);
     }
 
     /**
@@ -45,9 +59,9 @@ class LoggerAware implements LoggerAwareInterface
      * @param string $message The critical message to log.
      * @param array $context Additional context data (optional).
      */
-    public function critical(string $message, array $context = []): void
+    public function critical($message, array $context = []): void
     {
-        $this->log('critical', $message, $context);
+        $this->log(LogLevel::CRITICAL, $message, $context);
     }
 
     /**
@@ -56,9 +70,9 @@ class LoggerAware implements LoggerAwareInterface
      * @param string $message The error message to log.
      * @param array $context Additional context data (optional).
      */
-    public function error(string $message, array $context = []): void
+    public function error($message, array $context = []): void
     {
-        $this->log('error', $message, $context);
+        $this->log(LogLevel::ERROR, $message, $context);
     }
 
     /**
@@ -67,9 +81,9 @@ class LoggerAware implements LoggerAwareInterface
      * @param string $message The warning message to log.
      * @param array $context Additional context data (optional).
      */
-    public function warning(string $message, array $context = []): void
+    public function warning($message, array $context = []): void
     {
-        $this->log('warning', $message, $context);
+        $this->log(LogLevel::WARNING, $message, $context);
     }
 
     /**
@@ -78,9 +92,9 @@ class LoggerAware implements LoggerAwareInterface
      * @param string $message The notice message to log.
      * @param array $context Additional context data (optional).
      */
-    public function notice(string $message, array $context = []): void
+    public function notice($message, array $context = []): void
     {
-        $this->log('notice', $message, $context);
+        $this->log(LogLevel::NOTICE, $message, $context);
     }
 
     /**
@@ -89,9 +103,9 @@ class LoggerAware implements LoggerAwareInterface
      * @param string $message The info message to log.
      * @param array $context Additional context data (optional).
      */
-    public function info(string $message, array $context = []): void
+    public function info($message, array $context = []): void
     {
-        $this->log('info', $message, $context);
+        $this->log(LogLevel::INFO, $message, $context);
     }
 
     /**
@@ -100,9 +114,9 @@ class LoggerAware implements LoggerAwareInterface
      * @param string $message The debug message to log.
      * @param array $context Additional context data (optional).
      */
-    public function debug(string $message, array $context = []): void
+    public function debug($message, array $context = []): void
     {
-        $this->log('debug', $message, $context);
+        $this->log(LogLevel::DEBUG, $message, $context);
     }
 
     /**
@@ -114,6 +128,8 @@ class LoggerAware implements LoggerAwareInterface
      */
     public function log($level, $message, array $context = []): void
     {
+        $this->logger ??= new NovaLogger();
+
         if ($this->logger instanceof LoggerInterface) {
             $this->logger->log($level, $message, $context);
         }

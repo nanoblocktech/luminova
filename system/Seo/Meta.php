@@ -8,8 +8,11 @@
  * @license See LICENSE file
  */
 namespace Luminova\Seo;  
+
 use \DateTime;
-class Meta{
+
+class Meta
+{
     /**
      * @var string $link application view link.
     */

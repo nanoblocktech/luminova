@@ -9,7 +9,8 @@
  */
 namespace Luminova\Sessions;
 
-interface SessionInterface {
+interface SessionInterface 
+{
     /**
      * Set storage key
      *
