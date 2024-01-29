@@ -62,7 +62,7 @@ class Server extends BaseCommand
          // Set the Front Controller path as Document Root.
         $docRoot = escapeshellarg(PUBLIC_PATH);
 
-        Terminal::writeln('=================================== PHP FRAMEWORK ======================================');
+        Terminal::writeln('=================================== LUMINOVA SERVER ======================================');
         Terminal::writeln('
         L       U     U   M       M   IIII   N     N   OOOO   V           V   AAAAA
         L       U     U   MM     MM    II    NN    N  O    O   V         V   A     A
@@ -79,13 +79,12 @@ class Server extends BaseCommand
         Terminal::writeln('Document root is ' . $docRoot, 'green');
         Terminal::writeln('Press Ctrl-C to stop.');
         Terminal::newLine();
-        
 
         // Mimic Apache's mod_rewrite functionality with user settings.
-        $rewrite = escapeshellarg(__DIR__ . '/rewrite.php');
+        $rewrite = escapeshellarg(__DIR__ . '/mod_rewrite.php');
 
         // Call PHP's built-in webserver, making sure to set our
-        // base path to the public folder, and to use the rewrite file
+        // base path to the public folder, and to use the mod_rewrite file
         // to ensure our environment is set and it simulates basic mod_rewrite.
         passthru($php . ' -S ' . $host . ':' . $port . ' -t ' . $docRoot . ' ' . $rewrite, $status);
 

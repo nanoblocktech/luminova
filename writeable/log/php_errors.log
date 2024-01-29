@@ -4,3 +4,4 @@ Error [2]: Undefined array key "APP_RUN_INSTANCE" in resources/views/index.php o
 Error [2]: Undefined array key "APP_RUN_INSTANCE" in resources/views/index.php on line 243
 Error [2]: Undefined array key "LOCAL_SERVER_INSTANCE" in resources/views/index.php on line 243
 Error [2]: Undefined array key "LOCAL_SERVER_INSTANCE" in resources/views/index.php on line 243
+Error [2]: Undefined array key "LOCAL_SERVER_INSTANCE" in resources/views/index.php on line 243

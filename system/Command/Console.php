@@ -23,22 +23,22 @@ class Console {
      * Initialized terminal instance
      * @var Terminal $cli 
     */
-    private $cli;
+    private ?Terminal $cli = null;
 
     /**
      * Is header suppressed?
      * @var bool $suppress 
     */
-    private bool $suppress = false;
+    private bool $noHeader = false;
 
     /**
      * Initialize console instance
      * 
      * @param bool $suppress Suppress header if no header is detected
     */
-    public function __construct(bool $suppress)
+    public function __construct(bool $noHeader)
     {
-        $this->suppress = $suppress;
+        $this->noHeader = $noHeader;
     }
 
     /**
@@ -85,7 +85,7 @@ class Console {
     */
     private function printHeader(): void
     {
-       if ($this->suppress) {
+       if ($this->noHeader) {
            return;
        }
        $this->cli::header(Configuration::$version);

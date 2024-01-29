@@ -24,29 +24,24 @@ require __DIR__ . '/bootstrap/autoload.php';
 // Ensure the current directory is pointing to the front controller's directory
 chdir(FRONT_CONTROLLER);
 
-
 // Load environment settings from .env files into $_SERVER and $_ENV
 Luminova\Config\DotEnv::register(__DIR__ . DIRECTORY_SEPARATOR . '.env');
-
-// Load our paths config file
-$paths = new Luminova\Config\SystemPaths();
 
 // Define ENVIRONMENT
 if (!defined('ENVIRONMENT')) {
     define('ENVIRONMENT', getenv('app.environment.mood', 'production'));
 }
 
-// Show basic information before we do anything else.
-if (($suppress = array_search('--no-header', $_SERVER['argv'], true) !== false)) {
-    unset($_SERVER['argv'][$suppress]);
-    $suppress = true;
+// Show header information by default or if `--no-header` is passed suppress header.
+if (($noHeader = array_search('--no-header', $_SERVER['argv'], true) !== false)) {
+    unset($_SERVER['argv'][$noHeader]);
+    $noHeader = true;
 }
 
 // Initialize our Console
-$console = new  Luminova\Command\Console($suppress);
-
 // Initialize Terminal CLI
-$terminal = $console::getTerminal();
+$console = new  Luminova\Command\Console($noHeader);
+
 
 // Run our console instance
-$console->run($terminal);
+$console->run($console::getTerminal());
