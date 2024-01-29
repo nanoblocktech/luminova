@@ -1,2 +1,2 @@
-Session: Sessions is enabled, and one exists. Please don't $session->start();
-Session: Sessions is enabled, and one exists. Please don't $session->start();
+[2024-01-29T08:24:53+00:00] warning: Session: Sessions is enabled, and one exists. Please don't $session->start();
+[warning] [2024-01-29T08:27:07+00:00] : Session: Sessions is enabled, and one exists. Please don't $session->start();

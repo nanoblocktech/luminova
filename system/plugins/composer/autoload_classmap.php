@@ -81,7 +81,7 @@ return array(
     'Luminova\\Languages\\Translator' => $baseDir . '/system/Languages/Translator.php',
     'Luminova\\Logger\\Logger' => $baseDir . '/system/Logger/Logger.php',
     'Luminova\\Logger\\LoggerAware' => $baseDir . '/system/Logger/LoggerAware.php',
-    'Luminova\\Logger\\LoggerInterface' => $baseDir . '/system/Logger/LoggerInterface.php',
+    'Luminova\\Logger\\NovaLogger' => $baseDir . '/system/Logger/NovaLogger.php',
     'Luminova\\Models\\Model' => $baseDir . '/system/Models/Model.php',
     'Luminova\\Models\\PushMessage' => $baseDir . '/system/Models/PushMessage.php',
     'Luminova\\Notifications\\FirebasePusher' => $baseDir . '/system/Notifications/FirebasePusher.php',

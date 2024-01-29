@@ -12,6 +12,7 @@ namespace Luminova\Logger;
 use Psr\Log\LogLevel;
 use Psr\Log\AbstractLogger;
 use Luminova\Config\Configuration;
+use \DateTime;
 
 class NovaLogger extends AbstractLogger
 {
@@ -95,13 +96,17 @@ class NovaLogger extends AbstractLogger
         if (!is_dir($this->path)) {
             mkdir($this->path, 0755, true);
         }
+        
+        $dateTime = new DateTime('NOW');
+        $time = $dateTime->format('Y-m-d\TH:i:sP');
 
+        $log = "[{$level}] [{$time}]: {$message}";
         if ($context !== []) {
-            $message .= "\nContext: " . print_r($context, true);
+            $log .= " Context: " . print_r($context, true);
         }
 
-        $message .= PHP_EOL;
+        $log .= PHP_EOL;
 
-        file_put_contents($filepath, $message, FILE_APPEND);
+        file_put_contents($filepath, $log, FILE_APPEND);
     }
 }

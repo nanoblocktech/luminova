@@ -112,7 +112,7 @@ class ComposerStaticInit9c155849e043191fc1df7e0b46712cd7
         'Luminova\\Languages\\Translator' => __DIR__ . '/../../..' . '/system/Languages/Translator.php',
         'Luminova\\Logger\\Logger' => __DIR__ . '/../../..' . '/system/Logger/Logger.php',
         'Luminova\\Logger\\LoggerAware' => __DIR__ . '/../../..' . '/system/Logger/LoggerAware.php',
-        'Luminova\\Logger\\LoggerInterface' => __DIR__ . '/../../..' . '/system/Logger/LoggerInterface.php',
+        'Luminova\\Logger\\NovaLogger' => __DIR__ . '/../../..' . '/system/Logger/NovaLogger.php',
         'Luminova\\Models\\Model' => __DIR__ . '/../../..' . '/system/Models/Model.php',
         'Luminova\\Models\\PushMessage' => __DIR__ . '/../../..' . '/system/Models/PushMessage.php',
         'Luminova\\Notifications\\FirebasePusher' => __DIR__ . '/../../..' . '/system/Notifications/FirebasePusher.php',
