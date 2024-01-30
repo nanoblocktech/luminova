@@ -42,5 +42,5 @@ Usages documentation for PHP Luminova.
 [Novakit CLI Tool](docs/CLI.md)
 
 
-[luminova-badge]:           https://github.com/zephir-lang/zephir
-[nanoblocktech-badge]:           https://nanoblocktech.com/assets/images/favicon.png
+[luminova-badge]:           public/favicon.png
+[nanoblocktech-badge]:      https://nanoblocktech.com/assets/images/favicon.png
