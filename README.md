@@ -1,5 +1,14 @@
 # Luminova Framework
 
+[![Luminova 1.x CI][luminova-1x-badge]][action-5x-link]
+[![Nanoblocktech master][nanoblocktech-master-badge]](https://nanoblocktech.com/luminova)
+[![Build on Linux|macOS|Windows][actions main]][actions link]
+[![Latest Stable Version][version badge]][packagist link]
+[![PHP from Packagist][packagist ver]][packagist link]
+[![Packagist][packagist dd]][packagist stats]
+[![MIT License][license badge]](./LICENSE)
+[![Contributors][contributors-badge]](https://github.com/nanoblocktech/luminova/graphs/contributors)
+
 ![Local Image](docs/logo.svg)
 
 
