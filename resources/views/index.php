@@ -8,7 +8,7 @@ use Luminova\Config\Configuration;
     <title>Welcome to PHP Luminova</title>
     <meta name="description" content="Simple framework built for speed and keeping your existing coding skills going.">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" type="image/png" href="/favicon.ico">
+    <link rel="shortcut icon" type="image/png" href="<?php echo $this->_base;?>favicon.png">
     <style>
         * {
             transition: background-color 300ms ease, color 300ms ease;

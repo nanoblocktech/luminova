@@ -104,7 +104,7 @@ class Generators extends BaseCommand
 
         $name = strtolower($name);
 
-        $classContent =  "<!DOCTYPE html>\n<html lang=\"en\">\n    <head>\n        <title>$name</title>\n   </head>\n   <body>\n        <h1>Welcome To $name</h1>\n    </body>\n</html>";
+        $classContent =  "<!DOCTYPE html>\n<html lang=\"en\">\n    <head>\n        <link rel=\"shortcut icon\" href=\"<?php echo \$this->_base;?>favicon.png\" />\n<title>$name</title>\n   </head>\n   <body>\n        <h1>Welcome To $name</h1>\n    </body>\n</html>";
 
         $path = "/resources/views/{$name}.php";
         

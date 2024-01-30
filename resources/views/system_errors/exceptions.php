@@ -8,7 +8,7 @@ $errorId = uniqid('error', true);
 <head>
     <meta charset="UTF-8">
     <meta name="robots" content="noindex">
-
+    <link rel="shortcut icon" type="image/png" href="<?php echo $this->_base;?>favicon.png">
     <title><?= htmlspecialchars($this->_title) ?></title>
     <style>
         <?= preg_replace('#[\r\n\t ]+#', ' ', file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'debug.css')) ?>
