@@ -58,7 +58,7 @@ class Bootstrap {
      *
      * @param string  $type  Bootstrap callback type
      * @param callable $callback Bootstrap Callback function to execute
-     * @param callable|null $error Bootstrap Callback function to execute
+     * @param ?callable $error Bootstrap Callback function to execute
      */
     public function __construct(string $type, callable $callback, ?callable $error = null) {
         $this->type = $type;

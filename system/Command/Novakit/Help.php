@@ -36,16 +36,13 @@ class Help extends BaseCommand
         '--port' => 'The HTTP Host Port [default: "8080"]',
     ];
 
-    //php novakit server --host localhost --port 3030
-
     /**
-     * @param array $options terminal options
+     * @param array $params terminal options
      * 
      * @return int 
     */
     public function run(?array $params = []): int
     {
-        //$options = $params['options']??[];
 
         Terminal::printHelp(AvailableCommands::get('help'));
     

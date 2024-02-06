@@ -160,7 +160,7 @@ class Terminal {
 
         // Calculate the progress bar width
         $percent = min(100, max(0, ($progressLine / $progressCount) * 100));
-        $barWidth = round($percent / 10);
+        $barWidth = (int) round($percent / 10);
 
         // Create the progress bar
         $progressBar = '[' . str_repeat('#', $barWidth) . str_repeat('.', 10 - $barWidth) . ']';
@@ -190,8 +190,8 @@ class Terminal {
      * @example $this->progressWatch(100, $onFinish, $onProgress, true) Show 100 lines of progress bar with a callbacks and beep on finish
      * 
      * @param int $progressCount Total count of progress bar to show
-     * @param callable|null $onFinish Execute callback when progress finished
-     * @param callable|null $onProgress Execute callback on each progress step
+     * @param ?callable $onFinish Execute callback when progress finished
+     * @param ?callable $onProgress Execute callback on each progress step
      * @param bool $beep Beep when progress is completed, default is true
      *
      * @return void
@@ -255,20 +255,20 @@ class Terminal {
      *
      * @return string The user input
     */
-    public static function prompt(string $message, array $options = null, string $validations = null, bool $silent = false): string
+    public static function prompt(string $message, array $options = [], string $validations = null, bool $silent = false): string
     {
         $default = '';
         $placeholder = '';
         $validationRules = false;
         $textOptions = [];
         
-        if($options != []){
+        if($options !== []){
             foreach($options as $color => $text){
                 $textOptions[] = $text;
                 $placeholder .= static::color($text, $color) . ',';
             }
             $placeholder = '[' . rtrim($placeholder, ',') . ']';
-            $default = $textOptions[0]??'';
+            $default = $textOptions[0];
         }
 
         $validationRules = $validations ?? $textOptions ?? false;
@@ -401,7 +401,7 @@ class Terminal {
      * @param int $max maximum width
      * @param int $leftPadding left padding
      * 
-     * @return bool
+     * @return string $lines
     */
     public static function wrap(?string $string = null, int $max = 0, int $leftPadding = 0): string
     {
@@ -908,7 +908,7 @@ class Terminal {
     */
     public static function getQueries(): array
     {
-        return static::$commandsOptions??[];
+        return static::$commandsOptions;
     }
 
     /**
@@ -992,10 +992,10 @@ class Terminal {
      * 
      * @return bool
     */
-    public static function systemHasCommand(string $command, array $options): bool
+    public static function hasCommand(string $command, array $options): bool
     {
         //echo "Searching: $command";
-        if(Commands::hasCommand($command)){
+        if(Commands::has($command)){
             $terminal = new self();
             $terminal->registerCommands($options);
             Commands::run($terminal, $options);

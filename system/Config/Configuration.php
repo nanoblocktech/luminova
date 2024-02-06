@@ -13,12 +13,12 @@ class Configuration {
     /**
     * @var string $version version name
     */
-    public static $version = '1.8.0';
+    public static $version = '2.0.0';
 
     /**
     * @var int $versionCode version code
     */
-    public static $versionCode = 180;
+    public static $versionCode = 200;
 
     /**
      * Minimum required php version
@@ -247,7 +247,8 @@ class Configuration {
      * @param string $path The path to be filtered.
      * @return string
      */
-    public static function filterPath(string $path): string {
+    public static function filterPath(string $path): string 
+    {
         $matchingDirectory = '';
 
         foreach (self::$allowPreviews as $directory) {
@@ -271,6 +272,7 @@ class Configuration {
      *
      * @param string $key The key to retrieve.
      * @param mixed $default The default value to return if the key is not found.
+     * 
      * @return mixed
      */
     public static function getVariables(string $key, mixed $default = null): mixed 
@@ -312,10 +314,19 @@ class Configuration {
     */
     public static function getBoolean(string $key, bool $default = false): bool
     {
-        $value = strtolower(self::getVariables($key, $default));
-        return $value == 'true' || $value === 1 || $value == '1';
-    }
+        $value = self::getVariables($key, $default);
 
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_numeric($value)) {
+            return (bool) $value;
+        }
+
+        $value = strtolower($value);
+        return $value === 'true' || $value === '1';
+    }
 
     /**
      * Get environment variable as default null
@@ -327,8 +338,15 @@ class Configuration {
     public static function getMixedNull(string $key, mixed $default = null): mixed
     {
         $value = self::getVariables($key, $default);
-        return ($value != 0 && empty($value) ? null : $value);
+
+        if ($value === '' || $value === []) {
+            return null;
+        }
+
+        //return ($value != 0 && empty($value) ? null : $value);
+        return $value;
     }
+
 
     /**
      * Convert variable to dot or underscore notation.

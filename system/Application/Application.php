@@ -89,7 +89,7 @@ class Application {
      *
      * @param string $dir The project root directory
      * 
-     * @return self BaseApplication
+     * @return self Application
      */
     public static function getInstance(string $dir = __DIR__): static 
     {

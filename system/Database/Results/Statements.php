@@ -54,7 +54,7 @@ class Statements
     /**
      * Fetches all rows as a 2D array of integers.
      *
-     * @return array The 2D array of integers.
+     * @return int integers.
     */
     public function getInt(): int 
     {
@@ -155,19 +155,17 @@ class Statements
     private function getClass(stdClass $object, string $className = ''): ?object
     {
         $object = null;
-        if ($className !== '' && class_exists($className)) {
-            if($object !== null){
-                try {
-                    $class = new ReflectionClass($className);
-                    if ($class->isInstantiable()){
-                        $object = $class->newInstanceArgs([$object]);
-                    }
-                } catch (ReflectionException $e) {
-                   throw $e;
+        if ($className !== '' && class_exists($className) && $object !== null) {
+            try {
+                $class = new ReflectionClass($className);
+                if ($class->isInstantiable()){
+                    $object = $class->newInstanceArgs([$object]);
                 }
+            } catch (ReflectionException $e) {
+                
             }
         }
-
+        
         return $object;
     }
 }

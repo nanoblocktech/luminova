@@ -124,6 +124,7 @@ class FileSystemCache
 
      /**
      * Constructor.
+     * 
      * @param string $filename cache filename to hash
      * @param string $filepath cache directory.
      */
@@ -138,8 +139,10 @@ class FileSystemCache
 
     /**
      * Get static Singleton Class.
+     * 
      * @param string $filename cache filename to hash
      * @param string $filepath cache directory.
+     * 
      * @param self $instance Instance
      */
     public static function getInstance(string $filename = '', string $filepath = ''): self 
@@ -153,9 +156,11 @@ class FileSystemCache
     /**
      * Set the new cache directory path
      * @param string $path cache directory must end with 
-     * @return FileSystemCache $this
+     * 
+     * @return self $this
      */
-    public function setCacheLocation(string $path): self {
+    public function setCacheLocation(string $path): self 
+    {
         $path = rtrim($path, DIRECTORY_SEPARATOR);
         $path .= DIRECTORY_SEPARATOR;
         $this->cacheLocation = $path;
@@ -164,50 +169,65 @@ class FileSystemCache
 
      /**
      * Sets the new cache file name.
+     * 
      * @param string $name cache filename hash value
-     * @return FileSystemCache $this
+     * 
+     * @return self $this
      */
-    public function setFilename(string $name): self {
+    public function setFilename(string $name): self
+    {
         $this->cacheFilenameHashed = self::hashFilename($name);
         return $this;
     }
 
      /**
      * Generate hash name for cache 
+     * 
      * @param string $name cache filename to hash
+     * 
      * @return string hashed name with prefix
      */
-    public static function hashFilename(string $name): string {
+    public static function hashFilename(string $name): string 
+    {
         $result = preg_replace('/[^a-zA-Z0-9]/', '', $name);
         return md5($result);
     }
 
      /**
      * Sets the cache file extension type
+     * 
      * @param string $extension 
-     * @return FileSystemCache $this
+     * 
+     * @return self $this
      */
-    public function setExtension(string $extension): self{
+    public function setExtension(string $extension): self
+    {
         $this->cacheFileExtension = $extension;
         return $this;
     }
 
      /**
      * Sets the cache debugging mode
+     * 
      * @param bool $mode 
-     * @return FileSystemCache $this
+     * 
+     * @return self $this
      */
-    public function setDebugMode(bool $mode): self {
+    public function setDebugMode(bool $mode): self 
+    {
         $this->isDebugging = $mode;
         return $this;
     }
 
      /**
      * Sets the cache state mode, if disabled cache system will always return new data not cached version 
+     * 
      * @param bool $enable 
-     * @return FileSystemCache $this
+     * 
+     * @return self $this
      */
-    public function setEnableCache(bool $enable): self {
+    public function setEnableCache(bool $enable): self 
+    {
         $this->isCacheEnabled = $enable;
         return $this;
     }
@@ -215,19 +235,23 @@ class FileSystemCache
      /**
      * Sets the cache expiry time duration
      * @param int $time 
-     * @return FileSystemCache $this
+     * @return self $this
      */
-    public function setExpire(int $time): self {
+    public function setExpire(int $time): self 
+    {
         $this->cacheTime = $time;
         return $this;
     }
 
      /**
      * Sets the cache lock
+     * 
      * @param bool $lock lock catch to avoid deletion even when cache time expire
-     * @return FileSystemCache $this
+     * 
+     * @return self $this
      */
-    public function setLock(bool $lock): self {
+    public function setLock(bool $lock): self 
+    {
         $this->cacheLock = $lock;
         return $this;
     }
@@ -237,19 +261,23 @@ class FileSystemCache
      * 
      * @param bool $encode true or false
      * 
-     * @return FileSystemCache $this
+     * @return self $this
      */
-    public function enableBase64(bool $encode): self {
+    public function enableBase64(bool $encode): self 
+    {
         $this->encodeInBase64 = $encode;
         return $this;
     }
 
     /**
      * Enable the cache delete expired data
+     * 
      * @param bool $allow true or false
-     * @return FileSystemCache $this
+     * 
+     * @return self $this
      */
-    public function enableDeleteExpired(bool $allow): self {
+    public function enableDeleteExpired(bool $allow): self 
+    {
         $this->canDeleteExpired = $allow;
         if($this->canDeleteExpired){
             $this->removeIfExpired();
@@ -262,52 +290,63 @@ class FileSystemCache
      * 
      * @param bool $secure true or false
      * 
-     * @return FileSystemCache $this
-     */
+     * @return self $this
+    */
     public function enableSecureAccess(bool $secure): self {
         $this->cacheSecurity = $secure;
         return $this;
     }
 
 
-     /**
+    /**
      * Gets Combines directory, filename and extension into a full filepath
+     * 
      * @return string
-     */
-    public function getCacheFilePath(): string {
+    */
+    public function getCacheFilePath(): string 
+    {
         return $this->cacheLocation . $this->cacheFilenameHashed . $this->cacheFileExtension;
     }
 
     /**
      * Creates cache timestamp expired status
+     * 
      * @param int $timestamp old timestamp
      * @param int $expiration The number of seconds after the timestamp expires
+     * 
      * @return bool true or false
      */
-    private function diffTime(int $timestamp, int $expiration): bool {
+    private function diffTime(int $timestamp, int $expiration): bool 
+    {
         return (time() - $timestamp) >= $expiration;
     }
 
 
     /**
      * Loads, create, update and delete cache with fewer options
+     * 
      * @param string $key cache key
      * @param callable $cacheCallback Callback called when data needs to be refreshed.
+     * 
      * @return mixed Data currently stored under key
      * @throws ErrorException if the file cannot be saved
      */
-    public function onExpired(string $key, callable $cacheCallback): mixed {
+    public function onExpired(string $key, callable $cacheCallback): mixed 
+    {
         return $this->get($key, $cacheCallback, $this->cacheTime, $this->cacheLock);
     }
 
     /**
      * Loads, create, update and delete cache with FileCacheItem model
+     * 
      * @param string $key cache key
      * @param callable $cacheCallback Callback called when data needs to be refreshed.
+     * 
      * @return mixed Data currently stored under key
      * @throws ErrorException if the file cannot be saved
      */
-    public function onCache(string $key, callable $cacheCallback): mixed {
+    public function onCache(string $key, callable $cacheCallback): mixed 
+    {
         if(empty($key)) {
             throw new ErrorException('Invalid argument, cache $key cannot be empty');
         }
@@ -331,10 +370,12 @@ class FileSystemCache
 
     /**
      * Loads, create, update and delete cache with full options
+     * 
      * @param string $key cache key
      * @param callable $cacheCallback Callback called when data needs to be refreshed.
      * @param int $time cache expiry time
      * @param bool $lock lock catch to avoid deletion even when cache time expire
+     * 
      * @return mixed|null Data currently stored under key
      * @throws ErrorException if the file cannot be saved
      */
@@ -359,28 +400,34 @@ class FileSystemCache
     /**
      * Creates, Reloads and retrieve cache once class is created
      * 
-     * @return FileSystemCache $this
+     * @return self $this
      * @throws ErrorException if there is a problem loading the cache
      */
-    public function create(): self {
+    public function create(): self 
+    {
         $this->cacheArray = $this->fetchCatchData();
         return $this;
     }
 
     /**
      * Checks if cache key exist
+     * 
      * @param string $key cache key
+     * 
      * @return bool true or false
      */
-    public function hasCached(string $key): bool {
+    public function hasCached(string $key): bool 
+    {
         return isset($this->cacheArray[$key]);
     }
 
      /**
      * Remove expired cache by key
+     * 
      * @return int number of deleted keys
      */
-    public function removeIfExpired(): int {
+    public function removeIfExpired(): int 
+    {
         $counter = 0;
         foreach ($this->cacheArray as $key => $value) {
             if ($this->hasExpired($key) && !$value["lock"]) {
@@ -398,10 +445,13 @@ class FileSystemCache
 
     /**
      * Checks if the cache timestamp has expired by key
+     * 
      * @param string $key cache key
+     * 
      * @return bool true or false
      */
-    public function hasExpired(string $key): bool {
+    public function hasExpired(string $key): bool 
+    {
         if ($this->hasCached($key)){
             $item = $this->cacheArray[$key];
             return $this->diffTime($item["time"], $item["expire"]);
@@ -412,10 +462,12 @@ class FileSystemCache
 
     /**
      * Deletes data associated with $key
+     * 
      * @param string $key cache key
+     * 
      * @return bool true or false
      * @throws ErrorException if the file cannot be saved
-     */
+    */
     public function remove(string $key): bool {
         if ($this->hasCached($key)) {
             unset($this->cacheArray[$key]);
@@ -428,11 +480,14 @@ class FileSystemCache
 
     /**
      * Deletes data associated array of keys
+     * 
      * @param array $array cache keys
+     * 
      * @return Generator
      * @throws ErrorException if the file cannot be saved
      */
-    public function removeList(array $array): Generator {
+    public function removeList(array $array): Generator 
+    {
         foreach($array as $key){
             yield $this->remove($key);
         }
@@ -440,12 +495,14 @@ class FileSystemCache
 
     /**
      * Builds cache data to save
+     * 
      * @param string $key cache keys
      * @param mixed $data cache data
      * @param string $expiration cache expiration time
      * @param bool $lock cache lock expiry deletion
+     * 
+     * @return self $this
      * @throws ErrorException if the file cannot be saved
-     * @return FileSystemCache $this
      */
     private function buildCache(string $key, mixed $data, int $expiration = 60, bool $lock = false): self {
         $cacheString = serialize($data);
@@ -465,10 +522,12 @@ class FileSystemCache
 
     /**
      * Fetch cache data from disk
+     * 
      * @return mixed cached data
      * @throws ErrorException if cannot load cache, unable to unserialize, hash sum not found or invalid key
      */
-    private function fetchCatchData(): mixed {
+    private function fetchCatchData(): mixed 
+    {
     
         $filepath = $this->getCacheFilePath();
 
@@ -510,10 +569,13 @@ class FileSystemCache
 
     /**
      * Remove the security line in php file cache
+     * 
      * @param string $str cache string
+     * 
      * @return string cache text without the first security line
      */
-    private function unlockSecurity(string $str): string {
+    private function unlockSecurity(string $str): string 
+    {
         $position = strpos($str, PHP_EOL);
         if ($position === false){
             return $str;
@@ -523,11 +585,14 @@ class FileSystemCache
 
     /**
      * Retrieve cache data from disk
+     * 
      * @param string $key cache key
+     * 
      * @return mixed returns data if $key is valid and not expired, NULL otherwise
      * @throws ErrorException if the file cannot be saved
      */
-    public function retrieveCache(string $key): mixed {
+    public function retrieveCache(string $key): mixed 
+    {
     
         if($this->canDeleteExpired){
             $this->removeIfExpired();
@@ -543,20 +608,24 @@ class FileSystemCache
 
     /**
      * Clears the cache
+     * 
+     * @return void
      * @throws ErrorException if the file cannot be saved
      */
-    public function clearCache(): void {
+    public function clearCache(): void
+    {
         $this->cacheArray = [];
         $this->writeCache();
     }
 
      /**
      * Write the cache data disk.
-     * @return FileSystemCache $this
+     * 
+     * @return self $this
      * @throws ErrorException if the file cannot be saved
      */
-
-     private function writeCache(): self {
+     private function writeCache(): self 
+     {
 
         /*if (!is_writeable($this->cacheLocation )) {
            throw new ErrorException('Path: ' . $this->cacheLocation . ' is not writable');
@@ -590,9 +659,11 @@ class FileSystemCache
 	
 	/**
      * Remove cache file
+     * 
      * @return bool true if file path exist else false
      */
-    public function removeCache(): bool {
+    public function removeCache(): bool 
+    {
 		$fileCache = $this->getCacheFilePath();
 		if(file_exists($fileCache)){
 			return unlink($fileCache);
@@ -602,12 +673,15 @@ class FileSystemCache
 
     /**
      * Remove cache file from disk with full path
+     * 
      * @param string $path cache full path /
      * @param array $filenames cache file array names
      * @param string $extension cache file extension type
+     * 
      * @return bool
      */
-    public function removeCacheDisk(string $path, array $filenames, string $extension = self::JSON): bool {
+    public function removeCacheDisk(string $path, array $filenames, string $extension = self::JSON): bool 
+    {
         $success = true;
         foreach($filenames as $name){
             $fileCache = $path . self::hashFilename($name) . $extension;

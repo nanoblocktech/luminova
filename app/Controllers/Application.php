@@ -11,12 +11,12 @@ namespace App\Controllers;
 
 use \Luminova\Base\BaseApplication;
 
-class Application extends BaseApplication  {
+class Application extends BaseApplication 
+{
     /**
      * @var Session $session;
      * protected $session;
     */
-    protected $smarty;
     public function __construct(string $dir = __DIR__){
         /**
          *  Initialize session manager if you want to make use of sessions

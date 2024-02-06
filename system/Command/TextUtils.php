@@ -25,7 +25,8 @@ class TextUtils {
      * 
      * @return string
     */
-    public static function leftPad($text, $length, $char = ' ') {
+    public static function leftPad(string $text, int $length, string $char = ' '): string 
+    {
         return str_pad($text, $length, $char, STR_PAD_LEFT);
     }
     
@@ -38,7 +39,8 @@ class TextUtils {
      * 
      * @return string
     */
-    public static function rightPad($text, $max, $char = ' ') {
+    public static function rightPad(string $text, int $max, string $char = ' '): string 
+    {
         return str_pad($text, $max, $char, STR_PAD_RIGHT);
     }
 

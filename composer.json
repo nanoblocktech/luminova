@@ -66,7 +66,7 @@
         ],
         "analyze-app": [
             "Composer\\Config::disableProcessTimeout",
-            "bash -c \"XDEBUG_MODE=off phpstan analyse\""
+            "bash -c \"XDEBUG_MODE=off phpstan analyse --memory-limit 3000M\""
         ],
         "analyze-code": [
             "Composer\\Config::disableProcessTimeout",

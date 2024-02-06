@@ -12,7 +12,8 @@ namespace App\Controllers;
 use Luminova\Base\BaseController;
 use Luminova\Config\Configuration;
 
-class Welcome extends BaseController {
+class Welcome extends BaseController 
+{
 
     public function page(): void
     {

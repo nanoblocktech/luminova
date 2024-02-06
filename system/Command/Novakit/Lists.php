@@ -36,7 +36,7 @@ class Lists extends BaseCommand
     protected string|array $usages  = 'php novakit list';
 
     /**
-     * @param array $options terminal options
+     * @param array $params terminal options
      * 
      * @return int 
     */
@@ -47,7 +47,7 @@ class Lists extends BaseCommand
         return 0;
     }
 
-    public static function listCommands()
+    public static function listCommands(): void 
     {
         $commands = AvailableCommands::getCommands();
         $groupedCommands = [];

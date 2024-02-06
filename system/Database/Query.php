@@ -345,8 +345,10 @@ class Query extends Connection {
 
     /**
      * Set query where and
+     * 
      * @param string $column column name
      * @param mixed $key column key value
+     * 
      * @return Query class instance.
      */
     public function and(string $column, mixed $key): Query
@@ -357,8 +359,9 @@ class Query extends Connection {
 
     /**
      * Set update columns and values
+     * 
      * @param string $column column name
-     * @param string|int $key column key value
+     * @param string|int $value column key value
      * 
      * @return self class instance.
      */
@@ -370,6 +373,7 @@ class Query extends Connection {
 
     /**
      * Set query where or | and or
+     * 
      * @param string $column column name
      * @param mixed $key column key value
      * 
@@ -548,7 +552,8 @@ class Query extends Connection {
 
     /**
      * Select from table,
-     * @param array $rows select columns
+     * 
+     * @param array $columns select columns
      * 
      * @return object|null|array returns selected rows.
      */
@@ -768,7 +773,7 @@ class Query extends Connection {
 
     /**
      * Select on record from table,
-     * @param array $rows select columns
+     * @param array $columns select columns
      * 
      * @return object|null returns selected row.
      */
@@ -849,7 +854,7 @@ class Query extends Connection {
 
     /**
      * Select on record from table,
-     * @param array $rows select columns
+     * @param array $columns select columns
      * 
      * @return int returns selected row.
     */
@@ -1071,6 +1076,7 @@ class Query extends Connection {
      * @param bool $transaction row limit
      * 
      * @return bool returns true if completed
+     * @throws DatabaseException
     */
 
     public function truncate(bool $transaction = true): bool 
@@ -1117,6 +1123,7 @@ class Query extends Connection {
 
     /**
      * Create a new table if it doesn't exist
+     * 
      * @param array $columns table columns and options
      * 
      * @return int returns affected row counts.
@@ -1136,7 +1143,9 @@ class Query extends Connection {
 
     /**
      * Get table column instance 
+     * 
      * @param Columns $column table column instance
+     * 
      * @return int affected row count
      */
     public function create(Columns $column): int 

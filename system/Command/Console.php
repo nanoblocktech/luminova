@@ -22,14 +22,14 @@ class Console
 
     /**
      * Is header suppressed?
-     * @var bool $suppress 
+     * @var bool $noHeader 
     */
     private bool $noHeader = false;
 
     /**
      * Initialize console instance
      * 
-     * @param bool $suppress Suppress header if no header is detected
+     * @param bool $noHeader Suppress header if no header is detected
     */
     public function __construct(bool $noHeader)
     {

@@ -21,7 +21,7 @@ class Template {
      * Access template view options as variable
      * If set to true then options can be access like $name else $this->_name
      * 
-     * @var string $optionsAsVariable 
+     * @var bool $optionsAsVariable 
     */
     public static bool $optionsAsVariable = false;
 

@@ -12,7 +12,8 @@ namespace Luminova\Base;
 
 use Luminova\Controllers\Controller;
 
-abstract class BaseController  extends Controller{
+abstract class BaseController  extends Controller
+{
     
     /**
      * Magic method getter

@@ -49,25 +49,6 @@ class Commands{
         return (int) $runCommand;
     }
 
-
-   
-    public function discoverCommands()
-    {
-        if ($this->commands !== []) {
-            return;
-        }
-
-        asort($this->commands);
-    }
-
-    public function addCommand($name, $description, $usages)
-    {
-        $this->commands[$name] = [
-            'description' => $description,
-            'usages' => $usages,
-        ];
-    }
-
     public static function getCommand(string $command): array
     {
         return AvailableCommands::get($command);
@@ -78,7 +59,7 @@ class Commands{
         return AvailableCommands::has($command) || $command === '-help';
     }
 
-    public static function get(string $command, $key): array
+    public static function get(string $command, string $key): array
     {
         $isCommand = self::getCommand($command);
         return isset($isCommand[$key]) ? $isCommand[$key] : null;

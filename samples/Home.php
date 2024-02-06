@@ -16,10 +16,6 @@ class Home extends BaseController {
     * Extending  Luminova\Controller; in your controller
     * You will have access for request and validation class instance
     */
-    public function __construct()
-    {
-        parent::__construct();
-    }
     
     public function page(): void
     {

@@ -8,8 +8,11 @@
  * @license See LICENSE file
  */
 namespace Luminova\Command;
+
 use Luminova\Command\TextUtils;
-class Colors {
+
+class Colors 
+{
     /**
      * Text Foreground color list
      *

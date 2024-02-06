@@ -191,6 +191,7 @@ class AvailableCommands
     public static function getCommands(): array 
     {
         asort(self::$commands);
+        
         return self::$commands;
     }
 

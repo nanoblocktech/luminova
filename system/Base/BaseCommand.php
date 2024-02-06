@@ -53,7 +53,7 @@ abstract class BaseCommand extends Terminal
      *
      * @param string $key property key
      * 
-     * @return ?mixed return property else null
+     * @return mixed return property else null
     */
     public function __get(string $key): mixed
     {

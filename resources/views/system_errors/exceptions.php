@@ -20,7 +20,7 @@ $errorId = uniqid('error', true);
     <!-- Header -->
     <div class="header">
         <div class="container">
-            <h1><?= htmlspecialchars($this->_title ?? get_class($exception)), htmlspecialchars($exception->getCode() ? ' #' . $exception->getCode() : '') ?></h1>
+            <h1><?= htmlspecialchars($this->_title ?? $exception::class), htmlspecialchars($exception->getCode() ? ' #' . $exception->getCode() : '') ?></h1>
             <p>
                 <?= nl2br(htmlspecialchars($exception->getMessage())) ?>
                 <a href="https://www.duckduckgo.com/?q=<?= urlencode($title . ' ' . preg_replace('#\'.*\'|".*"#Us', '', $exception->getMessage())) ?>"

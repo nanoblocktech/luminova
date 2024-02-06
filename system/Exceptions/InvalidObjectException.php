@@ -16,7 +16,7 @@ class InvalidObjectException extends AppException
     /**
      * Constructor for InvalidObjectException.
      *
-     * @param string     $class   The exception class
+     * @param string     $key   The exception key as message
      * @param int        $code      The exception code (default: 500).
      * @param Exception $previous  The previous exception if applicable (default: null).
      */

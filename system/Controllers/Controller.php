@@ -14,43 +14,69 @@ use App\Controllers\Application;
 use Luminova\Http\Request;
 use Luminova\Security\InputValidator;
 
-class Controller{
+class Controller
+{
     /**
-     * @var Request $request http request object 
+     * HTTP request object 
+     * @var Request $request 
     */
-    protected Request $request;
+    protected ?Request $request = null;
 
     /**
-     * @var InputValidator $validate input validation object 
+     * Input validation object 
+     * @var InputValidator $validate
     */
-    protected InputValidator $validate;
+    protected ?InputValidator $validate = null;
 
     /**
-     * @var Application $app Application instance
+     * Application instance
+     * @var Application $app 
     */
-    protected Application $app;
+    protected ?Application $app = null;
 
     /**
      * Initialize controller
      */
     public function __construct() {
+        $this->request = $this->request();
+        $this->validate = $this->validate();
+        $this->app = $this->app();
+    }
+
+
+    /**
+     * @return Request $request http request object 
+    */
+    public function request(): Request
+    {
+        if($this->request === null){
+            $this->request = new Request();
+        }
+
+        return $this->request;
+    }
+
+    /**
+     * @return InputValidator $validate input validation object 
+    */
+    public function validate(): InputValidator
+    {
+        if($this->validate === null){
+            $this->validate = new InputValidator();
+        }
         
-        /**
-         * Register request
-         * @var Request $this->request request object
-        */
-        $this->request = new Request();
+        return $this->validate;
+    }
 
-        /**
-         * Register input validation
-         * @var InputValidator $this->validate validation object
-        */
-        $this->validate = new InputValidator();
-
-        /**
-         * Initialize application instance
-         * @var Application $this->app
-        */
-        $this->app = new Application(__DIR__);
+    /**
+     * @return Application $app Application instance
+    */
+    public function app(): Application
+    {
+        if($this->app === null){
+            $this->app = new Application(__DIR__);
+        }
+        
+        return $this->app;
     }
 }

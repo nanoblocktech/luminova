@@ -620,7 +620,7 @@ class Router {
                 }
             }else {
                
-                if(Terminal::systemHasCommand($this->commandName, $commands)){
+                if(Terminal::hasCommand($this->commandName, $commands)){
                    $error = true;
                    break;
                 }

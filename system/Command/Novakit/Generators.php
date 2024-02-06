@@ -137,10 +137,6 @@ class Generators extends BaseCommand
         }
     }
 
-    private function createHelper(){
-
-    }
-
     private function saveFile(string $content, string $path): bool 
     {
         $filepath = Configuration::getRootDirectory(__DIR__) . $path;

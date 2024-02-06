@@ -54,7 +54,8 @@ class Cache
     /**
      * Get an instance of the cache engine.
      * @param string $engine The cache engine to use (e.g., self::FILE or self::MEM).
-     * @return FileCache|MemoryCache|object The cache engine instance.
+     * 
+     * @return self self::$instance The cache engine instance.
      */
     public static function getInstance(string $engine = self::FILE): self
     {
