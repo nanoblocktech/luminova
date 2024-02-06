@@ -17,6 +17,14 @@ class Template {
     */
     public const ENGINE = 'default';
 
+   /** 
+     * Access template view options as variable
+     * If set to true then options can be access like $name else $this->_name
+     * 
+     * @var string $optionsAsVariable 
+    */
+    public static bool $optionsAsVariable = false;
+
     /** 
      * Application template file directory path
      * 
@@ -37,5 +45,26 @@ class Template {
      * @var string $assetsFolder 
     */
     public static string $assetsFolder = 'assets';
+
+    /** 
+     * Holds smarty template compile folder
+     * 
+     * @var string $smartyCompileFolder 
+    */
+    public static string $smartyCompileFolder = 'writeable/smarty/compile';
+
+     /** 
+     * Holds template config folder
+     * 
+     * @var string $smartyConfigFolder 
+    */
+    public static string $smartyConfigFolder = 'writeable/smarty/config';
+
+     /** 
+     * Holds template cache folder
+     * 
+     * @var string $smartyCacheFolder 
+    */
+    public static string $smartyCacheFolder = 'writeable/caches/smarty';
     
 }

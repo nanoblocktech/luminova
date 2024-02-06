@@ -202,4 +202,4 @@ class UserController extends BaseController
 
 Creating application template view file
 
-[Template Views](docs/VIEWS.md)
+[Template Views](VIEWS.md)

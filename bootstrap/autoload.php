@@ -9,7 +9,8 @@
 */
 
 require_once __DIR__ . '/../system/plugins/autoload.php';
-
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
 $minPhpVersion = '8.0';
 if (version_compare(PHP_VERSION, $minPhpVersion, '<')) {
     $message = sprintf(

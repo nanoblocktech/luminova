@@ -19,7 +19,8 @@
         "phpstan/phpstan": "^1.10.2",
         "nikic/php-parser": "^4.17.1",
         "rector/rector": "0.18.3",
-        "phpunit/phpunit": "^9.1"
+        "phpunit/phpunit": "^9.1",
+        "smarty/smarty": "^4.3"
     },
     "suggest": {
         "ext-curl": "Needed if you use CURLRequest class",

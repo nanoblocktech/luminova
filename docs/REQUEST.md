@@ -137,4 +137,4 @@ $this->request->getHeaders(): array
 
 Creating and managing application database
 
-[Database Management](docs/DATABASE.md)
+[Database Management](DATABASE.md)

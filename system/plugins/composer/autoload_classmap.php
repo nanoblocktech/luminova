@@ -103,6 +103,7 @@ return array(
     'Luminova\\Sessions\\Session' => $baseDir . '/system/Sessions/Session.php',
     'Luminova\\Sessions\\SessionInterface' => $baseDir . '/system/Sessions/SessionInterface.php',
     'Luminova\\Sessions\\SessionManager' => $baseDir . '/system/Sessions/SessionManager.php',
+    'Luminova\\Template\\Smarty' => $baseDir . '/system/Template/Smarty.php',
     'Luminova\\Template\\Template' => $baseDir . '/system/Template/Template.php',
     'Luminova\\Time\\Task' => $baseDir . '/system/Time/Task.php',
     'Luminova\\Utils\\Queue' => $baseDir . '/system/Utils/Queue.php',

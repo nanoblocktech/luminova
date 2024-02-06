@@ -205,4 +205,4 @@ Executing: `php index.php user name "Peter" id 22`
 
 Creating an application controller classes
 
-[Controller Classes](docs/CONTROLLERS.md)
+[Controller Classes](CONTROLLERS.md)

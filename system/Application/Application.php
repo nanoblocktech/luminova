@@ -14,6 +14,7 @@ use Luminova\Routing\Router;
 use Luminova\Config\DotEnv;
 use Luminova\Template\Template;
 use Luminova\Config\Configuration;
+use App\Controllers\Config\Template as TemplateConfig;
 
 class Application {
     /**
@@ -57,12 +58,7 @@ class Application {
         $this->router->addNamespace('\App\Controllers');
 
         // Initialize the template engine
-        //Configuration::__construct($dir);
-
-        // If the document root is not changed to "public", manually enable the app to use "public" as the default
-        if (Configuration::usePublic()) {
-            $this->setDocumentRoot("public");
-        }
+        $this->initializeTemplate(new TemplateConfig(), $dir);
 
         // Set the project base path
         $this->setBasePath($this->getBasePath());

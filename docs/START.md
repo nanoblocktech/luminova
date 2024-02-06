@@ -34,4 +34,4 @@ php novakit server --php /path/to/php.version
 
 Creating a router and application controllers
 
-[Routing & Controllers](docs/ROUTING.md)
+[Routing & Controllers](ROUTING.md)

@@ -5,7 +5,10 @@ When you pass an array parameter to your `$app->render('foo')->view([...])`, you
 
 To access a class instance you registered in your application controller you don't need underscore `_`, You can just call `$this->MyClass->doSomething()` depending on the name you have registered your class instance with.
 
+If you are using a Smarty template engin or `App\Config\Template::$optionsAsVariable` is set to true, you can access view options as variable name `$foo` instead of `$this->_foo`
+
 ##### Creating A View 
+Luminova supports `Smarty` template engine or default the `PHP` template.
 
 user.php 
 
@@ -16,8 +19,23 @@ user.php
         <title>Luminova User</title>
     </head>
     <body>
-        <h1>Welcome {<?= $this->_name; ?>}</h1>
+        <h1>Welcome <?= $this->_name; ?></h1>
         <a href="<?= $this->_base; ?>">Go Home</a>
+    </body>
+</html>
+```
+
+user.tpl 
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Luminova User</title>
+    </head>
+    <body>
+        <h1>Welcome {$name}</h1>
+        <a href="{$base}">Go Home</a>
     </body>
 </html>
 ```
@@ -51,9 +69,17 @@ ALLOW_ACCESS     | Define if only template class can access and render view     
 $this->_ContentType | Get view content type | Yes
 $this->_optimize  | Get view optimizer state | Yes
 
+#### Template Configuration Class 
+
+Path: `app/Controllers/Config/Template.php`
+
+```php 
+App\Config\Template
+```
+
 
 ## Application Request & Validations
 
 Validating user request and input
 
-[Request Validations](docs/VALIDATION.md)
+[Request Validations](VALIDATION.md)

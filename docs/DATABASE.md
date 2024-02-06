@@ -220,4 +220,4 @@ close(): void | Close database connection
 
 Validating user request and input
 
-[Request Validations](docs/VALIDATION.md)
+[Request Validations](VALIDATION.md)

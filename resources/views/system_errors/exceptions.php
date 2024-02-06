@@ -1,6 +1,7 @@
 <?php
 use Luminova\Http\Request;
 use Luminova\Functions\Functions;
+use Luminova\Config\Configuration;
 $errorId = uniqid('error', true);
 ?>
 <!doctype html>
@@ -13,34 +14,19 @@ $errorId = uniqid('error', true);
     <style>
         <?= preg_replace('#[\r\n\t ]+#', ' ', file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'debug.css')) ?>
     </style>
-
-    <!--<script>
-        <?= file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'debug.js') ?>
-    </script>-->
 </head>
 <body>
 
     <!-- Header -->
     <div class="header">
         <div class="container">
-            <h1><?= htmlspecialchars($this->_title), htmlspecialchars($exception->getCode() ? ' #' . $exception->getCode() : '') ?></h1>
+            <h1><?= htmlspecialchars($this->_title ?? get_class($exception)), htmlspecialchars($exception->getCode() ? ' #' . $exception->getCode() : '') ?></h1>
             <p>
                 <?= nl2br(htmlspecialchars($exception->getMessage())) ?>
                 <a href="https://www.duckduckgo.com/?q=<?= urlencode($title . ' ' . preg_replace('#\'.*\'|".*"#Us', '', $exception->getMessage())) ?>"
                    rel="noreferrer" target="_blank">search &rarr;</a>
             </p>
         </div>
-    </div>
-
-    <!-- Source -->
-    <div class="container">
-        <p><b><?= htmlspecialchars(trim($file)) ?></b> at line <b><?= htmlspecialchars($line) ?></b></p>
-
-        <?php if (is_file($file)) : ?>
-            <div class="source">
-            <?= $file . " = " . $line; /*static::highlightFile($file, $line, 15);*/?>
-            </div>
-        <?php endif; ?>
     </div>
 
     <?php if (defined('SHOW_DEBUG_BACKTRACE') && SHOW_DEBUG_BACKTRACE) : ?>
@@ -89,7 +75,6 @@ $errorId = uniqid('error', true);
 
                                         <?php
                                         $params = null;
-                                        // Reflection by name is not available for closure function
                                         if (substr($row['function'], -1) !== '}') {
                                             $mirror = isset($row['class']) ? new ReflectionMethod($row['class'], $row['function']) : new ReflectionFunction($row['function']);
                                             $params = $mirror->getParameters();
@@ -114,7 +99,6 @@ $errorId = uniqid('error', true);
                             <?php endif; ?>
                         </p>
 
-                        <!-- Source? -->
                         <?php if (isset($row['file']) && is_file($row['file']) && isset($row['class'])) : ?>
                             <div class="source">
                                 <?= static::highlightFile($row['file'], $row['line']) ?>
@@ -162,7 +146,7 @@ $errorId = uniqid('error', true);
 
                 <?php endforeach ?>
 
-                <!-- Constants -->
+       
                 <?php $constants = get_defined_constants(true); ?>
                 <?php if (! empty($constants['user'])) : ?>
                     <h3>Constants</h3>
@@ -301,8 +285,6 @@ $errorId = uniqid('error', true);
             </div>
 
        
-
-            <!-- Files -->
             <div class="content" id="files">
                 <?php $files = get_included_files(); ?>
 
@@ -314,9 +296,9 @@ $errorId = uniqid('error', true);
             </div>
 
 
-        </div>  <!-- /tab-content -->
+        </div> 
 
-    </div> <!-- /container -->
+    </div>
     <?php endif; ?>
 
     <div class="footer">
@@ -325,7 +307,7 @@ $errorId = uniqid('error', true);
             <p>
                 Displayed at <?= htmlspecialchars(date('H:i:sa')) ?> &mdash;
                 PHP: <?= htmlspecialchars(PHP_VERSION) ?>  &mdash;
-                Luminova: <?= htmlspecialchars($this->config::$version) ?> --
+                Luminova: <?= htmlspecialchars(Configuration::$version) ?> --
                 Environment: <?= ENVIRONMENT ?>
             </p>
 

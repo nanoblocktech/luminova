@@ -134,6 +134,7 @@ class ComposerStaticInit9c155849e043191fc1df7e0b46712cd7
         'Luminova\\Sessions\\Session' => __DIR__ . '/../../..' . '/system/Sessions/Session.php',
         'Luminova\\Sessions\\SessionInterface' => __DIR__ . '/../../..' . '/system/Sessions/SessionInterface.php',
         'Luminova\\Sessions\\SessionManager' => __DIR__ . '/../../..' . '/system/Sessions/SessionManager.php',
+        'Luminova\\Template\\Smarty' => __DIR__ . '/../../..' . '/system/Template/Smarty.php',
         'Luminova\\Template\\Template' => __DIR__ . '/../../..' . '/system/Template/Template.php',
         'Luminova\\Time\\Task' => __DIR__ . '/../../..' . '/system/Time/Task.php',
         'Luminova\\Utils\\Queue' => __DIR__ . '/../../..' . '/system/Utils/Queue.php',

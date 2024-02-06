@@ -67,4 +67,4 @@ Upload your project version which is located on `builds/v-{*.*}` folder, to your
 
 Creating and running applications
 
-[Running Application](docs/START.md)
+[Running Application](START.md)

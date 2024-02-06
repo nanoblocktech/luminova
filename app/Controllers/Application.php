@@ -16,6 +16,7 @@ class Application extends BaseApplication  {
      * @var Session $session;
      * protected $session;
     */
+    protected $smarty;
     public function __construct(string $dir = __DIR__){
         /**
          *  Initialize session manager if you want to make use of sessions
@@ -36,7 +37,6 @@ class Application extends BaseApplication  {
         * @example $this->registerClass("MyClass", new MyClass(arguments));
         * @example this->registerClass(new MyClass(arguments));
         */
-
 
         parent::__construct($dir);
 

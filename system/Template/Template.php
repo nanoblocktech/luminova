@@ -16,12 +16,13 @@ use Luminova\Exceptions\InvalidObjectException;
 use Luminova\Exceptions\InvalidException; 
 use Luminova\Cache\Compress;
 use Luminova\Cache\Optimizer;
+use Luminova\Template\Smarty;
 use Luminova\Config\Configuration;
 use App\Controllers\Config\Template as TemplateConfig;
-use \Exception;
 use Luminova\Exceptions\AppException; 
 
-trait Template { 
+trait Template 
+{ 
     /** 
      * Holds the project base directory
      * 
@@ -169,26 +170,41 @@ trait Template {
     */
     private bool $optimizeBase = true;
 
-     /**
+    /**
      * Should ignore codeblock minification
      * 
      * @var bool $ignoreCodeblock 
     */
     private bool $ignoreCodeblock = false;
 
+    /**
+     * Should access options as variable
+     * 
+     * @var bool $optionsAsVariable 
+    */
+    private bool $optionsAsVariable = false;
+
 
     /** 
-    * Initialize class construct
+    * Initialize template
     *
+    * @param TemplateConfig $config template config
     * @param string $dir template base directory
+    *
+    * @return void
     */
-    public function __construct(string $dir =__DIR__)
+    public function initializeTemplate(TemplateConfig $config, string $dir =__DIR__): void
     {
         $this->baseTemplateDir = Configuration::getRootDirectory($dir);
-        $this->templateEngin = TemplateConfig::ENGINE;
-        $this->templateFolder = TemplateConfig::$templateFolder;
-        $this->optimizerFolder = TemplateConfig::$optimizerFolder;
-        $this->assetsFolder = TemplateConfig::$assetsFolder;
+        $this->templateEngin = $config::ENGINE;
+        $this->templateFolder = $config::$templateFolder;
+        $this->optimizerFolder = $config::$optimizerFolder;
+        $this->assetsFolder = $config::$assetsFolder;
+        $this->optionsAsVariable = $config::$optionsAsVariable;
+        if (Configuration::usePublic()) {
+            // If the document root is not changed to "public", manually enable the app to use "public" as the default
+            $this->setDocumentRoot("public");
+        }
     }
     
 
@@ -618,53 +634,33 @@ trait Template {
             if (!file_exists($this->templateFile)) {
                 throw new ViewNotFoundException($this->activeView);
             }
-            /* if($this->templateEngin === 'smarty'){
-            $smarty = new \Smarty\Smarty();
-            $smarty->setTemplateDir($this->templateDir);
-            // $smarty->setCompileDir('templates_c');
-            // $smarty->setConfigDir('configs');
-            $smarty->setCacheDir($this->optimizerFile);
 
-            // Set options (optional)
-            $smarty->caching = Configuration::getVariables("enable.optimize.page");
-            //$smarty->compile_check = true; 
-
-            foreach($options as $k => $v){
-                $smarty->assign($k, $v);
-            }
-            $smarty->display($this->activeView . '.tpl');
-            }else{*/
-                /*
-                    can access key as variable
-                    extract($options);
-                */
-                $this->setAttributes($options);
-                
-            //}
-
-        
             // Set the project script execution time
             set_time_limit(Configuration::getInt("script.execution.limit", 90));
             // Set cache control for application cache
             ignore_user_abort(Configuration::getBoolean('script.ignore.abort', true));
             // Set output handler
             ob_start(Configuration::getMixedNull('script.ob.handler', null));
-
-           
-
-            if ($this->shouldOptimize()) {
-                $shouldSaveCache = true;
-                $optimizer = new Optimizer(Configuration::getVariables("page.optimize.expiry"), $this->optimizerFile);
-                $optimizer->setKey($this->getTemplateBaseUri());
-                if ($optimizer->hasCache() && $optimizer->getCache()) {
-                    exit(0);
+            
+            if($this->templateEngin === 'smarty'){
+                $smarty = new Smarty($this->getRootDir());
+                $smarty->setDirectories(
+                    $this->templateDir, 
+                    TemplateConfig::$smartyCompileFolder,
+                    TemplateConfig::$smartyConfigFolder,
+                    TemplateConfig::$smartyCacheFolder
+                );
+                $smarty->assignOptions($options);
+                $smarty->caching($this->shouldOptimize());
+                $smarty->display($this->activeView . $this->getTemplateEngin());
+                exit(0);
+            }else{
+                if($this->optionsAsVariable){
+                    // can access options as variable
+                    extract($options);
+                }else{
+                    $this->setAttributes($options);
                 }
-            }
-
-            $metaTag = $this->getClass('Meta');
-
-            if($metaTag !== null && is_object($metaTag)){
-                $metaTag->setTitle($this->_title ?? '');
             }
 
             /**
@@ -679,6 +675,21 @@ trait Template {
                 exit(0);
             }
 
+            if ($this->shouldOptimize()) {
+                $shouldSaveCache = true;
+                $optimizer = new Optimizer(Configuration::getVariables("page.optimize.expiry"), $this->optimizerFile);
+                $optimizer->setKey($this->getTemplateBaseUri());
+                if ($optimizer->hasCache() && $optimizer->getCache()) {
+                    exit(0);
+                }
+            }
+
+            $metaTag = $this->getClass('Meta');
+            if($metaTag !== null && is_object($metaTag)){
+                $metaTag->setTitle($options['title'] ?? '');
+            }
+
+           
             include_once $this->templateFile;
             $viewContents = ob_get_clean();
             if(Configuration::getBoolean("enable.compression")){
@@ -954,7 +965,9 @@ trait Template {
         }*/
 
         $exceptionView = $this->getBaseErrorViewFolder('exceptions');
-        @include_once $exceptionView;
+
+        include_once $exceptionView;
+
         $exception->logException();
     }
     
@@ -988,6 +1001,7 @@ trait Template {
         if (strpos($title, "| {$appName}") === false) {
             $title = " {$title} | {$appName}";
         }
+
         return trim($title);
     }
     
