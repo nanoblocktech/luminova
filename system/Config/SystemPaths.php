@@ -9,7 +9,7 @@
  */
 namespace Luminova\Config;
 
-class SystemPaths {
+abstract class SystemPaths {
      /**
      * SYSTEM FOLDER NAME
      */

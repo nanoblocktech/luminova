@@ -9,7 +9,9 @@
  */
 namespace Luminova\Config;
 
-class Configuration {
+abstract class Configuration 
+{
+    public const DS = DIRECTORY_SEPARATOR; 
     /**
     * @var string $version version name
     */
@@ -37,11 +39,12 @@ class Configuration {
      * @param string $propertyName The name of the property to retrieve.
      * @return mixed
      */
-    public function __get(string $propertyName): mixed {
-        $data = self::getVariables($propertyName);
+    public function __get(string $propertyName): mixed 
+    {
+        $data = self::get($propertyName);
 
         if ($data === null) {
-            $data = self::getVariables(self::variableToNotation($propertyName, ".")) ?? self::getVariables(self::variableToNotation($propertyName, "_")) ?? "";
+            $data = self::get(self::variableToNotation($propertyName, ".")) ?? self::get(self::variableToNotation($propertyName, "_")) ?? "";
         }
 
         return $data;
@@ -55,7 +58,7 @@ class Configuration {
      */
     public static function appName(): string 
     {
-        return self::getVariables("app.name");
+        return self::getString("app.name");
     }
 
     /**
@@ -65,7 +68,7 @@ class Configuration {
      */
     public static function hostName(): string 
     {
-        return self::getVariables("app.hostname");
+        return self::getString("app.hostname");
     }
 
     /**
@@ -75,7 +78,7 @@ class Configuration {
      */
     public static function baseUrl(): string 
     {
-        return self::getVariables("app.base.url");
+        return self::getString("app.base.url");
     }
 
     /**
@@ -85,7 +88,7 @@ class Configuration {
      */
     public static function baseWwwUrl(): string 
     {
-        return self::getVariables("app.base.www.url");
+        return self::getString("app.base.www.url");
     }
 
     /**
@@ -95,7 +98,7 @@ class Configuration {
      */
     public static function appVersion(): string 
     {
-        return (string)self::getVariables("app.version");
+        return self::getString("app.version");
     }
 
     /**
@@ -105,7 +108,7 @@ class Configuration {
      */
     public static function fileVersion(): string 
     {
-        return (string)self::getVariables("app.file.version");
+        return self::getString("app.file.version");
     }
 
     /**
@@ -115,7 +118,7 @@ class Configuration {
      */
     public static function shouldMinify(): int 
     {
-        return (int)self::getVariables("build.minify");
+        return (int)self::get("build.minify");
     }
 
     /**
@@ -153,7 +156,7 @@ class Configuration {
     */
     public static function getEnvironment(): string
     {
-        return self::getVariables("app.environment.mood");
+        return self::getString("app.environment.mood");
     }
 
     /**
@@ -215,29 +218,49 @@ class Configuration {
     /**
      * Get the root directory.
      *
+     * @param string $directory The directory to start searching for composer.json or system directory.
+     * 
+     * @return string
+     */
+    public static function root(string $directory = __DIR__, string $suffix = ''): string
+    {
+        $path = realpath($directory);
+
+        if ($path === false) {
+            //throw new \InvalidArgumentException("Directory '{$directory}' does not exist or is inaccessible.");
+            return $suffix; 
+        }
+
+        do {
+            if (file_exists($path . self::DS . 'composer.json')) {
+                if(str_starts_with($suffix, self::DS)){
+                    return $path . $suffix;
+                }
+
+                return $path . self::DS . $suffix;
+            }
+            
+            $parent = dirname($path);
+            if ($parent === $path) {
+                //throw new \RuntimeException("{$base} not found in '{$directory}' or any parent directory.");
+                return $suffix;
+            }
+
+            $path = $parent;
+        } while (true);
+    }
+
+     /**
+     * Get the root directory.
+     *
      * @param string $directory The directory to start searching for composer.json.
+     * 
+     * @deprecated This method has been deprecated use root($directory, $suffix) instead
      * @return string|null
      */
     public static function getRootDirectory(string $directory): ?string
     {
-        $currentDirectory = realpath($directory);
-
-        if ($currentDirectory === false) {
-            return null; 
-        }
-
-        do {
-            if (file_exists($currentDirectory . '/composer.json')) {
-                return $currentDirectory;
-            }
-            
-            $parentDirectory = dirname($currentDirectory);
-            if ($parentDirectory === $currentDirectory) {
-                return null;
-            }
-
-            $currentDirectory = $parentDirectory;
-        } while (true);
+        return self::root($directory);
     }
 
 
@@ -245,23 +268,25 @@ class Configuration {
      * Filter the path to match to allowed in error directories preview.
      *
      * @param string $path The path to be filtered.
+     * 
      * @return string
      */
     public static function filterPath(string $path): string 
     {
-        $matchingDirectory = '';
+        $matching = '';
 
         foreach (self::$allowPreviews as $directory) {
-            $directoryWithSlash = $directory . '/';
-            if (strpos($path, $directoryWithSlash) !== false) {
-                $matchingDirectory = $directoryWithSlash;
+            $separator = $directory . self::DS; //'/'
+            if (strpos($path, $separator) !== false) {
+                $matching = $separator;
                 break;
             }
         }
 
-        if ($matchingDirectory) {
-            $resultingPath = substr($path, strpos($path, $matchingDirectory));
-            return $resultingPath;
+        if ($matching !== '') {
+            $filter = substr($path, strpos($path, $matching));
+
+            return $filter;
         } else {
             return basename($path);
         }
@@ -275,21 +300,77 @@ class Configuration {
      * 
      * @return mixed
      */
-    public static function getVariables(string $key, mixed $default = null): mixed 
+    public static function get(string $key, mixed $default = null): mixed 
     {
         if (getenv($key) !== false) {
             return getenv($key);
         }
 
-        if (!empty($_ENV[$key])) {
+        if (isset($_ENV[$key])) {
             return $_ENV[$key];
         }
 
-        if (!empty($_SERVER[$key])) {
+        if (isset($_SERVER[$key])) {
             return $_SERVER[$key];
         }
 
         return $default;
+    }
+
+    /**
+     * Set an environment variable if it doesn't already exist.
+     *
+     * @param string $name The name of the environment variable.
+     * @param string $value The value of the environment variable.
+     * 
+     * @return void
+     */
+    public static function set(string $name, string $value): void
+    {
+        if (!getenv($name, true)) {
+            putenv("{$name}={$value}");
+        }
+
+        if (empty($_ENV[$name])) {
+            $_ENV[$name] = $value;
+        }
+
+        if (empty($_SERVER[$name])) {
+            $_SERVER[$name] = $value;
+        }
+    }
+
+    /**
+     * Get environment configuration variables.
+     *
+     * @param string $key The key to retrieve.
+     * @param mixed $default The default value to return if the key is not found.
+     * 
+     * @deprecated This method will be removed in the next major release use get instead
+     * @return mixed
+     */
+    public static function getVariables(string $key, mixed $default = null): mixed 
+    {
+        return self::get($key, $default);
+    }
+
+    /**
+     * Get environment configuration variables.
+     *
+     * @param string $key The key to retrieve.
+     * @param string $default The default value to return if the key is not found.
+     * 
+     * @return string
+     */
+    public static function getString(string $key, string $default = ''): string 
+    {
+        $value = self::get($key, $default);
+        
+        if( $value === null){
+            return '';
+        }
+
+        return (string) $value;
     }
 
     /**
@@ -301,7 +382,7 @@ class Configuration {
     */
     public static function getInt(string $key, int $default = 0): int
     {
-        $value = self::getVariables($key, $default);
+        $value = self::get($key, $default);
         return (int) $value;
     }
 
@@ -314,7 +395,7 @@ class Configuration {
     */
     public static function getBoolean(string $key, bool $default = false): bool
     {
-        $value = self::getVariables($key, $default);
+        $value = self::get($key, $default);
 
         if (is_bool($value)) {
             return $value;
@@ -337,7 +418,7 @@ class Configuration {
     */
     public static function getMixedNull(string $key, mixed $default = null): mixed
     {
-        $value = self::getVariables($key, $default);
+        $value = self::get($key, $default);
 
         if ($value === '' || $value === []) {
             return null;

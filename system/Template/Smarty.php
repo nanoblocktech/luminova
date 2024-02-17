@@ -14,7 +14,8 @@ use \Exception;
 use \SmartyException;
 use Luminova\Exceptions\AppException; 
 
-class Smarty {
+class Smarty 
+{
 
     /**
      * @var SmartyTemplate $smarty

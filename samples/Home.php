@@ -9,16 +9,16 @@
  */
 namespace App\Controllers;
 
-use Luminova\Base\BaseController;
+use \Luminova\Base\BaseViewController;
 
-class Home extends BaseController {
-    /**
-    * Extending  Luminova\Controller; in your controller
-    * You will have access for request and validation class instance
-    */
-    
+class Home extends BaseViewController 
+{
+    /** @var \ Luminova\Http\Request $this->request() */
+    /** @var \ Luminova\Application $this->app() */
+    /** @var \Luminova\Security\InputValidator $this->validate() */
+
     public function page(): void
     {
-        $this->app->render("index")->view();
+        $this->app()->render("index")->view();
     }
 }

@@ -9,7 +9,8 @@
  */
 namespace Luminova\Cache;
 
-class FileCacheItem {
+class FileCacheItem 
+{
     /**
      * @var int $expiry
     */
@@ -31,7 +32,8 @@ class FileCacheItem {
      * @param int $expiry The expiration time in seconds.
      * @return self
     */
-    public function setExpiry(int $expiry): self {
+    public function setExpiry(int $expiry): self 
+    {
         $this->expiry = $expiry;
         return $this;
     }
@@ -42,7 +44,8 @@ class FileCacheItem {
      * @param bool $lock The lock status (true for locked, false for unlocked).
      * @return self
     */
-    public function setLock(bool $lock): self {
+    public function setLock(bool $lock): self 
+    {
         $this->lock = $lock;
         return $this;
     }
@@ -53,7 +56,8 @@ class FileCacheItem {
      * @param mixed $data The data to be cached.
      * @return self
     */
-    public function setData(mixed $data): self {
+    public function setData(mixed $data): self 
+    {
         $this->data = $data;
         return $this;
     }
@@ -63,7 +67,8 @@ class FileCacheItem {
      *
      * @return int The expiration time in seconds.
     */
-    public function getExpiry(): int {
+    public function getExpiry(): int 
+    {
         return $this->expiry;
     }
 
@@ -72,7 +77,8 @@ class FileCacheItem {
      *
      * @return bool The lock status (true if locked, false if unlocked).
     */
-    public function getLock(): bool {
+    public function getLock(): bool 
+    {
         return $this->lock;
     }
 
@@ -81,7 +87,8 @@ class FileCacheItem {
      *
      * @return mixed The cached data.
     */
-    public function getData(): mixed {
+    public function getData(): mixed 
+    {
         return $this->data;
     }
 }

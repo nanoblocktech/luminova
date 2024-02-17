@@ -9,7 +9,10 @@
  */
 namespace Luminova\Routing;
 
-class Bootstrap {
+use Luminova\Base\BaseApplication;
+
+class Bootstrap 
+{
     /** 
      * Default WEB controller type
      * @var string WEB
@@ -35,19 +38,19 @@ class Bootstrap {
     public const CONSOLE = 'console';
 
     /**
-     * @var string $type
+     * @var string $name
     */
-    private string $type;
+    private string $name = '';
 
     /**
-     * @var callable $callback
+     * @var callable $onError
     */
-    private $callback;
+    private $onError = null;
 
     /**
-     * @var callable $error
+     * @var BaseApplication $app
     */
-    private $error = null;
+    private ?BaseApplication $app = null;
 
     /**
      * @var array $instances
@@ -56,45 +59,48 @@ class Bootstrap {
 
     /**
      *
-     * @param string  $type  Bootstrap callback type
-     * @param callable $callback Bootstrap Callback function to execute
-     * @param ?callable $error Bootstrap Callback function to execute
+     * @param string  $name  Bootstrap route name
+     * @param BaseApplication $app Application instance
+     * @param ?callable $onError Bootstrap Callback function to execute
      */
-    public function __construct(string $type, callable $callback, ?callable $error = null) {
-        $this->type = $type;
-        $this->callback = $callback;
-        $this->error = $error;
-        
-        if( $type !== self::WEB){
-            static::$instances[] = $type;
+    public function __construct(string $name, BaseApplication $app, ?callable $onError = null) {
+        $this->name = $name;
+        $this->onError = $onError;
+        $this->app = $app;
+
+        if( $name !== self::WEB){
+            static::$instances[] = $name;
         }
     }
 
     /**
-     * Get bootstrap controller instance type
-     * @return string $type route instance type
+     * Get bootstrap route name
+     * 
+     * @return string $this->name route instance type
     */
-    public function getType(): string 
+    public function getName(): string 
     {
-        return $this->type;
+        return $this->name;
     }
 
     /**
-     * Get bootstrap controller callback function to execute
-     * @return callable $callback 
+     * Get application instance
+     * 
+     * @return BaseApplication $this->app; 
     */
-    public function getFunction(): callable 
+    public function getApplication(): BaseApplication 
     {
-        return $this->callback;
+        return $this->app;
     }
 
     /**
      * Get bootstrap controller error callback handler
-     * @return callable|null $callback 
+     * 
+     * @return ?callable $this->onError 
     */
     public function getErrorHandler(): ?callable 
     {
-        return $this->error;
+        return $this->onError;
     }
 
     /**

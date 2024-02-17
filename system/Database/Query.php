@@ -10,8 +10,8 @@
 namespace Luminova\Database;
 use Luminova\Database\Connection;
 use \Luminova\Exceptions\DatabaseException;
-use \Luminova\Cache\FileSystemCache;
-use \Luminova\Config\Configuration;
+use \Luminova\Cache\FileCache;
+use \Luminova\Base\BaseConfig;
 use \Luminova\Database\Results\Statements;
 
 //use \Luminova\Arrays\ArrayCountable;
@@ -98,9 +98,9 @@ class Query extends Connection {
 
     /**
     * Cache class instance
-    * @var FileSystemCache $cache 
+    * @var FileCache $cache 
     */
-    private ?FileSystemCache $cache = null;
+    private ?FileCache $cache = null;
 
     /**
     * Cache key
@@ -485,8 +485,12 @@ class Query extends Connection {
      * Get the storage location and configuration.
      * @return string path
      */
-    private function getFilepath(): string {
-        return  Configuration::getRootDirectory(__DIR__) . DIRECTORY_SEPARATOR . "writeable" . DIRECTORY_SEPARATOR . "caches" . DIRECTORY_SEPARATOR . "database" . DIRECTORY_SEPARATOR;
+    private function getFilepath(): string 
+    {
+        $suffix =  DIRECTORY_SEPARATOR . "writeable" . DIRECTORY_SEPARATOR . "caches";
+        $suffix .= DIRECTORY_SEPARATOR . "database" . DIRECTORY_SEPARATOR;
+
+        return  BaseConfig::root(__DIR__, $suffix);
     }
 
     /**
@@ -501,7 +505,7 @@ class Query extends Connection {
     public function cache(string $key, string $storage = null, int $expiry = 7 * 24 * 60 * 60): self
     {
         $storage = $storage === null ? 'database_' . $this->databaseTable ?? 'capture' : $storage;
-        $this->cache = FileSystemCache::getInstance();
+        $this->cache = FileCache::getInstance();
         $this->cache->setEnableCache(true);
         $this->cache->setExpire($expiry);
         $this->cache->setFilename($storage);

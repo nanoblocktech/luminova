@@ -11,7 +11,7 @@ namespace Luminova\Logger;
 
 use Psr\Log\LogLevel;
 use Psr\Log\AbstractLogger;
-use Luminova\Config\Configuration;
+use Luminova\Base\BaseConfig;
 use \DateTime;
 
 class NovaLogger extends AbstractLogger
@@ -52,7 +52,10 @@ class NovaLogger extends AbstractLogger
     */
     public function __construct(string $path = '', string $extension = '.log')
     {
-        $this->path = $path  === '' ? Configuration::getRootDirectory(__DIR__) . '/writeable/log/' : $path;
+        $ds = DIRECTORY_SEPARATOR;
+        $suffix =  $ds .  'writeable' . $ds . 'log' .  $ds;
+
+        $this->path = $path  === '' ? BaseConfig::root(__DIR__, $suffix) : $path;
         $this->extension = $extension;
     }
 

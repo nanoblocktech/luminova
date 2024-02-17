@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Luminova Framework
  *
@@ -72,21 +71,21 @@ class Cache
      *
      * @param string $engine The cache engine to create (e.g., self::FILE or self::MEM).
      *
-     * @return FileSystemCache|MemoryCache|object The cache engine instance.
+     * @return FileCache|MemoryCache|object The cache engine instance.
      * @throws ClassException When the Memcached class is not available for the MemoryCache.
      */
     private static function createCacheInstance(string $engine): object
     {
         switch ($engine) {
             case self::MEM:
-                if (class_exists('Memcached')) {
+                if (class_exists('\Memcached')) {
                     return new MemoryCache();
                 } else {
-                    throw new ClassException('Memcached');
+                    throw new ClassException('Memcached does not exist');
                 }
             case self::FILE:
             default:
-                return new FileSystemCache();
+                return new FileCache();
         }
     }
 }

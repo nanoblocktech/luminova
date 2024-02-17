@@ -8,8 +8,9 @@
  * @license See LICENSE file
  */
 namespace App\Controllers\Config;
+
 use Luminova\Config\Configuration;
 
-class MyConfiguration extends Configuration{
-
+class Config extends Configuration
+{
 }

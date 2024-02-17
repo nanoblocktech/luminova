@@ -8,8 +8,9 @@
  * @license See LICENSE file
  */
 namespace Luminova\Composer;
-use Luminova\Config\Configuration;
-class BaseComposer extends Configuration
+use Luminova\Base\BaseConfig;
+
+class BaseComposer extends BaseConfig
 {
     /**
      * @param int $totalSteps

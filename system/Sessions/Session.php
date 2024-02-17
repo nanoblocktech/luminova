@@ -8,10 +8,11 @@
  * @license See LICENSE file
  */
 namespace Luminova\Sessions;
-use Luminova\Sessions\SessionInterface;
-use App\Controllers\Config\Session as SessionConfig;
-use Psr\Log\LoggerInterface;
-use Luminova\Logger\NovaLogger;
+use \Luminova\Sessions\SessionInterface;
+use \App\Controllers\Config\Session as SessionConfig;
+use \Psr\Log\LoggerInterface;
+use \Luminova\Logger\NovaLogger;
+use \Luminova\Sessions\SessionManager;
 
 class Session 
 {
@@ -19,7 +20,7 @@ class Session
      * session interface
      * @var SessionInterface $manager
     */
-    protected SessionInterface $manager;
+    protected ?SessionInterface $manager = null;
 
     /**
      * logger interface
@@ -44,11 +45,11 @@ class Session
      *
      * @param SessionInterface $manager The session manager.
     */
-    public function __construct(SessionInterface $manager)
+    public function __construct(SessionInterface $manager = null)
     {
         $this->config = new SessionConfig();
-        $this->manager = $manager;
-    }
+        $this->manager = $manager ?? new SessionManager();
+    }    
 
     /**
      * Get an instance of the Session class.
@@ -115,6 +116,16 @@ class Session
     public function setManager(SessionInterface $manager): void
     {
         $this->manager = $manager;
+    }
+
+    /**
+     * Get the session manager.
+     *
+     * @return SessionInterface $this->manager 
+    */
+    public function getManager(): ?SessionInterface
+    {
+        return $this->manager;
     }
 
     /**

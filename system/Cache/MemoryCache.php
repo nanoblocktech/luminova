@@ -10,22 +10,22 @@
 namespace Luminova\Cache;
 use \Memcached;
 
-class MemoryCache {
+class MemoryCache 
+{
     /**
      * @var int Default cache time duration in seconds.
      */
-    private $cacheTime = 60;
+    private int $cacheTime = 60;
 
     /**
      * @var array Memcached server configuration.
      */
-    private $config = [];
-
+    private array $config = [];
 
     /**
      * @var Memcached Memcached instance
     */
-    private Memcached $memcache;
+    private ?Memcached $memcache = null;
 
     /**
      * MemoryCache constructor.
@@ -39,9 +39,11 @@ class MemoryCache {
      *
      * @param string $host Memcached server host.
      * @param int $port Memcached server port.
-     * @return MemoryCache
+     * 
+     * @return self
      */
-    public function setConfig(string $host = "localhost", int $port = 11211): MemoryCache {
+    public function setConfig(string $host = "localhost", int $port = 11211): self 
+    {
         $this->config[] = [
             "host" => $host,
             "port" => $port,
@@ -53,9 +55,10 @@ class MemoryCache {
      * Set Memcached server configuration from an array.
      *
      * @param array $config Memcached server configuration array.
-     * @return MemoryCache
+     * @return self
      */
-    public function addConfig(array $config): MemoryCache {
+    public function addConfig(array $config): self 
+    {
         $this->config = $config;
         return $this;
     }
@@ -63,9 +66,10 @@ class MemoryCache {
     /**
      * Initialize the Memcached engine with the configured servers.
      *
-     * @return MemoryCache
+     * @return self
      */
-    public function connect(): MemoryCache {
+    public function connect(): self 
+    {
         if (empty($this->config) || !is_array($this->config)) {
             return $this;
         }
@@ -81,9 +85,11 @@ class MemoryCache {
      * Set the cache expiration time duration in seconds.
      *
      * @param int $time Cache expiration time in seconds.
-     * @return MemoryCache
+     * 
+     * @return self
      */
-    public function setExpire(int $time = 60): MemoryCache {
+    public function setExpire(int $time = 60): self 
+    {
         $this->cacheTime = $time;
         return $this;
     }
@@ -110,7 +116,8 @@ class MemoryCache {
      * 
      * @return mixed Cached or generated data.
      */
-    public function withExpired(string $key, callable $cacheCallback, int $expiration): mixed {
+    public function withExpired(string $key, callable $cacheCallback, int $expiration): mixed 
+    {
         $cachedResponse = $this->memcache->get($key);
 
         if ($cachedResponse !== false) {
@@ -132,7 +139,8 @@ class MemoryCache {
      * @param int $expiration Cache expiration time in seconds.
      * @return bool True on success, false on failure.
      */
-    public function writeCache(string $key, mixed $value, int $expiration): bool {
+    public function writeCache(string $key, mixed $value, int $expiration): bool 
+    {
         return $this->memcache->set($key, $value, $expiration);
     }
 
@@ -142,7 +150,8 @@ class MemoryCache {
      * @param string $key Cache key to remove.
      * @return bool True on success, false on failure.
      */
-    public function remove(string $key): bool {
+    public function remove(string $key): bool 
+    {
         $this->memcache->delete($key);
         return true;
     }
@@ -153,21 +162,24 @@ class MemoryCache {
      * @param array $array Array of cache keys to remove.
      * @return void
      */
-    public function removeList(array $array): void {
+    public function removeList(array $array): void 
+    {
         $this->memcache->deleteMulti($array);
     }
 
     /**
      * Clear the entire cache.
      */
-    public function clearCache(): void {
+    public function clearCache(): void 
+    {
         $this->memcache->flush();
     }
 
     /**
      * Close the Memcached connection.
      */
-    public function close(): void {
+    public function close(): void 
+    {
         $this->memcache->quit();
     }
 }

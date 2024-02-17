@@ -8,7 +8,8 @@
  * @license See LICENSE file
  */
 namespace App\Controllers;
-use Luminova\Base\BaseController;
+
+use \Luminova\Base\BaseController;
 use App\Controllers\Models\UserModel;
 
 class UserController extends BaseController
@@ -17,4 +18,9 @@ class UserController extends BaseController
     /** @var \ Luminova\Application $this->app */
     /** @var \Luminova\Security\InputValidator $this->validate */
 
+
+    public function page(): void
+    {
+        $this->app->render("index")->view();
+    }
 }

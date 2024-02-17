@@ -17,7 +17,7 @@ use Luminova\Exceptions\InvalidException;
 use Luminova\Cache\Compress;
 use Luminova\Cache\Optimizer;
 use Luminova\Template\Smarty;
-use Luminova\Config\Configuration;
+use Luminova\Base\BaseConfig;
 use App\Controllers\Config\Template as TemplateConfig;
 use Luminova\Exceptions\AppException; 
 
@@ -195,13 +195,13 @@ trait Template
     */
     public function initializeTemplate(TemplateConfig $config, string $dir =__DIR__): void
     {
-        $this->baseTemplateDir = Configuration::getRootDirectory($dir);
+        $this->baseTemplateDir = BaseConfig::root($dir);
         $this->templateEngin = $config::ENGINE;
         $this->templateFolder = $config::$templateFolder;
         $this->optimizerFolder = $config::$optimizerFolder;
         $this->assetsFolder = $config::$assetsFolder;
         $this->optionsAsVariable = $config::$optionsAsVariable;
-        if (Configuration::usePublic()) {
+        if (BaseConfig::usePublic()) {
             // If the document root is not changed to "public", manually enable the app to use "public" as the default
             $this->setDocumentRoot("public");
         }
@@ -238,6 +238,26 @@ trait Template
         } 
 
         return $this->{$key} ?? null;
+    }
+
+    /** 
+    * Check if class registered 
+    *
+    * @param string $class object class name 
+    *
+    * @return bool If class is registered
+    */
+    public function hasClass(string $class): bool 
+    {
+        if (isset($this->classes[$class]) && is_object($this->classes[$class])) {
+            return true;
+        } 
+
+        if (isset($this->{$class}) && is_object($this->{$class})) {
+            return true;
+        } 
+
+        return false;
     }
 
     /** 
@@ -406,7 +426,7 @@ trait Template
     */
     public function redirect(string $viewName = ''): void 
     {
-        $to = Configuration::baseUrl();
+        $to = BaseConfig::baseUrl();
         if ($viewName !== '' && $viewName !== '/') {
             $to .= '/' . $viewName;
         }
@@ -559,7 +579,7 @@ trait Template
     public function cache(string $cacheKey, ?int $expiry = null): self 
     {
         $this->responseCacheKey = $cacheKey;
-        $this->responseCacheExpiry = $expiry ?? Configuration::getVariables("page.optimize.expiry");
+        $this->responseCacheExpiry = $expiry ?? BaseConfig::get("page.optimize.expiry");
         return $this;
     }
 
@@ -579,11 +599,11 @@ trait Template
         $saveContent = $content;
         $saveInfo = [];
         // Set the project script execution time
-        set_time_limit(Configuration::getInt("script.execution.limit", 90));
+        set_time_limit(BaseConfig::getInt("script.execution.limit", 90));
         // Set cache control for application cache
-        ignore_user_abort(Configuration::getBoolean('script.ignore.abort', true));
+        ignore_user_abort(BaseConfig::getBoolean('script.ignore.abort', true));
         // Set output handler
-        ob_start(Configuration::getMixedNull('script.ob.handler', null));
+        ob_start(BaseConfig::getMixedNull('script.ob.handler', null));
 
         if ($this->responseCacheKey !== null) {
             $shouldSaveCache = true;
@@ -597,7 +617,7 @@ trait Template
             }
         }
 
-        if(Configuration::getBoolean("enable.compression")){
+        if(BaseConfig::getBoolean("enable.compression")){
             $compress = $this->renderWithMinification($content, $type);
             $result = 0;
             $saveContent = $compress->getMinified();
@@ -636,11 +656,11 @@ trait Template
             }
 
             // Set the project script execution time
-            set_time_limit(Configuration::getInt("script.execution.limit", 90));
+            set_time_limit(BaseConfig::getInt("script.execution.limit", 90));
             // Set cache control for application cache
-            ignore_user_abort(Configuration::getBoolean('script.ignore.abort', true));
+            ignore_user_abort(BaseConfig::getBoolean('script.ignore.abort', true));
             // Set output handler
-            ob_start(Configuration::getMixedNull('script.ob.handler', null));
+            ob_start(BaseConfig::getMixedNull('script.ob.handler', null));
             
             if($this->templateEngin === 'smarty'){
                 $smarty = new Smarty($this->getRootDir());
@@ -669,7 +689,7 @@ trait Template
              * If the application is in maintenance load maintenance and exit immediately
              * instead of starting the framework, which could cause an exception.
             */
-            if(Configuration::isMaintenance()){
+            if(BaseConfig::isMaintenance()){
                 $maintenanceView = $this->getBaseErrorViewFolder('maintenance');
                 include_once $maintenanceView;
                 exit(0);
@@ -677,28 +697,26 @@ trait Template
 
             if ($this->shouldOptimize()) {
                 $shouldSaveCache = true;
-                $optimizer = new Optimizer(Configuration::getVariables("page.optimize.expiry"), $this->optimizerFile);
+                $optimizer = new Optimizer(BaseConfig::get("page.optimize.expiry"), $this->optimizerFile);
                 $optimizer->setKey($this->getTemplateBaseUri());
                 if ($optimizer->hasCache() && $optimizer->getCache()) {
                     exit(0);
                 }
             }
 
-            $metaTag = $this->getClass('Meta');
-            if($metaTag !== null && is_object($metaTag)){
-                $metaTag->setTitle($options['title'] ?? '');
+            if($this->hasClass('Meta')){
+                $this->getClass('Meta')?->setTitle($options['title'] ?? '');
             }
-
            
             include_once $this->templateFile;
             $viewContents = ob_get_clean();
-            if(Configuration::getBoolean("enable.compression")){
+            if(BaseConfig::getBoolean("enable.compression")){
                 $contentType = $options["ContentType"] ?? 'html';
                 $this->displayCompressedContent($viewContents, $optimizer, $contentType, $shouldSaveCache);
             }else{
                 
                 if ($shouldSaveCache && $optimizer !== null) {
-                    $optimizer->saveCache($viewContents, Configuration::copyright(), $this->requestHeaders());
+                    $optimizer->saveCache($viewContents, BaseConfig::copyright(), $this->requestHeaders());
                 }
                 exit($viewContents);
             }
@@ -723,7 +741,7 @@ trait Template
         $compress = $this->renderWithMinification($contents, $type);
  
         if ($save && $optimizer !== null) {
-            $optimizer->saveCache($compress->getMinified(), Configuration::copyright(), $compress->getInfo());
+            $optimizer->saveCache($compress->getMinified(), BaseConfig::copyright(), $compress->getInfo());
         }
     }
 
@@ -739,10 +757,10 @@ trait Template
     {
         $compress = new Compress();
         // Set cache control for application cache
-        $compress->setCacheControl(Configuration::getBoolean("cache.control"));
+        $compress->setCacheControl(BaseConfig::getBoolean("cache.control"));
 
         // Set response compression level
-        $compress->setCompressionLevel(Configuration::getInt("compression.level", 6));
+        $compress->setCompressionLevel(BaseConfig::getInt("compression.level", 6));
         $compress->setIgnoreCodeblock($this->ignoreCodeblock);
        
         switch($type){
@@ -810,7 +828,7 @@ trait Template
     {
         $level =  (int) ( $level > 0 ? $level : $this->relativeLevel);
         $relative = $this->calculateLevel($level);
-        $path = (Configuration::isProduction() ? self::$ds : $relative);
+        $path = (BaseConfig::isProduction() ? self::$ds : $relative);
         $base = rtrim($path . $this->appPublicFolder, "/") . "/";
 
 
@@ -832,12 +850,6 @@ trait Template
                 $this->ignoreViewOptimizer[] = $this->activeView;
             }
         }
-
-        /*if(isset($options["title"])){
-            $options["title"] = self::addTitleSuffix($options["title"]);
-        }else{
-            $options["title"] = self::toTitle($options["active"], true);
-        }*/
 
         if(!isset($options["title"])){
             $options["title"] = self::toTitle($options["active"], true);
@@ -873,7 +885,7 @@ trait Template
     */
     private function shouldOptimize(): bool 
     {
-        return $this->optimizeBase && Configuration::getBoolean("enable.optimize.page") && !in_array($this->activeView, $this->ignoreViewOptimizer);
+        return $this->optimizeBase && BaseConfig::getBoolean("enable.optimize.page") && !in_array($this->activeView, $this->ignoreViewOptimizer);
     }
 
     /** 
@@ -890,13 +902,13 @@ trait Template
             $uri = $this->getTemplateBaseUri();
            
 
-            if (!Configuration::isProduction() && strpos($uri, '/public') !== false) {
+            if (!BaseConfig::isProduction() && strpos($uri, '/public') !== false) {
                 [, $uri] = explode('/public', $uri, 2);
             }
 
             $level = substr_count($uri, '/');
 
-            if ($level == 1 && Configuration::isProduction()) {
+            if ($level == 1 && BaseConfig::isProduction()) {
                 $level = 0;
             }
         }
@@ -997,7 +1009,7 @@ trait Template
     */
     private static function addTitleSuffix(string $title): string
     {
-        $appName = Configuration::getVariables("app.name");
+        $appName = BaseConfig::get("app.name");
         if (strpos($title, "| {$appName}") === false) {
             $title = " {$title} | {$appName}";
         }

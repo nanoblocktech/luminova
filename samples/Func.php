@@ -8,8 +8,10 @@
  * @license See LICENSE file
  */
 namespace App\Controllers;
-use Luminova\Functions\Functions;
 
-class MyFunctions extends Functions{
+use \Luminova\Base\BaseFunction;
+
+class Func extends BaseFunction
+{
 
 }

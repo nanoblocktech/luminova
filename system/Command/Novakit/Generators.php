@@ -11,7 +11,7 @@ namespace Luminova\Command\Novakit;
 
 use Luminova\Command\Terminal;
 use Luminova\Base\BaseCommand;
-use Luminova\Config\Configuration;
+use Luminova\Base\BaseConfig;
 use Luminova\Command\Novakit\AvailableCommands;
 use \Closure;
 use \Exception;
@@ -139,7 +139,7 @@ class Generators extends BaseCommand
 
     private function saveFile(string $content, string $path): bool 
     {
-        $filepath = Configuration::getRootDirectory(__DIR__) . $path;
+        $filepath = BaseConfig::getRootDirectory(__DIR__) . $path;
         try {
             file_put_contents($filepath, $content);
             return true;

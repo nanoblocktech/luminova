@@ -9,6 +9,9 @@
  */
 namespace Luminova\Functions;
 
+use Luminova\Functions\Escaper;
+use \InvalidArgumentException;
+
 class Functions
 {
 	public const INT = "int";
@@ -18,8 +21,7 @@ class Functions
 	public const SID = "sid";
 	public const UUI = "uui";
 	public const PASS = "pass";
-	public const BADGE_LINK = 1;
-	public const BADGE_SPAN = 2;
+	
 	private const DEFAULT_RULES = [
 		"[br/]" =>  "&#13;&#10;",
 		"\r\n"      => "\n",
@@ -43,23 +45,52 @@ class Functions
 		"</a>"    => "</data-a>",
 	];
 
+
 	/**
-	* Class constructor
+	 * Format input to person name
+	 * 
+	 * @param string $input input string
+	 * @param string $replacement replacement unwanted string
+	 * 
+	 * @return string $format
 	*/
-	public function __construct(){}
+	public static function toName(string $input, string $replacement = ''): string
+	{
+		$format = preg_replace("/[^a-zA-Z0-9-_. ]+/", $replacement, $input);
 
-
-	public static function toName(string $string, string $type = "name", string $symbol = ""): string{
-		return preg_replace("/[^a-zA-Z0-9-_. ]+/", $symbol, $string);
+		return $format;
 	}
 
-  	public static function isNameBanned(mixed $nameToCheck, array $bannedNames): bool {
-      	foreach ($bannedNames as $banned) {
-          	if (stripos($nameToCheck, $banned) !== false) {
-            	return true;
-          	}
-      	}
-      	return false;
+	/**
+	 * Check if variable matches any of the array values
+	 * 
+	 * @param string $needle input string
+	 * @param array $haystack The array to search in
+	 * 
+	 * @return bool true or false
+	*/
+	public static function matchIn(string $needle, array $haystack): bool 
+	{
+		foreach ($haystack as $item) {
+			if (stripos($needle, $item) !== false) {
+			  return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Check if variable matches any of the array values
+	 * 
+	 * @param string $needle input string
+	 * @param array $haystack The array to search in
+	 * 
+	 * @deprecated this method is deprecated and will be removed in future use matchIn() method instead
+	 * @return bool true or false
+	*/
+  	public static function isNameBanned(mixed $nameToCheck, array $bannedNames): bool 
+	{
+      	return self::matchIn($nameToCheck, $bannedNames);
   	}
 
 	/**
@@ -100,7 +131,6 @@ class Functions
 
 		return $text;
 	}
-
 
 	/**
 	 * Filter and sanitize text before saving to database 
@@ -166,9 +196,11 @@ class Functions
 	}
 	
 	/** 
-	 * Gernerate product EAN13 id
+	 * Generate product EAN13 id
+	 * 
 	 * @param int $country start prefix country code
 	 * @param int $length maximum length
+	 * 
 	 * @return int 
 	*/
 	public static function EAN(int $country = 615, int $length = 13): int 
@@ -181,6 +213,7 @@ class Functions
 	 *
 	 * @param int $prefix Start prefix number.
 	 * @param int $length Maximum length.
+	 * 
 	 * @return string The generated UPC ID.
 	 */
 	public static function UPC(int $prefix = 0, int $length = 12): string 
@@ -213,15 +246,15 @@ class Functions
 
 	public static function timeSocial(string|int $time): string 
 	{
-		$time_elapsed = time() - strtotime($time);
+		$elapsed = time() - strtotime((string) $time);
 		return match (true) {
-			$time_elapsed <= 60 => "just now",
-			$time_elapsed <= 3600 => sprintf('%d minute%s ago', round($time_elapsed / 60), (round($time_elapsed / 60) == 1) ? '' : 's'),
-			$time_elapsed <= 86400 => sprintf('%d hour%s ago', round($time_elapsed / 3600), (round($time_elapsed / 3600) == 1) ? '' : 's'),
-			$time_elapsed <= 604800 => sprintf('%d day%s ago', round($time_elapsed / 86400), (round($time_elapsed / 86400) == 1) ? '' : 's'),
-			$time_elapsed <= 2419200 => sprintf('%d week%s ago', round($time_elapsed / 604800), (round($time_elapsed / 604800) == 1) ? '' : 's'),
-			$time_elapsed <= 29030400 => sprintf('%d month%s ago', round($time_elapsed / 2419200), (round($time_elapsed / 2419200) == 1) ? '' : 's'),
-			default => sprintf('%d year%s ago', round($time_elapsed / 29030400), (round($time_elapsed / 29030400) == 1) ? '' : 's'),
+			$elapsed <= 60 => "just now",
+			$elapsed <= 3600 => sprintf('%d minute%s ago', round($elapsed / 60), (round($elapsed / 60) == 1) ? '' : 's'),
+			$elapsed <= 86400 => sprintf('%d hour%s ago', round($elapsed / 3600), (round($elapsed / 3600) == 1) ? '' : 's'),
+			$elapsed <= 604800 => sprintf('%d day%s ago', round($elapsed / 86400), (round($elapsed / 86400) == 1) ? '' : 's'),
+			$elapsed <= 2419200 => sprintf('%d week%s ago', round($elapsed / 604800), (round($elapsed / 604800) == 1) ? '' : 's'),
+			$elapsed <= 29030400 => sprintf('%d month%s ago', round($elapsed / 2419200), (round($elapsed / 2419200) == 1) ? '' : 's'),
+			default => sprintf('%d year%s ago', round($elapsed / 29030400), (round($elapsed / 29030400) == 1) ? '' : 's'),
 		};
 	}
 
@@ -233,7 +266,8 @@ class Functions
 	 *
 	 * @return bool True if the specified minutes have passed, false otherwise.
 	 */
-	public static function timeHasPassed($timestamp, int $minutes): bool {
+	public static function timeHasPassed($timestamp, int $minutes): bool 
+	{
 		if (is_numeric($timestamp)) {
 			$timestamp = (int) $timestamp;
 		} else {
@@ -367,6 +401,7 @@ class Functions
 	 * 
 	 * @param string $input email address or phone number to validate
 	 * 
+	 * @deprecated this method is deprecated and will be removed in future 
 	 * @return bool true or false
 	 */
 	public static function is_email_or_phone(string $input): bool
@@ -378,10 +413,18 @@ class Functions
 		return false;
 	}
 
-	public static function isPhoneNumber(mixed $phone) {
+	/** 
+	* Checks if string is a valid phone number
+	*
+	* @param mixed $phone phone address to validate
+	*
+	* @deprecated this method is deprecated and will be removed in future use is_phone() instead
+	* @return bool true or false
+	*/
+	public static function isPhoneNumber(mixed $phone): bool 
+	{
 		return self::is_phone($phone);
 	}
-
 
 	/** 
 	 * Determine password strength, if it meet all rules
@@ -418,8 +461,11 @@ class Functions
 
 	/** 
 	* Hash password string to create a hash value
+	*
 	* @param string $password password string
-	* @return int 
+	* @param int $cost 
+	*
+	* @return string 
 	*/
 	public static function hashPassword(string $password, int $cost = 12): string 
 	{
@@ -430,8 +476,10 @@ class Functions
 	
 	/** 
 	* Verify a password hash and verify if it match
+	*
 	* @param string $password password string
 	* @param string $hash password hash
+	*
 	* @return bool true or false
 	*/
 	public static function verifyPassword(string $password, string $hash): bool 
@@ -446,6 +494,7 @@ class Functions
 	 * @param float $totalRating Total sum of rating points.
 	 * @param int $index i forgot why i has to use this index
 	 * @param bool $round Whether to round the average to 2 decimal places.
+	 * 
 	 * @return float The average rating.
 	 */
 	public static function averageRating(int $totalReviews = 0, float $totalRating = 0, bool $round = false): float 
@@ -464,6 +513,7 @@ class Functions
 	 *
 	 * @param mixed $number Amount you want to format.
 	 * @param bool $fractional Whether to format fractional numbers.
+	 * 
 	 * @return string Formatted currency string.
 	 */
 	public static function money(mixed $number, bool $fractional = true): string 
@@ -471,32 +521,18 @@ class Functions
 		if (!is_numeric($number)) {
 			return $number;
 		}
+
 		$decimalPlaces = ($fractional) ? 2 : 0;
+
 		return number_format((float) $number, $decimalPlaces, '.', ',');
 	}
-
-	/*public static function money(mixed $number, bool $fractional=true): string 
-	{
-		if ($fractional) {
-			$number = sprintf('%.2f', $number);
-		}
-		while (true) {
-			$replaced = preg_replace('/(-?\d+)(\d\d\d)/', '$1,$2', $number);
-			if ($replaced != $number) {
-				$number = $replaced;
-			} else {
-				break;
-			}
-		}
-		return $number;
-	}*/
-
 
 	/**
 	 * Format a number with optional rounding.
 	 *
 	 * @param float|int|string $number The number you want to format.
 	 * @param int|null $decimalPlaces The number of decimal places (null for no rounding).
+	 * 
 	 * @return string The formatted number.
 	 */
 	public static function fixed($number, ?int $decimalPlaces = null): string 
@@ -515,6 +551,7 @@ class Functions
 	 *
 	 * @param mixed|float|int|string $total The total amount you want to discount.
 	 * @param int $rate The discount rate (percentage) as an integer.
+	 * 
 	 * @return float The discounted amount.
 	 */
 	public static function discount(mixed $total, int $rate = 0): float 
@@ -528,85 +565,13 @@ class Functions
 	 *
 	 * @param mixed|float|int|string $total The amount to which interest will be added.
 	 * @param int $rate The interest rate as a percentage (float).
+	 * 
 	 * @return float The total amount after adding interest.
 	 */
 	public static function addInterest(mixed $total, int $rate = 0): float 
 	{
 		$total = is_numeric($total) ? (float) $total : 0.0;
 		return $total * (1 + ($rate / 100));
-	}
-
-
-
-	/**
-	 * Creates badges from an array of tags.
-	 *
-	 * @param array $tags List of tags [a, b, c] or [key => a, key => b, key => c].
-	 * @param string $class CSS class for styling.
-	 * @param int $type Badge type (self::BADGE_SPAN or self::BADGE_LINK).
-	 * @param string $urlPrefix URL prefix to append if badge type is self::BADGE_LINK.
-	 * @return string HTML span/link elements.
-	 */
-	public static function badges(array $tags, string $class = "", int $type = self::BADGE_SPAN, string $urlPrefix = ""): string 
-	{
-		$badge = "";
-
-		if (!empty($tags)) {
-			foreach ($tags as $tg) {
-				if (!empty($tg)) {
-					$tagContent = "<span class='{$class}' aria-label='Tag {$tg}'>{$tg}</span>";
-					
-					if ($type === self::BADGE_LINK) {
-						$tagContent = "<a class='{$class}' href='{$urlPrefix}?tag={$tg}' aria-label='Tag {$tg}'>{$tg}</a>";
-					}
-
-					$badge .= $tagContent . " ";
-				}
-			}
-		}
-
-		return $badge;
-	}
-
-
-	/**
-	 * Creates button badges from an array of tags.
-	 *
-	 * @param array $tags List of tags [a, b, c] or [key => a, key => b, key => c].
-	 * @param string $class CSS class for styling.
-	 * @param bool $truncate Whether to truncate badges if they exceed the limit.
-	 * @param int $limit Maximum number of badges to display before truncating.
-	 * @param string|null $selected The active badge value.
-	 * @return string HTML span/button elements.
-	 */
-	public static function buttonBadges(array $tags, string $class = "", bool $truncate = false, int $limit = 3, ?string $selected = null): string 
-	{
-		$badge = "";
-		$lines = 3;
-
-		if (!empty($tags)) {
-			$tagArray = (is_array($tags) ? $tags : explode(',', $tags));
-			$line = 0;
-
-			foreach ($tagArray as $tg) {
-				if (!empty($tg)) {
-					$isActive = ($selected === $tg || ($line === 0 && $selected === null)) ? 'active' : '';
-					$badge .= "<button class='{$class} {$isActive}' type='button' data-tag='{$tg}' aria-label='Tag {$tg}'>{$tg}</button>";
-					$line++;
-
-					if ($truncate && $line === $limit) {
-						$badge .= "<span class='more-badges' style='display:none;'>";
-					}
-				}
-			}
-
-			if ($truncate) {
-				$badge .= "</span>";
-				$badge .= "<button class='{$class}' type='button' data-state='show'>&#8226;&#8226;&#8226;</button>";
-			}
-		}
-
-		return $badge;
 	}
 
 
@@ -634,10 +599,19 @@ class Functions
 	 * @param int $month The month (1-12).
 	 * @param int $year The year.
 	 * @param string $dateFormat The format for the returned dates (default is "d-M-Y").
+	 * 
 	 * @return array An array of dates within the specified month.
 	 */
-	public static function daysInMonth(int $month, int $year, string $dateFormat = "d-M-Y"): array 
+	public static function daysInMonth(int $month = 0, int $year = 0, string $dateFormat = "d-M-Y"): array 
 	{
+		if($month === 0){
+			$month = date('M');
+		}
+
+		if($year === 0){
+			$year = date('Y');
+		}
+
 		$numDaysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 		$datesOfMonth = [];
 
@@ -662,42 +636,100 @@ class Functions
 	 */
 	public static function sanitizeInput(string $string, string $type = "name", string $symbol = ""): string
 	{
-		return match ($type) {
-			'int' => preg_replace("/[^0-9]+/", $symbol, $string),
-			'digit' => preg_replace("/[^-0-9.]+/", $symbol, $string),
-			'key' => preg_replace("/[^a-zA-Z0-9_-]/", $symbol, $string),
-			'pass' => preg_replace("/[^a-zA-Z0-9-@!*_]/", $symbol, $string),
-			'username' => preg_replace("/[^a-zA-Z0-9-_.]+/", $symbol, $string),
-			'email' => preg_replace("/[^a-zA-Z0-9-@.-_]+/", $symbol, $string),
-			'url' => preg_replace("/[^a-zA-Z0-9?&-+=.:'\/ ]+/", $symbol, $string),
-			'money' => preg_replace("/[^0-9.-]+/", $symbol, $string),
-			'double', 'float' => preg_replace("/[^0-9.]+/", $symbol, $string),
-			'az' => preg_replace("/[^a-zA-Z]+/", $symbol, $string),
-			'tel' => preg_replace("/[^0-9-+]+/", $symbol, $string),
-			'text' => preg_replace("/[^a-zA-Z0-9-_. ?@#%&]+/", $symbol, $string),
-			'name' => preg_replace("/[^a-zA-Z., ]+/", $symbol, $string),
-			'timezone' => preg_replace("/[^a-zA-Z0-9-\/,_:+ ]+/", $symbol, $string),
-			'time' => preg_replace("/[^a-zA-Z0-9-: ]+/", $symbol, $string),
-			'date' => preg_replace("/[^a-zA-Z0-9-:\/,_ ]+/", $symbol, $string),
-			default => preg_replace("/[^a-zA-Z0-9-@.,]+/", $symbol, $string),
-		};
+		$patterns = [
+			'int' => "/[^0-9]+/",
+			'digit' => "/[^-0-9.]+/",
+			'key' => "/[^a-zA-Z0-9_-]/",
+			'pass' => "/[^a-zA-Z0-9-@!*_]/",
+			'username' => "/[^a-zA-Z0-9-_.]+/",
+			'email' => "/[^a-zA-Z0-9-@.]+/",
+			'url' => "/[^a-zA-Z0-9?&+=.:\/ -]+/",
+			'money' => "/[^0-9.-]+/",
+			'double' => "/[^0-9.]+/",
+			'float' => "/[^0-9.]+/",
+			'az' => "/[^a-zA-Z]+/",
+			'tel' => "/[^0-9-+]+/",
+			'text' => "/[^a-zA-Z0-9-_.,!}{;: ?@#%&]+/",
+			'name' => "/[^a-zA-Z., ]+/",
+			'timezone' => "/[^a-zA-Z0-9-\/,_:+ ]+/",
+			'time' => "/[^a-zA-Z0-9-: ]+/",
+			'date' => "/[^a-zA-Z0-9-:\/,_ ]+/",
+			'escape' => null, 
+			'default' => "/[^a-zA-Z0-9-@.,]+/",
+		];
+		
+		$pattern = $patterns[$type] ?? $patterns['default'];
+
+		if ($pattern === null) {
+			return self::escape($string, 'html', 'UTF-8');
+		}
+
+		return preg_replace($pattern, $symbol, $string);
 	}
 
 	/**
 	 * Convert string characters to HTML entities with optional encoding.
 	 *
 	 * @param string $str The input string to be converted.
-	 * @param bool $enc Whether to encode quotes as well (default is true).
+	 * @param string $encode Encoding
+	 * 
 	 * @return string The formatted string with HTML entities.
 	 */
-	public static function toHtmlentities(string $str, bool $enc = true): string
+	public static function toHtmlentities(string $str, string $encode = 'UTF-8'): string
 	{
-		return $enc ? htmlentities($str, ENT_QUOTES, "UTF-8") : htmlentities($str);
+		return self::escape($str, 'html', $encode);
 	}
+
+	 /**
+     * Escapes a string or array of strings based on the specified context.
+     *
+     * @param string|array $input The string or array of strings to be escaped.
+     * @param string $context The context in which the escaping should be performed. Defaults to 'html'.
+     *                        Possible values: 'html', 'js', 'css', 'url', 'attr', 'raw'.
+     * @param string|null $encoding The character encoding to use. Defaults to null.
+     * @return mixed The escaped string or array of strings.
+     * @throws InvalidArgumentException When an invalid escape context is provided.
+     * @throws Exception;
+     * @throws RuntimeException;
+     */
+    public static function escape(string|array $input, string $context = 'html', ?string $encoding = null): mixed
+    {
+        if (is_array($input)) {
+            // Recursively escape each element in the array
+            array_walk_recursive($data, function (&$value) use ($context, $encoding) {
+                $value = self::escape($value, $context, $encoding);
+            });
+        } elseif (is_string($input)) {
+            $context = strtolower($context);
+            if ($context === 'raw') {
+                return $input;
+            }
+
+            if (!in_array($context, ['html', 'js', 'css', 'url', 'attr'], true)) {
+                throw new InvalidArgumentException('Invalid escape context provided.');
+            }
+
+            // Determine the escape method based on the context
+            $method = $context === 'attr' ? 'escapeHtmlAttr' : 'escape' . ucfirst($context);
+
+            // Instantiate the Escaper object only if necessary
+            static $escaper;
+            if (!$escaper || ($encoding && $escaper->getEncoding() !== $encoding)) {
+                $escaper = new Escaper($encoding);
+            }
+
+            // Perform escaping
+            $input = $escaper->{$method}($input);
+        }
+
+        return $input;
+    }
 
 	/**
 	 * Remove subdomains from a URL.
+	 * 
 	 * @param string $url The input URL from which subdomains should be removed.
+	 * 
 	 * @return string The main domain extracted from the URL.
 	 */
 	public static function removeSubdomain(string $url): string
@@ -725,13 +757,13 @@ class Functions
 	 */
 	public static function removeMainDomain(string $url): string
 	{
-		$domain = "";
+		$domain = '';
 
-		if (strpos($url, ".") !== false) {
-			$parts = explode(".", $url, 4);
+		if (strpos($url, '.') !== false) {
+			$parts = explode('.', $url, 4);
 
 			if (count($parts) >= 3) {
-				$domain = ($parts[1] !== "www") ? $parts[1] : $parts[2];
+				$domain = ($parts[1] !== 'www') ? $parts[1] : $parts[2];
 			}
 		}
 
@@ -742,76 +774,15 @@ class Functions
 	 * Convert a string to kebab case.
 	 *
 	 * @param string $string The input string to convert.
+	 * 
 	 * @return string The kebab-cased string.
 	 */
 	public static function toKebabCase(string $string): string
 	{
 		$string = str_replace([' ', ':', '.', ',', '-'], '', $string);
 		$kebabCase = preg_replace('/([a-z0-9])([A-Z])/', '$1-$2', $string);
+
 		return strtolower($kebabCase);
-	}
-
-	/**
-	 * Copy files and folders from the source directory to the destination directory.
-	 *
-	 * @param string $origin The source directory.
-	 * @param string $dest The destination directory.
-	 *
-	 * @return bool True if the copy operation is successful, false otherwise.
-	 */
-	public static function copyFiles(string $origin, string $dest): bool
-	{
-		if (!file_exists($dest)) {
-			mkdir($dest, 0777, true);
-		}
-
-		$dir = opendir($origin);
-
-		if (!$dir) {
-			return false;
-		}
-
-		while (false !== ($file = readdir($dir))) {
-			if (($file != '.') && ($file != '..')) {
-				$srcFile = $origin . DIRECTORY_SEPARATOR . $file;
-				$destFile = $dest . DIRECTORY_SEPARATOR . $file;
-
-				if (is_dir($srcFile)) {
-					self::copyFiles($srcFile, $destFile);
-				} else {
-					copy($srcFile, $destFile);
-				}
-			}
-		}
-		closedir($dir);
-		return true;
-	}
-
-	/**
-	 * Download a file to the user's browser.
-	 *
-	 * @param string $file The full file path to download.
-	 * @param string $name The filename as it will be shown in the download.
-	 * @param bool $delete Whether to delete the file after download (default: false).
-	 */
-	public static function download(string $file, string $name = null, bool $delete = false): void
-	{
-		if (file_exists($file)) {
-			$filename = ($name??basename($file));
-			header('Content-Type: ' . (mime_content_type($file) ?? 'application/octet-stream'));
-			header('Content-Disposition: attachment; filename="' . $filename . '"');
-			header('Content-Transfer-Encoding: binary');
-			header('Content-Length: ' . filesize($file));
-			header('Cache-Control: no-store, no-cache, must-revalidate');
-			header('Cache-Control: post-check=0, pre-check=0', false);
-			header('Pragma: no-cache');
-			readfile($file);
-			if ($delete) {
-				unlink($file);
-			}
-
-			exit();
-		}
 	}
 
 	/**
@@ -930,42 +901,5 @@ class Functions
 		}
 
 		return substr($string, 0, $visibleCount) . str_repeat($with, $hiddenCount) . substr($string, ($visibleCount * -1), $visibleCount);
-	}
-
-	/**
-	 * Deletes files and folders.
-	 *
-	 * @param string $dir   Directory to delete files.
-	 * @param bool   $base  Remove the base directory once done (default is false).
-	 * @return bool         Returns true once the function is called.
-	 */
-	public static function remove(string $dir, bool $base = false): bool 
-	{
-		if (!file_exists($dir)) {
-			return false;
-		}
-		
-		if(is_dir($dir)){
-			if (substr($dir, -1) !== DIRECTORY_SEPARATOR) {
-				$dir .= DIRECTORY_SEPARATOR;
-			}
-
-			$files = glob($dir . '*', GLOB_MARK);
-		}else{
-			$files = glob($dir . '*');
-		}
-
-		foreach ($files as $file) {
-			if (is_dir($file)) {
-				self::remove($file, true);
-			} else {
-				@unlink($file);
-			}
-		}
-
-		if ($base) {
-			@rmdir($dir);
-		}
-		return true;
 	}
 }

@@ -12,7 +12,6 @@ require_once __DIR__ . '/autoload.php';
 
 use \App\Controllers\Application;
 
-
 /**
 * Set the custom error handler for non-fatal errors
 */
@@ -24,11 +23,18 @@ set_error_handler(['\Luminova\Errors\Error', 'handle']);
 register_shutdown_function(['\Luminova\Errors\Error', 'shutdown']);
 
 /*
-* Load global developer file
+* Require system Common.php
 */
-$global = __DIR__ . '/../app/Controllers/Global.php';
-if(file_exists($global)){
-    include_once $global;
+if (!defined('APP_COMMON')) {
+    include_once __DIR__ . '/../system/Functions/Common.php';
+}
+
+/*
+* Require application Global.php file if exists.
+*/
+$global24 = __DIR__ . '/../app/Controllers/Utils/Global.php';
+if(file_exists($global24)){
+    include_once $global24;
 }
 
 /*

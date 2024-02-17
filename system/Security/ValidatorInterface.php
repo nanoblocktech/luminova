@@ -9,7 +9,9 @@
  */
 
 namespace Luminova\Security;
-interface ValidatorInterface {
+
+interface ValidatorInterface 
+{
 
     /**
      * Validate entries

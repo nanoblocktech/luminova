@@ -10,9 +10,9 @@
 
 namespace Luminova\Base;
 
-use Luminova\Models\Model;
+use Luminova\Controllers\ViewController;
 
-abstract class BaseModel  extends Model
+abstract class BaseViewController  extends ViewController
 {
     
     /**
@@ -27,7 +27,7 @@ abstract class BaseModel  extends Model
         return $this->{$key} ?? null;
     }
     
-    /**
+     /**
      * Magic method isset
      * Check if property is set
      *

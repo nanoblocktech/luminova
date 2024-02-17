@@ -8,8 +8,11 @@
  * @license See LICENSE file
  */
 namespace Luminova\Cache;
+
 use Luminova\Http\Header;
-class Compress {
+
+class Compress 
+{
     /**
 	* holds json content type
 	* @var string JSON

@@ -10,7 +10,7 @@
 
 namespace Luminova\Database;
 
-use Luminova\Config\Configuration;
+use Luminova\Base\BaseConfig;
 use Luminova\Database\Drivers\MySqlDriver;
 use Luminova\Database\Drivers\PdoDriver;
 use Luminova\Config\Database;
@@ -42,7 +42,7 @@ class Connection
      public function __construct()
      {
         $this->db = self::createDatabaseInstance();
-        $this->db->setDebug(!Configuration::isProduction());
+        $this->db->setDebug(!BaseConfig::isProduction());
      }
  
      /**
@@ -70,7 +70,7 @@ class Connection
     */
     private static function createDatabaseInstance(): object
     {
-        return match (Configuration::getVariables("database.driver")) {
+        return match (BaseConfig::get("database.driver")) {
             "MYSQLI" => new MySqlDriver(self::getDatabaseConfig()),
             "PDO" => new PdoDriver(self::getDatabaseConfig()),
             default => new PdoDriver(self::getDatabaseConfig())
@@ -85,15 +85,15 @@ class Connection
     private static function getDatabaseConfig(): Database
     {
          $config = new Database();
-         $config->port = Configuration::getVariables("database.port");
-         $config->host = Configuration::getVariables("database.hostname");
-         $config->version = Configuration::getVariables("database.version");
-         $config->charset = Configuration::getVariables("database.charset");
-         $config->sqlite_path = Configuration::getVariables("database.sqlite.path");
-         $config->production = Configuration::isProduction();
-         $config->username = Configuration::isProduction() ? Configuration::getVariables("database.username") : Configuration::getVariables("database.development.username");
-         $config->password = Configuration::isProduction() ? Configuration::getVariables("database.password") : Configuration::getVariables("database.development.password");
-         $config->database = Configuration::isProduction() ? Configuration::getVariables("database.name") : Configuration::getVariables("database.development.name");
+         $config->port = BaseConfig::get("database.port");
+         $config->host = BaseConfig::get("database.hostname");
+         $config->version = BaseConfig::get("database.version");
+         $config->charset = BaseConfig::get("database.charset");
+         $config->sqlite_path = BaseConfig::get("database.sqlite.path");
+         $config->production = BaseConfig::isProduction();
+         $config->username = BaseConfig::isProduction() ? BaseConfig::get("database.username") : BaseConfig::get("database.development.username");
+         $config->password = BaseConfig::isProduction() ? BaseConfig::get("database.password") : BaseConfig::get("database.development.password");
+         $config->database = BaseConfig::isProduction() ? BaseConfig::get("database.name") : BaseConfig::get("database.development.name");
          return $config;
     }
 }

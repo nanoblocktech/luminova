@@ -9,7 +9,8 @@
  */
 namespace Luminova\Command;
 
-class TextUtils {
+class TextUtils 
+{
     public const ANSI_RESET = 0;
     public const ANSI_BOLD = 1;
     public const ANSI_ITALIC = 3;

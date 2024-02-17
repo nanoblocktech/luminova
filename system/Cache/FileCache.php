@@ -13,7 +13,7 @@ use \Luminova\Cache\FileCacheItem;
 use \Luminova\Exceptions\ErrorException;
 use \Generator;
 
-class FileSystemCache 
+class FileCache 
 {
      /**
      * Cache expiry time 7 days

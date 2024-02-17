@@ -32,14 +32,4 @@ abstract class BaseApplication extends Application {
         return $attr;
     }
 
-    /**
-     * Get project assets relative directory 
-     *
-     * @return string
-     */
-   /* public function getAssets(): string 
-    {
-        return (Configuration::isProduction() ? "/" : $this->getBasePath()) . "{$this->assetsFolder}/";
-    }*/
-
 }

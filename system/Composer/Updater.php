@@ -9,12 +9,16 @@
  */
 namespace Luminova\Composer;
 class Updater{
-    public static function updateFiles(): void {
+    public static function updateFiles(): void 
+    {
         if (getenv('LM_DEBUG_MODE') === false) {
             self::checkAndCopyFile('.env', 'samples/.env');
             self::checkAndCopyFile('meta.config.json', 'samples/meta.config.json');
             self::checkAndCopyFile('app/Controllers/Config/Session.php', 'samples/Session.php');
-            self::checkAndCopyFile('app/Controllers/Global.php', 'samples/Global.php');
+            self::checkAndCopyFile('app/Controllers/Config/Config.php', 'samples/Config.php');
+            self::checkAndCopyFile('app/Controllers/Config/Template.php', 'samples/Template.php');
+            self::checkAndCopyFile('app/Controllers/Utils/Global.php', 'samples/Global.php');
+            self::checkAndCopyFile('app/Controllers/Utils/Func.php', 'samples/Func.php');
             self::checkAndCopyFile('app/Controllers/Application.php', 'samples/Application.php');
            // self::checkAndCopyFile('system/autoload.api.php', 'samples/autoload.api.php');
            // self::checkAndCopyFile('public/index.php', 'samples/index.php');

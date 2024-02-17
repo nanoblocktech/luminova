@@ -9,15 +9,15 @@
  */
 namespace App\Controllers;
 
-use Luminova\Base\BaseController;
-use Luminova\Config\Configuration;
+use Luminova\Base\BaseViewController;
+use Luminova\Base\BaseConfig;
 
-class Welcome extends BaseController 
+class Welcome extends BaseViewController 
 {
 
     public function page(): void
     {
-        $this->app->render("index")->view();
+        $this->app()->render("index")->view();
     }
 
     public function info(): void
@@ -27,8 +27,8 @@ class Welcome extends BaseController
             "error" => [
                 "status" => "OK",
                 "code" => 200,
-                "version" => Configuration::version(),
-                "framework" => Configuration::copyright(),
+                "version" => BaseConfig::version(),
+                "framework" => BaseConfig::copyright(),
                 //"details" => "The endpoint [" . $this->getView() . "] you are trying to access does not exist.",
                 "timestamp" => date("Y-m-d H:i:s")
             ]

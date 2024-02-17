@@ -9,7 +9,7 @@
  */
 namespace Luminova\Exceptions;
 use \Exception;
-use Luminova\Config\Configuration;
+use Luminova\Base\BaseConfig;
 use Luminova\Logger\Logger;
 
 class AppException extends Exception
@@ -25,7 +25,7 @@ class AppException extends Exception
     {
         $caller = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1];
         $message .= " Time: " . date('Y-m-d H:i:s');
-        $message .= isset($caller['file']) ? " file: " .  Configuration::filterPath($caller['file']) : '';
+        $message .= isset($caller['file']) ? " file: " .  BaseConfig::filterPath($caller['file']) : '';
         $message .= isset($caller['line']) ? " on line: " . $caller['line'] : '';
         parent::__construct($message, $code, $previous);
     }
@@ -47,7 +47,7 @@ class AppException extends Exception
      */
     public function handle(): void
     {
-        if (Configuration::isProduction()) {
+        if (BaseConfig::isProduction()) {
             $this->logException();
         } else {
             throw $this;

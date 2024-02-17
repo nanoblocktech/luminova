@@ -9,7 +9,7 @@
  */
 namespace Luminova\Http;
 
-use Luminova\Config\Configuration;
+use Luminova\Base\BaseConfig;
 
 class Header
 {
@@ -93,7 +93,7 @@ class Header
             'X-Firefox-Spdy' => 'h2',
             'Vary' => 'Accept-Encoding',
             'Connection' => 'keep-alive', //'close',
-            'X-Powered-By' => Configuration::copyright()
+            'X-Powered-By' => BaseConfig::copyright()
         ];
     }
 

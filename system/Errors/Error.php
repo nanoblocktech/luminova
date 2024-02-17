@@ -9,7 +9,7 @@
  */
 namespace Luminova\Errors;
 
-use Luminova\Config\Configuration;
+use Luminova\Base\BaseConfig;
 use Luminova\Logger\Logger;
 
 class Error
@@ -55,8 +55,8 @@ class Error
     */
     public static function display(string $message, int $code = E_ERROR): void 
     {
-        
-        $path = Configuration::getRootDirectory(__DIR__) . "/resources/views/system_errors/";
+        $ds = DIRECTORY_SEPARATOR;
+        $path = BaseConfig::root(__DIR__, "{$ds}resources{$ds}views{$ds}system_errors{$ds}");
         $path .= 'errors.php';
         $errors = [
             'message' => $message,
@@ -80,10 +80,10 @@ class Error
     */
     public static function handle(int $errno, string $message, string $errFile, int $errLine, bool $shutdown = false): void 
     {
-        $errFile = Configuration::filterPath($errFile);
+        $errFile = BaseConfig::filterPath($errFile);
         $message = "Error [$errno]: $message in $errFile on line $errLine";
 
-        if (!Configuration::isProduction()) {
+        if (!BaseConfig::isProduction()) {
             if (self::isFatal($errno)) {
                 self::display($message, $errno);
             }else{

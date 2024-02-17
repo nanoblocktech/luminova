@@ -14,7 +14,7 @@ use App\Controllers\Application;
 use Luminova\Http\Request;
 use Luminova\Security\InputValidator;
 
-class Controller
+abstract class Controller
 {
     /**
      * HTTP request object 

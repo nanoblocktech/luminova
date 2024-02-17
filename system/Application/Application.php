@@ -13,7 +13,7 @@ namespace Luminova\Application;
 use Luminova\Routing\Router;
 use Luminova\Config\DotEnv;
 use Luminova\Template\Template;
-use Luminova\Config\Configuration;
+use Luminova\Base\BaseConfig;
 use App\Controllers\Config\Template as TemplateConfig;
 
 class Application {
@@ -35,7 +35,7 @@ class Application {
      *
      * @var Router
      */
-    public $router;
+    public ?Router $router = null;
 
     /**
      * Initialize the base application constructor
@@ -44,12 +44,12 @@ class Application {
      */
     public function __construct(string $dir = __DIR__) {
         // Register dotenv variables
-        DotEnv::register(Configuration::getRootDirectory($dir) . DIRECTORY_SEPARATOR . '.env');
+        DotEnv::register(BaseConfig::root($dir, '.env'));
 
         /*
         * Register The Application Timezone
         */
-        date_default_timezone_set(Configuration::getVariables("app.timezone", 'UTC'));
+        date_default_timezone_set(BaseConfig::getString("app.timezone", 'UTC'));
        
         // Initialize the router instance
         $this->router = new Router();

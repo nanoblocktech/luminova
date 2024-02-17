@@ -9,6 +9,7 @@
  */
 namespace Luminova\Config;
 
+use Luminova\Config\Configuration;
 use Luminova\Exceptions\FileException;
 use SplFileObject;
 
@@ -18,6 +19,8 @@ class DotEnv
      * Register environment variables from a .env file.
      *
      * @param string $path The path to the .env file.
+     * 
+     * @return void 
      * @throws FileException If the .env file is not found.
      */
     public static function register(string $path): void
@@ -38,29 +41,8 @@ class DotEnv
                 [$name, $value] = $parts;
                 $name = trim($name);
                 $value = trim($value);
-                self::setVariable($name, $value);
+                Configuration::set($name, $value);
             }
-        }
-    }
-
-    /**
-     * Set an environment variable if it doesn't already exist.
-     *
-     * @param string $name The name of the environment variable.
-     * @param string $value The value of the environment variable.
-     */
-    protected static function setVariable(string $name, string $value): void
-    {
-        if (!getenv($name, true)) {
-            putenv("{$name}={$value}");
-        }
-
-        if (empty($_ENV[$name])) {
-            $_ENV[$name] = $value;
-        }
-
-        if (empty($_SERVER[$name])) {
-            $_SERVER[$name] = $value;
         }
     }
 }

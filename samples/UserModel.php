@@ -8,7 +8,8 @@
  * @license See LICENSE file
  */
 namespace App\Controllers\Models;
-use Luminova\Base\BaseModel;
+
+use \Luminova\Base\BaseModel;
 
 class UserModel extends BaseModel
 {

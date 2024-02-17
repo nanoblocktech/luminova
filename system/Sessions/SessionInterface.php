@@ -49,7 +49,7 @@ interface SessionInterface
      * 
      * @return mixed
     */
-    public function get(string $index, mixed $default): mixed;
+    public function get(string $index, mixed $default = null): mixed;
 
     /** 
      * Get data from specified storage instance

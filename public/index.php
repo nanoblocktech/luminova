@@ -46,16 +46,9 @@ $apiErrorHandler = function () use($app){
 * bootstraps the router and set the error handler based on context
 */
 $app->router->bootstraps(
-    new Bootstrap(Bootstrap::WEB, function($router) use ($app) {
-        require __DIR__ . '/../routes/web.php';
-    },
-    $webErrorHandler),
-    new Bootstrap(Bootstrap::API, function($router) use ($app) {
-        require __DIR__ . '/../routes/api.php';
-    }, $apiErrorHandler),
-    new Bootstrap(Bootstrap::CLI, function($router) use ($app){
-        require __DIR__ . '/../routes/cli.php';
-    })
+    new Bootstrap(Bootstrap::WEB, $app, $webErrorHandler),
+    new Bootstrap(Bootstrap::API, $app, $apiErrorHandler),
+    new Bootstrap(Bootstrap::CLI, $app)
 );
 
 /*

@@ -10,7 +10,8 @@
 
 namespace App\Controllers\Config;
 
-class Session {
+class Session 
+{
     /**
      * The name of the session cookie.
      * @var string $cookieName;

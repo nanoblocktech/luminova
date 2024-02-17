@@ -16,12 +16,12 @@ use \ReflectionException;
 use \ReflectionClass;
 use Luminova\Command\Terminal;
 use Luminova\Base\BaseCommand;
-use Luminova\Base\BaseController;
+use Luminova\Controllers\Controller;
 use Luminova\Base\BaseApplication;
-//use App\Controllers\Application;
 
 
-class Router {
+class Router 
+{
     /**
      * Success status code
      *
@@ -116,6 +116,8 @@ class Router {
      * @param string  $methods  Allowed methods, can be serrated with | pipe symbol
      * @param string  $pattern A route pattern or template view name
      * @param callable|string $callback Callback function to execute
+     * 
+     * @return void
      */
     public function before(string $methods, string $pattern, callable|string $callback): void
     {
@@ -140,6 +142,8 @@ class Router {
      * @param string  $methods  Allowed methods, can be serrated with | pipe symbol
      * @param string  $pattern A route pattern or template view name
      * @param callable|string $callback Callback function to execute
+     * 
+     * @return void
      */
     public function after(string $methods, string $pattern, callable|string $callback): void
     {
@@ -165,6 +169,8 @@ class Router {
      * @param string  $methods Allowed methods, can be serrated with | pipe symbol
      * @param string  $pattern A route pattern or template view name
      * @param callable|string $callback Callback function to execute
+     * 
+     * @return void
      */
     public function capture(string $methods, string $pattern, callable|string $callback): void
     {
@@ -190,6 +196,8 @@ class Router {
      * @param callable|string $pattern Allowed command pattern, script name or callback function
      * @param callable|string $callback Callback function to execute
      * @param array $options Optional options
+     * 
+     * @return void
     */
     public function authenticate(callable|string $pattern, callable|string $callback = null, array $options = []): void
     {
@@ -219,6 +227,8 @@ class Router {
      * @param string $pattern Allowed command pattern or script name
      * @param callable|string $callback Callback function to execute
      * @param array $options Optional options
+     * 
+     * @return void
     */
     public function command(string $pattern, callable|string $callback, ?array $options = []): void
     {
@@ -242,6 +252,8 @@ class Router {
      *
      * @param string $pattern A route pattern or template view name
      * @param callable|string $callback Handle callback for router
+     * 
+     * @return void
      */
     public function any(string $pattern, callable|string $callback): void
     {
@@ -253,6 +265,8 @@ class Router {
      *
      * @param string pattern A route pattern or template view name
      * @param callable|string $callback  Handle callback for router
+     * 
+     * @return void
      */
     public function get(string $pattern, callable|string $callback): void
     {
@@ -264,6 +278,8 @@ class Router {
      *
      * @param string  $pattern A route pattern or template view name
      * @param callable|string $callback Callback function to execute
+     * 
+     * @return void
      */
     public function post(string $pattern, callable|string $callback): void
     {
@@ -275,6 +291,8 @@ class Router {
      *
      * @param string  $pattern A route pattern or template view name
      * @param callable|string $callback Handle callback for router
+     * 
+     * @return void
      */
     public function patch(string $pattern, callable|string $callback): void
     {
@@ -286,6 +304,8 @@ class Router {
      *
      * @param string $pattern A route pattern or template view name
      * @param callable|string $callback Callback function to execute
+     * 
+     * @return void
      */
     public function delete(string $pattern, callable|string $callback): void
     {
@@ -297,6 +317,8 @@ class Router {
      *
      * @param string $pattern A route pattern or template view name
      * @param callable|string $callback Callback function to execute
+     * 
+     * @return void
      */
     public function put(string $pattern, callable|string $callback): void
     {
@@ -308,6 +330,8 @@ class Router {
      *
      * @param string $pattern A route pattern or template view name
      * @param callable|string $callback Callback function to execute
+     * 
+     * @return void
      */
     public function options(string $pattern, callable|string $callback): void
     {
@@ -319,6 +343,8 @@ class Router {
      *
      * @param string   $baseRoute The route sub pattern to bind the callbacks on
      * @param callable $callback Callback function to execute
+     * 
+     * @return void
      */
     public function bind(string $baseRoute, callable $callback): void
     {
@@ -336,8 +362,11 @@ class Router {
      * Bootstrap a group 
      *
      * @param Bootstrap $callbacks callable arguments
+     * 
+     * @return void
     */
-    public function bootstraps(Bootstrap ...$callbacks): void {
+    public function bootstraps(Bootstrap ...$callbacks): void 
+    {
         if (!defined('ENVIRONMENT')) {
             define('ENVIRONMENT', getenv('app.environment.mood', 'development'));
         }
@@ -350,14 +379,16 @@ class Router {
             $routeInstances = Bootstrap::getInstances();
             $currentRouteBase = $this->baseRoute;
             foreach ($callbacks as $bootstrap) {
-                $result = $bootstrap->getType();
-                $callback = $bootstrap->getFunction();
-                if (!empty($result) && is_callable($callback)) {
-                    $errorCallback = $bootstrap->getErrorHandler();
-                    $hasErrorHandler = ($errorCallback !== null && is_callable($errorCallback));
+                $name = $bootstrap->getName();
+                $application = $bootstrap->getApplication();
+                //$callback = $bootstrap->getFunction();
+                //if ($type !== '' && is_callable($callback)) {
+                if ($name !== '' &&  $application !== null) {
+                    $errorHandler = $bootstrap->getErrorHandler();
+                    $withError = ($errorHandler !== null && is_callable($errorHandler));
                     $this->resetRoutes();
-                    if($firstSegment === $result) {
-                        if ($result === Bootstrap::CLI){
+                    if($firstSegment === $name) {
+                        if ($name === Bootstrap::CLI){
                             if (!defined('CLI_ENVIRONMENT')) {
                                 define('CLI_ENVIRONMENT', getenv('cli.environment.mood', 'testing'));
                             }
@@ -367,21 +398,24 @@ class Router {
                             if(!Terminal::isCommandLine()) {
                                 return;
                             }
-                        }elseif($hasErrorHandler){
-                            $this->setErrorHandler($errorCallback);
+                        }elseif($withError){
+                            $this->setErrorHandler($errorHandler);
                         }
                    
-                        if (in_array($result, $routeInstances)) {  
-                            $this->baseRoute .= '/' . $result;
+                        if (in_array($name, $routeInstances)) {  
+                            $this->baseRoute .= '/' . $name;
                         }
                     
-                        $callback($this);
+                        $this->discover($name, $this, $application);
+                        //$callback($this);
                         break;
-                    }elseif (!in_array($firstSegment, $routeInstances) && self::isWebInstance($result, $firstSegment)) {
-                        if($hasErrorHandler){
-                            $this->setErrorHandler($errorCallback);
+                    }elseif (!in_array($firstSegment, $routeInstances) && self::isWebInstance($name, $firstSegment)) {
+                        if($withError){
+                            $this->setErrorHandler($errorHandler);
                         }
-                        $callback($this);
+
+                        $this->discover($name, $this, $application);
+                        //$callback($this);
                         break;
                     }
                 }
@@ -391,13 +425,27 @@ class Router {
     }
 
     /**
+     * Discover route
+     *
+     * @param string $name bootstrap route name
+     * @param Router $router Make router instance available in route
+     * @param BaseApplication $app Make application instance available in route
+     * 
+     * @return bool
+    */
+    private function discover(string $name, Router $router, BaseApplication $app): void 
+    {
+        require dirname(__DIR__, 2) . "/routes/{$name}.php";
+    }
+
+    /**
      * Is bootstrap a web instance
      *
      * @param string $result bootstrap result
      * @param string $first First url segment
      * 
      * @return bool
-     */
+    */
     private static function isWebInstance(string $result, ?string $first = null): bool 
     {
         return ($first === null || $first === '' || Bootstrap::WEB) && $result !== Bootstrap::CLI && $result !== Bootstrap::API;
@@ -407,6 +455,7 @@ class Router {
      * Register a class namespace to use across the application
      *
      * @param string $namespace Class namespace
+     * 
      * @return void
      * @throws ErrorException
      */
@@ -424,7 +473,8 @@ class Router {
      * Loop all defined CLI and HTTP before middleware's, after routes and command routes
      * Execute callback function if method matches view  or command name.
      *
-     * @param callable $callback Optional final callback function to execute after run
+     * @param ?callable $callback Optional final callback function to execute after run
+     * 
      * @return void
     */
     public function run(?callable $callback = null): void
@@ -512,6 +562,8 @@ class Router {
      *
      * @param callable $match_callback Matching callback function to be executed
      * @param callable $callback The function to be executed
+     * 
+     * @return void
      */
     public function setErrorHandler(mixed $match_callback, mixed $callback = null): void
     {
@@ -526,8 +578,11 @@ class Router {
      * Triggers error response
      *
      * @param string $match A route pattern or template view name
+     * 
+     * @return void
      */
-    public function triggerError(?array $match = null, int $code = 404): void{
+    public function triggerError(?array $match = null, int $code = 404): void
+    {
 
         $status = false;
 
@@ -559,7 +614,6 @@ class Router {
      * @param array $routes  Collection of route patterns and their handling functions
      *
      * @return bool $error error status [0 => true, 1 => false]
-     * 
      * @throws ErrorException if method is not callable or doesn't exist
      */
     private function handleWebsite(array $routes): bool
@@ -581,14 +635,11 @@ class Router {
     /**
     * Handle C=command router CLI callback class method with the given parameters 
     * using instance callback or reflection class
-
     * @param array $routes Command name array values
-
     * @return void $error error status [0 => true, 1 => false]
-
+    *
     * @throws ErrorException if method is not callable or doesn't exist
     */
-    
     private function handleCommand(array $routes): bool
     {
         $error = false;
@@ -633,6 +684,7 @@ class Router {
      * Extract matched parameters from request
      *
      * @param array $array Matches
+     * 
      * @return array $params
      */
     private static function processFindMatches(array $array): array
@@ -651,8 +703,10 @@ class Router {
 
     /**
     * Execute router HTTP callback class method with the given parameters using instance callback or reflection class
+    *
     * @param callable|string $callback Class public callback method eg: UserController:update
     * @param array $arguments Method arguments to pass to callback method
+    *
     * @return bool 
     * @throws ErrorException if method is not callable or doesn't exist
     */
@@ -696,7 +750,7 @@ class Router {
               
                 if (!$checkClass->isInstantiable() || 
                     !($checkClass->isSubclassOf(BaseCommand::class) || 
-                        $checkClass->isSubclassOf(BaseController::class) ||
+                        $checkClass->isSubclassOf(Controller::class) ||
                         $checkClass->isSubclassOf(BaseApplication::class))) {
                     continue;
                 }
@@ -781,13 +835,13 @@ class Router {
         return [$throw, $result];
     }
 
-
     /**
      * Return run status based on result
      * In cli 0 is considered as success while 1 is failure.
      * In few occasion void or null may be returned so we treat it as success
      * 
      * @param void|bool|null|int $result response from callback function
+     * 
      * @return bool
     */
     private static function getStatus(mixed $result = null): bool
@@ -841,6 +895,7 @@ class Router {
 
     /**
      * Get the current view relative URI.
+     * 
      * @return string
      */
     public function getView(): string
@@ -860,6 +915,7 @@ class Router {
     /**
      * Get the current view relative URI.
      * @alias getView Aliases to getView
+     * 
      * @return string
     */
     public function getViewUri(): string
@@ -869,6 +925,7 @@ class Router {
 
     /**
      * Get the current view array of segment.
+     * 
      * @return array
     */
     public function getArrayViews(): array
@@ -923,7 +980,8 @@ class Router {
      * 
      * @return string
     */
-    public function getSecondToLastView(): string {
+    public function getSecondToLastView(): string 
+    {
         $segments = $this->getArrayViews();
         if (count($segments) > 1) {
             $secondToLastSegment = $segments[count($segments) - 2];
@@ -937,7 +995,8 @@ class Router {
      * Replace command script pattern values match (:value) and replace with (pattern)
      *
      * @param string $input command script pattern
-     * @param string|false $output If match return replaced string else return false
+     * 
+     * @return string|bool $output If match return replaced string else return false
     */
     private function parsePatternValue(string $input): string|false
     {
@@ -960,11 +1019,14 @@ class Router {
     
     /**
      * Set application router base path
-     * @param string
+     * 
+     * @param string $base
+     * 
+     * @return void
      */
-    public function setBasePath(string $serverBasePath): void
+    public function setBasePath(string $base): void
     {
-        $this->serverBasePath = $serverBasePath;
+        $this->serverBasePath = $base;
     }
 
     /**
@@ -972,13 +1034,16 @@ class Router {
      *
      * @return string
     */
-    private function getCommandName(): ?string {
+    private function getCommandName(): string 
+    {
         $args = $_SERVER['argv'] ?? [];
         return $args[1] ?? '';
     }
     
     /**
      * Reset register routes to avoid conflicts
+     * 
+     * @return void
     */
     private function resetRoutes(): void
     {
