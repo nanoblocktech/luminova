@@ -11,9 +11,10 @@
 namespace Luminova\Controllers;
 
 use \Luminova\Controllers\Controller;
-use App\Controllers\Application;
-use Luminova\Http\Request;
-use Luminova\Security\InputValidator;
+use \App\Controllers\Application;
+use \Luminova\Http\Request;
+use \Luminova\Security\InputValidator;
+use \Luminova\Library\Importer;
 
 abstract class ViewController extends Controller
 {
@@ -34,6 +35,12 @@ abstract class ViewController extends Controller
      * @var Application $app 
     */
     protected ?Application $app = null;
+
+    /**
+     * Importer instance
+     * @var Importer $library 
+    */
+    protected ?Importer $library = null;
 
      /**
      * Initialize controller

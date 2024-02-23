@@ -9,7 +9,9 @@
  */
 
 namespace Luminova\Http;
+
 use Luminova\Http\Header;
+use \InvalidArgumentException;
 
 class Request
 {
@@ -97,11 +99,11 @@ class Request
      * @var array $methods Http request methods
     */
     private array $methods = [
-        'GET', 'POST', 'PUT',
-        'DELETE', 'OPTIONS', 'PATCH',
-        'HEAD', 'CONNECT', 'TRACE',
-        'PROPFIND', 'MKCOL', 'COPY', 'MOVE', 'LOCK', 'UNLOCK'
-    ];
+        'get', 'post', 'put',
+        'delete', 'options', 'patch',
+        'head', 'connect', 'trace',
+        'propfind', 'mkcol', 'copy', 'move', 'lock', 'unlock'
+    ];    
 
     /**
      * Initializes
@@ -113,9 +115,8 @@ class Request
         $this->post = $_POST;
         
         foreach ($this->methods as $method) {
-            if( $method !== 'POST' && $method !== 'GET'){
-                $property = strtolower($method);
-                $this->{$property} = $this->parseRequestBody($method);
+            if( $method !== 'post' && $method !== 'get'){
+                $this->{$method} = $this->parseRequestBody($method);
             }
         }
         
@@ -134,7 +135,7 @@ class Request
     public function find(string $method, string $key, mixed $default = null): mixed
     {
         $property = strtolower($method);
-        $value = isset($this->methods[$method]) ? $this->{$property}[$key] : $default;
+        $value = isset($this->methods[$property]) ? $this->{$property}[$key] : $default;
 
         return $value ?? $default;
     }
@@ -162,6 +163,42 @@ class Request
     {
         return $this->post[$key] ?? $default;
     }
+
+    /**
+     * Get a value from the request context array.
+     *
+     * @param string $method request method context
+     * @param string $key
+     * @param string $index array index
+     * @param mixed $default
+     * 
+     * @return mixed
+     * @throws InvalidArgumentException
+     */
+    public function getArray(string $method, string $key, string $index, mixed $default = null): mixed
+    {
+        $context = strtolower($method);
+        if(in_array($context, $this->methods, true)){
+            $contents = $this->{$context};
+            
+            if(isset($contents[$key])) {
+                $content = $contents[$key];
+                
+                if(is_string($content)) {
+                    $decodedArray = json_decode($content, true);
+                    if ($decodedArray !== null) {
+                        return $decodedArray[$index] ?? $default;
+                    }
+                }
+                
+                return $content[$index] ?? $default;
+            }
+        }
+        
+        throw new InvalidArgumentException("Method '$method' is not allowed. Use any of [" . implode(', ', $this->methods) . "]");
+    }
+
+
 
     /**
      * Get a value from the PUT request.
@@ -532,7 +569,52 @@ class Request
     */
     public function getBrowser(): array
     {
-        return get_browser(null, true);
+        if (ini_get('browscap')) {
+            $browser = get_browser(null, true);
+            
+            if ($browser !== false) {
+                return $browser;
+            }
+        }
+
+        // If get_browser() fails, fallback to parsing the user agent string
+        return self::parseUserAgent();
+    }
+
+    /**
+     * Pass user agent string browser info
+     * 
+     * @param ?string $userAgent
+     * @param bool $returnObject If set to true, this function will return an array instead of an object.
+     * 
+     * @return array 
+    */
+    public static function parseUserAgent(?string $userAgent = null, bool $returnObject = false): array
+    {
+        if($userAgent === null){
+            $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+        }
+        $browserInfo = [];
+
+        if($userAgent !== ''){
+            $pattern = '/^(.*?)\/([\d.]+) \(([^;]+); ([^;]+); ([^)]+)\) (.+)$/';
+            if (preg_match($pattern, $userAgent, $matches)) {
+                $browserInfo['userAgent'] = $matches[0]; // Full User Agent String
+                $browserInfo['parent'] = $matches[1] . ' ' . $matches[2]; // Browser Name & Version
+                $browserInfo['browser'] = $matches[1];
+                $browserInfo['version'] = $matches[2]; // Browser Version
+                $browserInfo['platform'] = $matches[3]; // Operating System Name
+                $browserInfo['platform_version'] = $matches[4]; // Operating System Version
+                //$browserInfo['additional_info'] = $matches[5]; // Additional Information
+                //$browserInfo['gecko_info'] = $matches[6]; // Gecko Information
+            }
+        }
+
+        if ($returnObject) {
+            return (object) $browserInfo;
+        }
+        
+        return $browserInfo;
     }
 
     /**
@@ -543,6 +625,7 @@ class Request
     public function getUserAgent(): string
     {
         $browser = $this->getBrowser();
+
         return $browser['browser'] . ' on ' . $browser['platform'];
     }
 
@@ -553,22 +636,22 @@ class Request
      * 
      * @return bool 
     */
-    public function hasHeader(string $headerName): bool
+    public function hasHeader(string $key): bool
     {
-        return array_key_exists($headerName, $_SERVER);
+        return array_key_exists($key, $_SERVER);
     }
 
     /**
      * Get request header by key name.
      * 
-     * @param string $headerName
+     * @param string $key
      * 
      * @return Header|null header instance
     */
-    public function header(string $headerName): ?Header
+    public function header(string $key): ?Header
     {
-        if ($this->hasHeader($headerName)) {
-            return new Header($_SERVER[$headerName]);
+        if ($this->hasHeader($key)) {
+            return new Header($_SERVER[$key]);
         }
         return null;
     }
@@ -582,4 +665,36 @@ class Request
     {
         return Header::getHeaders();
     }
+
+    /**
+     * Get request header.
+     *
+     * @return string The request headers
+    */
+    public function getHeader(string $key): string 
+    {
+        $headers = Header::getHeaders();
+        $key = strtoupper($key);
+        
+        if (isset($headers[$key])) {
+            return $headers[$key];
+        }
+        
+        // Replace underscores with hyphens
+        $normalized = str_replace('_', '-', $key);
+
+        if (isset($headers[$normalized])) {
+            return $headers[$normalized];
+        }
+        
+        // Remove "HTTP_" prefix and replace underscores with hyphens
+        $stripped = str_replace('_', '-', substr($key, 5));
+
+        if (isset($headers[$stripped])) {
+            return $headers[$stripped];
+        }
+
+        return ''; 
+    }
+
 }

@@ -717,7 +717,7 @@ class Query extends Connection {
 
         try {
     
-            if($type === 'stmt' || $this->cache === null){
+            if($type === 'stmt' || $type === 'count' || $this->cache === null){
                 return $this->returnQuery($this->buildQuery, $type);
             }
 

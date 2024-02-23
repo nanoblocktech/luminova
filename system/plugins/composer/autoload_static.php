@@ -6,6 +6,11 @@ namespace Composer\Autoload;
 
 class ComposerStaticInit9c155849e043191fc1df7e0b46712cd7
 {
+    public static $files = array (
+        '036818047735a62ec8bdc87789995c53' => __DIR__ . '/../../..' . '/libraries/sys/functions.php',
+        '773985666f96db74a126e1a489bb49f3' => __DIR__ . '/../../..' . '/libraries/sys/helpers.php',
+    );
+
     public static $prefixLengthsPsr4 = array (
         'P' => 
         array (
@@ -40,8 +45,10 @@ class ComposerStaticInit9c155849e043191fc1df7e0b46712cd7
         'App\\Controllers\\Application' => __DIR__ . '/../../..' . '/app/Controllers/Application.php',
         'App\\Controllers\\Command' => __DIR__ . '/../../..' . '/app/Controllers/Command.php',
         'App\\Controllers\\Config\\Config' => __DIR__ . '/../../..' . '/app/Controllers/Config/Config.php',
+        'App\\Controllers\\Config\\Cookie' => __DIR__ . '/../../..' . '/app/Controllers/Config/Cookie.php',
         'App\\Controllers\\Config\\Session' => __DIR__ . '/../../..' . '/app/Controllers/Config/Session.php',
         'App\\Controllers\\Config\\Template' => __DIR__ . '/../../..' . '/app/Controllers/Config/Template.php',
+        'App\\Controllers\\Utils\\Func' => __DIR__ . '/../../..' . '/app/Controllers/Utils/Func.php',
         'App\\Controllers\\Welcome' => __DIR__ . '/../../..' . '/app/Controllers/Welcome.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'Luminova\\Application\\Application' => __DIR__ . '/../../..' . '/system/Application/Application.php',
@@ -84,6 +91,9 @@ class ComposerStaticInit9c155849e043191fc1df7e0b46712cd7
         'Luminova\\Config\\SystemPaths' => __DIR__ . '/../../..' . '/system/Config/SystemPaths.php',
         'Luminova\\Controllers\\Controller' => __DIR__ . '/../../..' . '/system/Controllers/Controller.php',
         'Luminova\\Controllers\\ViewController' => __DIR__ . '/../../..' . '/system/Controllers/ViewController.php',
+        'Luminova\\Cookies\\Cookie' => __DIR__ . '/../../..' . '/system/Cookies/Cookie.php',
+        'Luminova\\Cookies\\CookieInterface' => __DIR__ . '/../../..' . '/system/Cookies/CookieInterface.php',
+        'Luminova\\Cookies\\Exception\\CookieException' => __DIR__ . '/../../..' . '/system/Cookies/Exception/CookieException.php',
         'Luminova\\Database\\Columns' => __DIR__ . '/../../..' . '/system/Database/Columns.php',
         'Luminova\\Database\\Connection' => __DIR__ . '/../../..' . '/system/Database/Connection.php',
         'Luminova\\Database\\Drivers\\DriversInterface' => __DIR__ . '/../../..' . '/system/Database/Drivers/DriversInterface.php',
@@ -124,6 +134,7 @@ class ComposerStaticInit9c155849e043191fc1df7e0b46712cd7
         'Luminova\\Http\\NetworkResponse' => __DIR__ . '/../../..' . '/system/Http/NetworkResponse.php',
         'Luminova\\Http\\Request' => __DIR__ . '/../../..' . '/system/Http/Request.php',
         'Luminova\\Languages\\Translator' => __DIR__ . '/../../..' . '/system/Languages/Translator.php',
+        'Luminova\\Library\\Importer' => __DIR__ . '/../../..' . '/system/Library/Importer.php',
         'Luminova\\Logger\\Logger' => __DIR__ . '/../../..' . '/system/Logger/Logger.php',
         'Luminova\\Logger\\LoggerAware' => __DIR__ . '/../../..' . '/system/Logger/LoggerAware.php',
         'Luminova\\Logger\\NovaLogger' => __DIR__ . '/../../..' . '/system/Logger/NovaLogger.php',
@@ -146,6 +157,7 @@ class ComposerStaticInit9c155849e043191fc1df7e0b46712cd7
         'Luminova\\Template\\Smarty' => __DIR__ . '/../../..' . '/system/Template/Smarty.php',
         'Luminova\\Template\\Template' => __DIR__ . '/../../..' . '/system/Template/Template.php',
         'Luminova\\Time\\Task' => __DIR__ . '/../../..' . '/system/Time/Task.php',
+        'Luminova\\Time\\Time' => __DIR__ . '/../../..' . '/system/Time/Time.php',
         'Luminova\\Utils\\Queue' => __DIR__ . '/../../..' . '/system/Utils/Queue.php',
         'Psr\\Log\\AbstractLogger' => __DIR__ . '/..' . '/psr/log/Psr/Log/AbstractLogger.php',
         'Psr\\Log\\InvalidArgumentException' => __DIR__ . '/..' . '/psr/log/Psr/Log/InvalidArgumentException.php',

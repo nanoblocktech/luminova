@@ -11,6 +11,7 @@ namespace Luminova\Functions;
 
 use Luminova\Functions\Escaper;
 use \InvalidArgumentException;
+use \Countable;
 
 class Functions
 {
@@ -312,16 +313,31 @@ class Functions
 	/**
 	 * Check if values are empty
 	 * 
-	 * @param string ...$values arguments
+	 * @param mixed ...$values arguments
+	 * 
 	 * @return bool
 	 */
-	public static function isEmpty(string ...$values): bool 
+	public static function isEmpty(mixed ...$values): bool 
 	{
 		foreach ($values as $value) {
-			if (!isset($value) || empty(trim($value))) {
+
+			if ($value === null || $value === []) {
+				return true;
+			}
+
+			if (is_string($value)) {
+				return trim($value) === '';
+			}
+
+			if (is_object($value) && $value instanceof Countable) {
+				return count($value) === 0;
+			}
+
+			if (empty($value)) {
 				return true;
 			}
 		}
+
 		return false;
 	}
 

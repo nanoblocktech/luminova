@@ -23,13 +23,6 @@ set_error_handler(['\Luminova\Errors\Error', 'handle']);
 register_shutdown_function(['\Luminova\Errors\Error', 'shutdown']);
 
 /*
-* Require system Common.php
-*/
-if (!defined('APP_COMMON')) {
-    include_once __DIR__ . '/../system/Functions/Common.php';
-}
-
-/*
 * Require application Global.php file if exists.
 */
 $global24 = __DIR__ . '/../app/Controllers/Utils/Global.php';

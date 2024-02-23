@@ -39,4 +39,19 @@ abstract class BaseViewController  extends ViewController
     {
         return isset($this->{$key});
     }
+
+     /**
+     * Render view
+     *
+     * @param string $view view name
+     * @param array $options view options
+     * 
+     * @return int 0 
+    */
+    public function view(string $view, array $options = []): int
+    {
+        $this->app()->render($view)->view($options);
+
+        return 0;
+    }
 }

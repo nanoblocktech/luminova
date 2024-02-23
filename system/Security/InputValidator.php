@@ -9,6 +9,7 @@
  */
 
 namespace Luminova\Security;
+
 use Luminova\Security\ValidatorInterface;
 use Luminova\Functions\Functions;
 use Luminova\Functions\IPAddress;
@@ -48,93 +49,94 @@ class InputValidator implements ValidatorInterface
 
         $this->errors = [];
         foreach ($rules as $field => $rule) {
-            $fieldValue = $input[$field] ?? null;
-            $ruleParts = explode('|', $rule);
-            foreach ($ruleParts as $rulePart) {
-                $ruleName = preg_replace("/\s*\([^)]*\)/", '', $rulePart);
-                $ruleParam = str_replace([$ruleName . '(', ')'], '', $rulePart);
-                switch ($ruleName) {
-                    case 'none':
-                        return true;
+            if(isset($input[$field])){
+                $fieldValue = $input[$field] ?? null;
+                $ruleParts = explode('|', $rule);
 
-                    case 'required':
-                        if (self::isEmpty($fieldValue)) {
-                            $this->addError($field, $ruleName);
-                        }
-                        break;
-                    case 'callback':
-                        if (is_callable($ruleParam) && !$ruleParam($fieldValue, $field)) {
-                            $this->addError($field, $ruleName);
-                        }
-                        break;
-                    case 'match':
-                        if (!preg_match('/' . $ruleParam . '/', $fieldValue)) {
-                            $this->addError($field, $ruleName);
-                        }
-                        break;
-
-                    case 'equals':
-                        if ($fieldValue !== $input[$ruleParam]) {
-                            $this->addError($field, $ruleName);
-                        }
-                        break;
-
-                    case 'in_array':
-                        if (!empty($ruleParam)) {
-                            $matches = self::listToArray($ruleParam);
-                            if (!in_array($fieldValue, $matches)) {
+                foreach ($ruleParts as $rulePart) {
+                    $ruleName = preg_replace("/\s*\([^)]*\)/", '', $rulePart);
+                    $ruleParam = str_replace([$ruleName . '(', ')'], '', $rulePart);
+                    
+                    switch ($ruleName) {
+                        case 'none':
+                            return true;
+                        case 'required':
+                            if (Functions::isEmpty($fieldValue)) {
                                 $this->addError($field, $ruleName);
                             }
-                        }
                         break;
-
-                    case 'keys_exist':
-                        if (!empty($ruleParam)) {
-                            $matches = self::listToArray($ruleParam);
-                            if (is_array($fieldValue)) {
-                                $intersection = array_intersect($matches, $fieldValue);
-                                $exist = count($intersection) === count($fieldValue);
-                            } else {
-                                $exist = self::listInArray($fieldValue, $matches);
-                            }
-                            if (!$exist) {
+                        case 'callback':
+                            if (is_callable($ruleParam) && !$ruleParam($fieldValue, $field)) {
                                 $this->addError($field, $ruleName);
                             }
-                        }
                         break;
-
-                    case 'fallback':
-                        $defaultValue = $ruleParam;
-                        if (self::isEmpty($fieldValue)) {
-                            $defaultValue = "";
-                        } elseif (strtolower($ruleParam) == 'null') {
-                            $defaultValue = null;
-                        }
-                        $input[$field] = $defaultValue;
+                        case 'match':
+                            if (!preg_match('/' . $ruleParam . '/', $fieldValue)) {
+                                $this->addError($field, $ruleName);
+                            }
                         break;
-
-                    default:
-                        if (!$this->validateField($ruleName, $fieldValue, $rulePart, $ruleParam)) {
-                            $this->addError($field, $ruleName);
-                        }
+                        case 'equals':
+                            if ($fieldValue !== $input[$ruleParam]) {
+                                $this->addError($field, $ruleName);
+                            }
                         break;
+                        case 'in_array':
+                            if (!empty($ruleParam)) {
+                                $matches = self::listToArray($ruleParam);
+                                if (!in_array($fieldValue, $matches)) {
+                                    $this->addError($field, $ruleName);
+                                }
+                            }
+                        break;
+                        case 'keys_exist':
+                            if (!empty($ruleParam)) {
+                                $matches = self::listToArray($ruleParam);
+                                if (is_array($fieldValue)) {
+                                    $intersection = array_intersect($matches, $fieldValue);
+                                    $exist = count($intersection) === count($fieldValue);
+                                } else {
+                                    $exist = self::listInArray($fieldValue, $matches);
+                                }
+                                if (!$exist) {
+                                    $this->addError($field, $ruleName);
+                                }
+                            }
+                        break;
+                        case 'fallback':
+                            $defaultValue = $ruleParam;
+                            if (Functions::isEmpty($fieldValue)) {
+                                $defaultValue = "";
+                            } elseif (strtolower($ruleParam) == 'null') {
+                                $defaultValue = null;
+                            }
+                            $input[$field] = $defaultValue;
+                        break;
+                        default:
+                            if (!$this->validateField($ruleName, $fieldValue, $rulePart, $ruleParam)) {
+                                $this->addError($field, $ruleName);
+                            }
+                        break;
+                    }
                 }
+            }else{
+                $this->addError($field, '*', 'Form input field [' . $field . '] is missing');
             }
-            
         }
 
-        return empty($this->errors);
+        return $this->errors === [];
     }
 
     /**
      * Validate fields 
+     * 
      * @param string $ruleName The name of the rule to validate
-     * @param string $value The value to validate
+     * @param mixed $value The value to validate
      * @param string $rule The rule line
      * @param string $param additional validation parameters
+     * 
      * @return boolean true if the rule passed else false
     */
-    public function validateField(string $ruleName, string $value, string $rule, mixed $param = null): bool
+    public function validateField(string $ruleName, mixed $value, string $rule, mixed $param = null): bool
     {
         return match ($ruleName) {
             'max_length' => strlen($value) <= (int) $param,
@@ -155,7 +157,7 @@ class InputValidator implements ValidatorInterface
             'decimal' => preg_match('/^-?\d+(\.\d+)?$/', $value) === 1,
             'binary' => ctype_print($value) && !preg_match('/[^\x20-\x7E\t\r\n]/', $value),
             'hexadecimal' => ctype_xdigit($value),
-            'array' => is_array(json_decode($value, true)),
+            'array' => is_array(json_decode($value, true)) || is_array($value),
             'json' => (json_decode($value) && json_last_error() == JSON_ERROR_NONE),
             'path' => match ($param) {
                 'true' => is_string($value) && is_readable($value),
@@ -165,18 +167,6 @@ class InputValidator implements ValidatorInterface
             default => true,
         };
     }
-
-    /**
-     * Check if input is empty 
-     * 
-     * @param mixed $value input value 
-     * 
-     * @return bool
-    */
-    private static function isEmpty(mixed $value) 
-    {
-        return $value === null || $value === '' || strlen($value) < 1;
-    }    
 
     /**
      * Convert string list to array 
@@ -238,7 +228,9 @@ class InputValidator implements ValidatorInterface
 
     /**
      * Get validation error messages
+     * 
      * @param string $field messages input field name
+     * 
      * @return string Error message
     */
     public function getError(string $field): string
@@ -247,26 +239,81 @@ class InputValidator implements ValidatorInterface
     }
 
     /**
+     * Get validation error filed
+     * 
+     * @param string $field messages input field name
+     * 
+     * @return string Error field
+    */
+    public function getErrorField(string $field): string
+    {
+        return $this->errors[$field]['field']??'';
+    }
+
+    /**
      * Get validation error messages
-     * @param int $indexField field index
-     * @param int $indexErrors error index
+     * 
+     * @param int $fieldIndex field index
+     * @param int $errorsIndex error index
      * 
      * @return string Error message
     */
-    public function getErrorLine(int $indexField = 0, int $indexErrors = 0): string
+    public function getErrorLine(int $fieldIndex = 0, int $errorsIndex = 0): string
+    {
+        $errors = $this->getCurrentErrorInfo($fieldIndex);
+
+        if($errors === []){
+            return '';
+        }
+        
+        $errorKey = array_keys($errors)[$errorsIndex] ?? null;
+
+        // Retrieve the error message based on the indices
+        $errorMessage = $errors[$errorKey] ?? '';
+
+        return $errorMessage;
+    }
+
+    /**
+     * Get validation error information
+     * 
+     * @param int $fieldIndex field index
+     * 
+     * @return array Error information
+    */
+    public function getCurrentErrorInfo(int $fieldIndex = 0): array
     {
         $errors = $this->errors;
         // Get the keys of the provided indices
-        $fieldKey = array_keys($errors)[$indexField] ?? null;
-        $errorKey = array_keys($errors[$fieldKey])[$indexErrors] ?? null;
+        $fieldKey = array_keys($errors)[$fieldIndex] ?? null;
+
+        if($fieldKey === null){
+            return [];
+        }
 
         // Retrieve the error message based on the indices
-        $errorMessage = $errors[$fieldKey][$errorKey] ?? '';
+        $errorInfos = $errors[$fieldKey] ?? [];
 
         // Remove the parent key from the error array
         unset($errors[$fieldKey]);
 
-        return $errorMessage;
+        return $errorInfos;
+    }
+
+    /**
+     * Get validation current error field
+     * 
+     * @param string $prefix prefix
+     * 
+     * @return string $errorField
+    */
+    public function getCurrentErrorField(string $prefix = ''): string
+    {
+        $errors = $this->getCurrentErrorInfo();
+
+        $errorField = $errors['field'] ?? '';
+
+        return $prefix . $errorField;
     }
 
      /**
@@ -295,6 +342,7 @@ class InputValidator implements ValidatorInterface
     {
         $message = sprintf($message, $field);
         $this->errors[$field][] = $this->errorMessages[$field][$ruleName] ?? $message;
+        $this->errors[$field]['field'] = $field;
     }
 
     /**

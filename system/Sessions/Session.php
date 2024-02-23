@@ -264,22 +264,26 @@ class Session
     */
     public function start(): void
     {
-        $this->logger ??= new NovaLogger();
+        if ($this->manager instanceof SessionManager) {
+            $this->logger ??= new NovaLogger();
+            if ((bool) ini_get('session.auto_start')) {
+                $this->logger->error('Session: session.auto_start is enabled in php.ini. Aborting.');
+                return;
+            }
 
-        if ((bool) ini_get('session.auto_start')) {
-            $this->logger->error('Session: session.auto_start is enabled in php.ini. Aborting.');
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                //$this->logger->warning('Session: Sessions is enabled, and one exists. Please don\'t $session->start();');
+                return;
+            }
+
+            if (session_status() === PHP_SESSION_NONE) {
+                $this->sessionConfigure();
+                session_start();
+            }
             return;
         }
-
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            $this->logger->warning('Session: Sessions is enabled, and one exists. Please don\'t $session->start();');
-            return;
-        }
-
-        if (session_status() === PHP_SESSION_NONE) {
-            $this->sessionConfigure();
-            session_start();
-        }
+        
+        $this->sessionConfigure();
     }
 
     /**
@@ -341,7 +345,7 @@ class Session
     private function sessionConfigure(): void
     {
         $cookieParams = [
-            'lifetime' => $this->config->expiration,
+            'lifetime' => time() + $this->config->expiration,
             'path'     => $this->config->sessionPath,
             'domain'   => $this->config->sessionDomain,
             'secure'   => true,
@@ -353,7 +357,7 @@ class Session
         session_set_cookie_params($cookieParams);
 
         if ($this->config->expiration > 0) {
-            ini_set('session.gc_maxlifetime', (string) $this->config->expiration);
+            ini_set('session.gc_maxlifetime', (string) $cookieParams['lifetime']);
         }
 
         if ($this->config->savePath !== '') {
@@ -364,6 +368,6 @@ class Session
         ini_set('session.use_strict_mode', '1');
         ini_set('session.use_cookies', '1');
         ini_set('session.use_only_cookies', '1');
-        $this->manager->setConfig($cookieParams);
+        $this->manager->setConfig($this->config);
     }
 }

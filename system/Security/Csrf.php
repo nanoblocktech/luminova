@@ -10,27 +10,31 @@
 
 namespace Luminova\Security;
 
-class Csrf {
-    /**
-     * Token
-     *
-     * @var string $token
-    */
-    private static $token;
+use \BadMethodCallException;
+use \App\Controllers\Config\Session as CookieConfig;
 
+class Csrf 
+{
     /**
      * Token session input name
      *
-     * @var string $token_name
+     * @var string $tokenName
     */
-    private static $token_name = "csrf_token";
+    private static $tokenName = "csrf_token";
 
     /**
      * Token session key name
      *
-     * @var string $token_key
+     * @var string $token
     */
-    private static $token_key = "csrf_token_token";
+    private static $token = "csrf_token_token";
+
+    /**
+     * Cookie config
+     *
+     * @var ?CookieConfig $config
+    */
+    private static ?CookieConfig $config = null;
 
     /**
      * Generates a CSRF token.
@@ -43,14 +47,96 @@ class Csrf {
     }
 
     /**
+     * Detain which storage engin to use
+     * If session is not started but dev fallback to using cookie storage
+     * 
+     * 
+     * @return string cookie or session
+    */
+    private static function tokenStorage(): string 
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            return 'cookie';
+        }
+
+        return 'session';
+    }
+
+    private static function getConfig(): CookieConfig
+    {
+        if(self::$config === null){
+            self::$config = new CookieConfig();
+        }
+
+        return self::$config;
+    }
+
+    /**
+     * Save token depending on storage
+     * 
+     * @param string $token
+     * @param ?int $expiry
+     * 
+     * @return void 
+    */
+    private static function saveToken(string $token, ?int $expiry = null): void 
+    {
+        $storage = self::tokenStorage();
+
+        if($storage === 'cookie'){
+            $config = self::getConfig();
+            $expiration = $expiry === null ? time() + $config->expiration : $expiry;
+            setcookie(self::$token, $token, [
+                'expires' => $expiration,
+                'path' => $config->sessionPath,
+                'domain' => $config->sessionDomain,
+                'secure' => true,
+                'httponly' => true,
+                'samesite' => $config->sameSite 
+            ]);
+            $_COOKIE[self::$token] = $token;
+        }else{
+            $_SESSION[self::$token] = $token;
+        }
+    }
+
+    /**
+     * Check if taken was already created
+     * 
+     * @return bool 
+    */
+    private static function hasToken(): bool 
+    {
+        $storage = self::tokenStorage();
+
+        if($storage === 'cookie' && self::hasCookie()){
+            return true;
+        }
+
+        return isset($_SESSION[self::$token]);
+    }
+
+     /**
+     * Check if cookie taken was already created
+     * 
+     * @return bool 
+    */
+    private static function hasCookie(): bool 
+    {
+        return isset($_COOKIE[self::$token]) && !empty($_COOKIE[self::$token]);
+    }
+
+    /**
      * Generate and Stores the CSRF token in the session.
+     * After it has been validated 
      * 
      * @return void 
      */
     public static function refreshToken(): void 
     {
-        self::$token = self::generateToken();
-        $_SESSION[self::$token_key] = self::$token;
+        $token = self::generateToken();
+
+        self::saveToken($token);
     }
 
     /**
@@ -60,20 +146,40 @@ class Csrf {
      */
     public static function getToken(): string 
     {
-        if (!self::$token) {
-            self::refreshToken();
+        if (self::hasToken()) {
+            $storage = self::tokenStorage();
+
+            if($storage === 'cookie'){
+                return $_COOKIE[self::$token];
+            }
+
+            return $_SESSION[self::$token];
         }
-        return self::$token;
+
+        $token = self::generateToken();
+        self::saveToken($token);
+
+        return $token;
     }
 
     /**
      * Generates an HTML input field for the CSRF token.
      * 
-     * @return void 
+     * @return void echo input field with generated CSRF token
      */
     public static function inputToken(): void 
     {
-        echo '<input type="hidden" name="' . self::$token_name . '" value="' . self::getToken() . '">';
+        echo '<input type="hidden" name="' . self::$tokenName . '" value="' . self::getToken() . '">';
+    }
+
+    /**
+     * Generates an HTML meta tag for the CSRF token.
+     * 
+     * @return void echo input meta tag with generated CSRF token
+     */
+    public static function metaToken(): void 
+    {
+        echo '<meta name="' . self::$tokenName . '" content="' . self::getToken() . '">';
     }
 
     /**
@@ -85,10 +191,61 @@ class Csrf {
      */
     public static function validateToken(string $token): bool 
     {
-        if (isset($_SESSION[self::$token_key]) && hash_equals($_SESSION[self::$token_key], $token)) {
-            unset($_SESSION[self::$token_key]);
+        $storage = self::tokenStorage();
+        $tokenHash = '';
+
+        if($storage === 'cookie'){
+            if(self::hasCookie()){
+                $tokenHash = $_COOKIE[self::$token];
+            }
+        }elseif(isset($_SESSION[self::$token])){
+            $tokenHash = $_SESSION[self::$token];
+        }
+
+        if($tokenHash === '' || $tokenHash === null){
+            return false;
+        }
+
+        if (hash_equals($tokenHash, $token)) {
+            self::clearToken($storage);
+
             return true;
         }
+
         return false; 
+    }
+
+    /**
+     * Clear stored token
+     *
+     * @param string $storage storage engin type
+     *
+     * @return void 
+     */
+    private static function clearToken(string $storage): void 
+    {
+        if($storage === 'cookie'){
+            self::saveToken('', time() - self::getConfig()->expiration);
+            return;
+        }
+
+        unset($_SESSION[self::$token]);
+    }
+
+    /**
+     * Call static method as none static 
+     * 
+     * @param string $name method name 
+     * @param array $arguments method arguments
+     * 
+     * @return mixed 
+     * @throws BadMethodCallException
+    */
+    public function __call(string $name, array $arguments): mixed
+    {
+        if (method_exists(static::class, $name)) {
+            return call_user_func_array([static::class, $name], $arguments);
+        }
+        throw new BadMethodCallException("Call to undefined method " . static::class . "::" . $name . "()");
     }
 }

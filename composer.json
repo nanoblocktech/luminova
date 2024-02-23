@@ -12,6 +12,7 @@
         "php": "^8.0",
         "ext-json": "*",
         "ext-mbstring": "*",
+        "ext-intl": "*",
         "psr/log": "^1.1"
     },
     "require-dev": {
@@ -30,9 +31,16 @@
         "ext-imagick": "Needed if you use Image class ImageMagickHandler",
         "ext-memcache": "Needed if you use Cache class MemcachedHandler with Memcache",
         "ext-memcached": "Needed if you use Cache class MemcachedHandler with Memcached",
-        "ext-mysqli": "Needed if you use MySQL"
+        "ext-mysqli": "Needed if you use MySQL",
+        "ext-intl": "Needed if you use Local",
+        "phpmailer/phpmailer": "Needed if you use Mailer",
+        "smarty/smarty": "Needed if you use Template engine"
     },
     "autoload": {
+        "files": [
+            "libraries/sys/functions.php",
+            "libraries/sys/helpers.php"
+        ],
         "psr-4": {
             "Luminova\\": "system/",
             "App\\Controllers\\": "app/Controllers/"

@@ -19,7 +19,7 @@ if (getcwd() . DIRECTORY_SEPARATOR !== PUBLIC_CONTROLLER) {
 /*
 * Define a function for the web error handler
 */
-$webErrorHandler = function () use ($app) {
+$WebErrorCallback = function () use ($app) {
     $app->render("404")->view([
         "error_view" => $app->getView()
     ]);
@@ -28,7 +28,7 @@ $webErrorHandler = function () use ($app) {
 /*
 * Define a function for the API error handler
 */
-$apiErrorHandler = function () use($app){
+$ApiErrorCallback = function () use($app){
     header("HTTP/1.0 404 Not Found");
     header("Content-type: application/json");
     exit(json_encode([
@@ -46,8 +46,8 @@ $apiErrorHandler = function () use($app){
 * bootstraps the router and set the error handler based on context
 */
 $app->router->bootstraps(
-    new Bootstrap(Bootstrap::WEB, $app, $webErrorHandler),
-    new Bootstrap(Bootstrap::API, $app, $apiErrorHandler),
+    new Bootstrap(Bootstrap::WEB, $app, $WebErrorCallback),
+    new Bootstrap(Bootstrap::API, $app, $ApiErrorCallback),
     new Bootstrap(Bootstrap::CLI, $app)
 );
 

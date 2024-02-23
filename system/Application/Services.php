@@ -10,21 +10,26 @@
 
 namespace Luminova\Application;
 
-use \Luminova\Base\BaseConfig;
+use \Luminova\Config\Configuration;
 use \Luminova\Time\Task;
-use \Luminova\Base\BaseFunction;
+use \Luminova\Functions\Functions;
+use \Luminova\Functions\IPAddress;
+use \Luminova\Functions\Files;
+use \Luminova\Functions\Document;
 use \Luminova\Sessions\Session;
+use \Luminova\Library\Importer;
 use \RuntimeException;
 use \Throwable;
 
 /**
  * Services Configuration file.
  *
- * @method static BaseFunction           functions(...$params, bool $shared = true)
- * @method static BaseFunction           func(...$params, bool $shared = true)
- * @method static BaseConfig             config(...$params, bool $shared = true)
+ * @method static Functions           functions(...$params, bool $shared = true)
+ * @method static Functions           func(...$params, bool $shared = true)
+ * @method static Configuration             config(...$params, bool $shared = true)
  * @method static Session                session(...$params, bool $shared = true)
  * @method static Task                   task(...$params, bool $shared = true)
+ * @method static Importer               import(...$params, bool $shared = true)
  * @method static $context               $context(...$params, bool $shared = true)
  */
 
@@ -50,9 +55,13 @@ class Services
 
         return match($context) {
             'task' => Task::class,
-            'config' => BaseConfig::class,
+            'config' => Configuration::class,
             'session' => Session::class,
-            'func', 'functions' => BaseFunction::class,
+            'func', 'functions' => Functions::class,
+            'ip' => IPAddress::class,
+            'file' => Files::class,
+            'document' => Document::class,
+            'import' => Importer::class,
             default => null
         };
     }

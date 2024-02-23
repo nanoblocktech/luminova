@@ -411,7 +411,14 @@ trait Template
         if($this->subViewFolder !== ''){
             $this->templateDir .= $this->subViewFolder . self::$ds;
         }
+
         $this->templateFile = "{$this->templateDir}{$viewName}{$this->getTemplateEngin()}";
+
+        if (!file_exists($this->templateFile) && BaseConfig::isProduction()) {
+            $viewName = '404';
+            $this->templateFile = "{$this->templateDir}{$viewName}{$this->getTemplateEngin()}";
+        }
+
         $this->activeView = $viewName;
 
         return $this;
@@ -421,17 +428,19 @@ trait Template
     * redirect to template view
     *
     * @param string $viewName view name
+    * @param int $status response status code
     *
     * @return void
     */
-    public function redirect(string $viewName = ''): void 
+    public function redirect(string $viewName = '', int $status = 0): void 
     {
         $to = BaseConfig::baseUrl();
+
         if ($viewName !== '' && $viewName !== '/') {
             $to .= '/' . $viewName;
         }
-        header("Location: {$to}");
-        exit();
+
+        $this->headerLocation($to, $status);
     }
 
     /** 
@@ -443,9 +452,23 @@ trait Template
     */
     public function redirectTo(string $url): void 
     {
-        header("Location: $url", true, 302);
+        $this->headerLocation($url, 302);
+    }   
+    
+    /** 
+    * redirect to url header location
+    *
+    * @param string $url view name
+    * @param int $status response status code
+    * @param bool $replace replace header
+    *
+    * @return void 
+    */
+    public function headerLocation(string $url, int $status = 0, bool $replace = true): void 
+    {
+        header("Location: $url", $replace, $status);
         exit();
-    }    
+    } 
 
     /** 
     * Set project application document root
@@ -652,7 +675,7 @@ trait Template
   
         try {
             if (!file_exists($this->templateFile)) {
-                throw new ViewNotFoundException($this->activeView);
+                throw new ViewNotFoundException($this->activeView, 404);
             }
 
             // Set the project script execution time
@@ -977,6 +1000,11 @@ trait Template
         }*/
 
         $exceptionView = $this->getBaseErrorViewFolder('exceptions');
+
+        if(BaseConfig::getBoolean("show.debug.tracer")){
+            define('SHOW_DEBUG_BACKTRACE', true);
+            $trace = debug_backtrace();
+        }
 
         include_once $exceptionView;
 

@@ -11,7 +11,7 @@ namespace Luminova\Logger;
 
 use Psr\Log\LogLevel;
 use Psr\Log\AbstractLogger;
-use Luminova\Base\BaseConfig;
+use \Luminova\Base\BaseConfig;
 use \DateTime;
 
 class NovaLogger extends AbstractLogger

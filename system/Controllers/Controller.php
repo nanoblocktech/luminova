@@ -10,9 +10,10 @@
 
 namespace Luminova\Controllers;
 
-use App\Controllers\Application;
-use Luminova\Http\Request;
-use Luminova\Security\InputValidator;
+use \App\Controllers\Application;
+use \Luminova\Http\Request;
+use \Luminova\Security\InputValidator;
+use \Luminova\Library\Importer;
 
 abstract class Controller
 {
@@ -35,9 +36,17 @@ abstract class Controller
     protected ?Application $app = null;
 
     /**
+     * Importer instance
+     * @var Importer $library 
+    */
+    protected ?Importer $library = null;
+
+
+    /**
      * Initialize controller
      */
-    public function __construct() {
+    public function __construct() 
+    {
         $this->request = $this->request();
         $this->validate = $this->validate();
         $this->app = $this->app();
@@ -45,6 +54,9 @@ abstract class Controller
 
 
     /**
+     * Initializes the http request class
+     * Allows #[\Override]
+     * 
      * @return Request $request http request object 
     */
     public function request(): Request
@@ -57,6 +69,9 @@ abstract class Controller
     }
 
     /**
+     * Initializes the input validator class
+     * Allows #[\Override]
+     * 
      * @return InputValidator $validate input validation object 
     */
     public function validate(): InputValidator
@@ -69,6 +84,9 @@ abstract class Controller
     }
 
     /**
+     * Initializes the application class
+     * Allows #[\Override]
+     * 
      * @return Application $app Application instance
     */
     public function app(): Application
@@ -78,5 +96,20 @@ abstract class Controller
         }
         
         return $this->app;
+    }
+
+     /**
+     * Initializes the application class
+     * Allows #[\Override]
+     * 
+     * @return Importer $app Application instance
+    */
+    public function library(): Importer
+    {
+        if($this->library === null){
+            $this->library = new Importer();
+        }
+        
+        return $this->library;
     }
 }

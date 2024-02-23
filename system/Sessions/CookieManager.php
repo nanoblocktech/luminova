@@ -10,39 +10,38 @@
 namespace Luminova\Sessions;
 
 use Luminova\Sessions\SessionInterface;
+use \App\Controllers\Config\Session as CookieConfig;
 
 class CookieManager implements SessionInterface 
 {
     /**
      * @var string $storage
     */
-    protected string $storage;
+    protected string $storage = '';
 
     /**
-     * @var array $config
+     * @var CookieConfig $config
     */
-    private array $config = [];
+    private ?CookieConfig $config = null;
 
     /**
      * Session constructor.
      *
      * @param string $storage The session storage key.
-     * @param array $config Cookie configuration
     */
-    public function __construct(string $storage = 'global', array $config = []) 
+    public function __construct(string $storage = 'global') 
     {
         $this->storage = $storage;
-        $this->config = $config;
     }
 
     /** 
      * Set cookie options 
      * 
-     * @param array $config 
+     * @param CookieConfig $config 
      * 
      * @return void
     */
-    public function setConfig(array $config): void 
+    public function setConfig(CookieConfig $config): void 
     {
         $this->config = $config;
     }
@@ -81,6 +80,7 @@ class CookieManager implements SessionInterface
     public function add(string $key, mixed $value): self
     {
         $this->setContents($key, $value);
+
         return $this;
     }
 
@@ -95,6 +95,7 @@ class CookieManager implements SessionInterface
     public function set(string $key, mixed $value): self
     {
         $this->setContents($key, $value);
+
         return $this;
     }
 
@@ -109,6 +110,7 @@ class CookieManager implements SessionInterface
     public function get(string $index, mixed $default = null): mixed
     {
         $data = $this->getContents();
+
         return $data[$index]??$default;
     }
 
@@ -123,6 +125,7 @@ class CookieManager implements SessionInterface
     public function getFrom(string $index, string $storage): mixed
     {
         $data = $this->getContents($storage);
+
         return $data[$index]??null;
     }
 
@@ -140,6 +143,7 @@ class CookieManager implements SessionInterface
         $data = $this->getContents($storage);
         $data[$index] = $value;
         $this->updateContents($data);
+
         return $this;
     }
 
@@ -153,7 +157,12 @@ class CookieManager implements SessionInterface
     public function online($storage = ''): bool
     {
         $data = $this->getContents($storage);
-        return (isset($data["_online"]) && $data["_online"] == "YES");
+
+        if((isset($data["_online"]) && $data["_online"] == "YES")){
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -165,8 +174,10 @@ class CookieManager implements SessionInterface
     */
     public function clear(string $storage = ''): self
     {
-        $storageKey = $storage === '' ? $this->storage : $storage;
-        setcookie($storageKey, '', time() - $this->config['lifetime'], $this->config['path']);
+        $context = $storage === '' ? $this->storage : $storage;
+        $this->saveContent('',  $context, time() - $this->config->expiration);
+        $_COOKIE[$context] = '';
+
         return $this;
     }
 
@@ -197,6 +208,7 @@ class CookieManager implements SessionInterface
     public function hasKey(string $key): bool
     {
         $data = $this->getContents();
+
         return isset($data[$key]);
     }
 
@@ -245,6 +257,7 @@ class CookieManager implements SessionInterface
         }elseif (isset($data[$index])) {
             return (object) $data[$index];
         }
+
         return [];
     }
 
@@ -268,6 +281,7 @@ class CookieManager implements SessionInterface
         }elseif (isset($data[$index])) {
             return (object) $data[$index];
         }
+
         return (object)[];
     }
 
@@ -280,10 +294,16 @@ class CookieManager implements SessionInterface
     */
     public function getContents(string $storage = ''): array
     {
-        $storageKey = $storage === '' ? $this->storage : $storage;
-        if (isset($_COOKIE[$storageKey])) {
-            return json_decode($_COOKIE[$storageKey], true) ?? [];
+        $key = $storage === '' ? $this->storage : $storage;
+
+        if (isset($_COOKIE[$key])) {
+            if(is_string($_COOKIE[$key])){
+                return json_decode($_COOKIE[$key], true) ?? [];
+            }
+
+            return $_COOKIE[$key] ?? [];
         }
+
         return [];
     }
 
@@ -299,6 +319,7 @@ class CookieManager implements SessionInterface
     {
         $data = $this->getContents();
         $data[$key] = $value;
+
         $this->updateContents($data);
     }
 
@@ -307,23 +328,39 @@ class CookieManager implements SessionInterface
      *
      * @param array $data contents
      * 
-     * @return self $this
+     * @return void 
     */
-    private function updateContents(array $data): self
+    private function updateContents(array $data): void
     {
         $cookieValue = json_encode($data);
-        setcookie(
-            $this->storage,
-            $cookieValue,
-            time() + $this->config['lifetime'],
-            $this->config['path'],
-            $this->config['domain'],
-            $this->config['secure'],
-            $this->config['httponly']
-        );
-        
-        return $this;
+
+        $this->saveContent($cookieValue, $this->storage);
+        $_COOKIE[$this->storage] =  $data;
     }
 
+    /**
+     * Save delete data from cookie storage.
+     *
+     * @param array $value contents
+     * @param string $storage cookie storage context
+     * @param ?int $expiry cookie expiration time
+     * 
+     * @return self $this
+    */
+    private function saveContent(string $value, string $storage, ?int $expiry = null): void
+    {
+
+        $this->config ??=  new CookieConfig();
+        $expiration = $expiry === null ? time() + $this->config->expiration : $expiry;
+
+        setcookie($storage, $value, [
+            'expires' => $expiration,
+            'path' => $this->config->sessionPath,
+            'domain' => $this->config->sessionDomain,
+            'secure' => true,
+            'httponly' => true,
+            'samesite' => $this->config->sameSite 
+        ]);
+    }
 
 }

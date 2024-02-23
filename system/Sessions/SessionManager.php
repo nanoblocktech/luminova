@@ -10,6 +10,7 @@
 namespace Luminova\Sessions;
 
 use Luminova\Sessions\SessionInterface;
+use \App\Controllers\Config\Session as SessionConfig;
 
 class SessionManager implements SessionInterface 
 {
@@ -19,9 +20,9 @@ class SessionManager implements SessionInterface
     protected string $storage;
 
     /**
-     * @var array $config
+     * @var SessionConfig $config
     */
-    private array $config = [];
+    private ?SessionConfig $config = null;
 
     /**
      * Session constructor.
@@ -29,19 +30,19 @@ class SessionManager implements SessionInterface
      * @param string $storage The session storage key.
      * @param array $config Session configuration
     */
-    public function __construct(string $storage = 'global', array $config = []) 
+    public function __construct(string $storage = 'global') 
     {
         $this->storage = $storage;
-        $this->config = $config;
     }
 
     /** 
      * Set cookie options 
-     * @param array $config 
+     * 
+     * @param SessionConfig $config 
      * 
      * @return void
     */
-    public function setConfig(array $config): void 
+    public function setConfig(SessionConfig $config): void 
     {
         $this->config = $config;
     }

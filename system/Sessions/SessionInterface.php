@@ -9,6 +9,8 @@
  */
 namespace Luminova\Sessions;
 
+use \App\Controllers\Config\Session as SessionConfig;
+
 interface SessionInterface 
 {
     /**
@@ -136,10 +138,11 @@ interface SessionInterface
 
     /** 
      * Set cookie options 
-     * @param array $config 
+     * 
+     * @param SessionConfig $config 
      * 
      * @return void
     */
-    public function setConfig(array $config): void;
+    public function setConfig(SessionConfig $config): void;
 
 }

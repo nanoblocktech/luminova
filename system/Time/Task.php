@@ -15,9 +15,6 @@ use \DateInterval;
 
 class Task
 {
-    public function __construct() {
-    }
-
     public static function createDate(string $timeDate, string $timezone = 'GMT')
     {
         return  DateTime::createFromFormat('Y-m-d H:iA', $timeDate, new DateTimeZone($timezone));
