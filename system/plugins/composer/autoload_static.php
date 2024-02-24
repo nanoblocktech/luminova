@@ -43,7 +43,6 @@ class ComposerStaticInit9c155849e043191fc1df7e0b46712cd7
 
     public static $classMap = array (
         'App\\Controllers\\Application' => __DIR__ . '/../../..' . '/app/Controllers/Application.php',
-        'App\\Controllers\\Command' => __DIR__ . '/../../..' . '/app/Controllers/Command.php',
         'App\\Controllers\\Config\\Config' => __DIR__ . '/../../..' . '/app/Controllers/Config/Config.php',
         'App\\Controllers\\Config\\Cookie' => __DIR__ . '/../../..' . '/app/Controllers/Config/Cookie.php',
         'App\\Controllers\\Config\\Session' => __DIR__ . '/../../..' . '/app/Controllers/Config/Session.php',

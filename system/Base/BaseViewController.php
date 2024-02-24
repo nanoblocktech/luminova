@@ -14,7 +14,6 @@ use Luminova\Controllers\ViewController;
 
 abstract class BaseViewController  extends ViewController
 {
-    
     /**
      * Magic method getter
      *
@@ -38,20 +37,5 @@ abstract class BaseViewController  extends ViewController
     public function __isset(string $key): bool
     {
         return isset($this->{$key});
-    }
-
-     /**
-     * Render view
-     *
-     * @param string $view view name
-     * @param array $options view options
-     * 
-     * @return int 0 
-    */
-    public function view(string $view, array $options = []): int
-    {
-        $this->app()->render($view)->view($options);
-
-        return 0;
     }
 }

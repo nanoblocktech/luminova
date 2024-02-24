@@ -16,7 +16,7 @@ class Session
      * The name of the session cookie.
      * @var string $cookieName;
      */
-    public string $cookieName = "ESANSESSID"; 
+    public string $cookieName = "PHPSESSID"; 
 
     /**
      * The path where session files are stored on the server.

@@ -10,11 +10,46 @@
 
 namespace Luminova\Base;
 
-use Luminova\Controllers\Controller;
+use Luminova\Controllers\ViewController;
+use \Luminova\Http\Request;
+use \Luminova\Security\InputValidator;
+use \App\Controllers\Application;
 
-abstract class BaseController  extends Controller
+abstract class BaseController  extends ViewController
 {
-    
+    /**
+     * HTTP request object 
+     * @var Request $request 
+    */
+    protected ?Request $request = null;
+
+    /**
+     * Input validation object 
+     * @var InputValidator $validate
+    */
+    protected ?InputValidator $validate = null;
+
+     /**
+      * Application instance
+      * @var Application $app 
+     */
+    protected ?Application $app = null;
+ 
+    /**
+     * Initialize controller instance
+     * Make request and validate available global
+     * 
+     * @var InputValidator $validate $this->validate
+     * @var Request $request $this->request
+     * @var Request $app  $this->app
+    */
+    final public function __construct()
+    {
+        $this->validate = $this->validate();
+        $this->request = $this->request();
+        $this->app = $this->app();
+    }
+
     /**
      * Magic method getter
      *
@@ -38,20 +73,5 @@ abstract class BaseController  extends Controller
     public function __isset(string $key): bool
     {
         return isset($this->{$key});
-    }
-
-     /**
-     * Render view
-     *
-     * @param string $view view name
-     * @param array $options view options
-     * 
-     * @return int 0 
-    */
-    public function view(string $view, array $options = []): int
-    {
-        $this->app->render($view)->view($options);
-
-        return 0;
     }
 }

@@ -15,6 +15,7 @@ class Updater{
             self::checkAndCopyFile('.env', 'samples/.env');
             self::checkAndCopyFile('meta.config.json', 'samples/meta.config.json');
             self::checkAndCopyFile('app/Controllers/Config/Session.php', 'samples/Session.php');
+            self::checkAndCopyFile('app/Controllers/Config/Cookie.php', 'samples/Cookie.php');
             self::checkAndCopyFile('app/Controllers/Config/Config.php', 'samples/Config.php');
             self::checkAndCopyFile('app/Controllers/Config/Template.php', 'samples/Template.php');
             self::checkAndCopyFile('app/Controllers/Utils/Global.php', 'samples/Global.php');

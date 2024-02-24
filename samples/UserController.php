@@ -14,13 +14,15 @@ use App\Controllers\Models\UserModel;
 
 class UserController extends BaseController
 {
-    /** @var \ Luminova\Http\Request $this->request */
-    /** @var \ Luminova\Application $this->app */
+    /** @var \Luminova\Http\Request $this->request */
+    /** @var \Luminova\Application $this->app */
     /** @var \Luminova\Security\InputValidator $this->validate */
+    /** @var \Luminova\Template\Template $this->view(string $view, array $options = []): int 0 */
+    /** @var \Luminova\Library\Importer $this->library() */
 
 
     public function page(): void
     {
-        $this->app->render("index")->view();
+        $this->view('index');
     }
 }

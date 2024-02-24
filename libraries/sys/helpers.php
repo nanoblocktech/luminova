@@ -7,20 +7,22 @@
  * @copyright (c) Nanoblock Technology Ltd
  * @license See LICENSE file
  */
-
-$class_configs = include_once(__DIR__ . '/../../class.config.php');
-
 /**
- * Anonymous function to register class aliases
- * 
- * @param array $aliases
+ * Anonymous function to register class configuration
  * 
  * @return void 
 */
-(function(array $aliases ): void {
-    foreach ($aliases as $alias => $namespace) {
-        if (!class_alias($namespace, $alias)) {
-            logger('warning', "Failed to create an alias [$alias] for class [$namespace]");
+(function(): void {
+    $configPath = __DIR__ . '/../../class.config.php';
+    if(file_exists($configPath)){
+        $config = require_once $configPath;
+
+        if(isset($config['aliases'])){
+            foreach ($config['aliases'] as $alias => $namespace) {
+                if (!class_alias($namespace, $alias)) {
+                    logger('warning', "Failed to create an alias [$alias] for class [$namespace]");
+                }
+            }
         }
     }
-})($class_configs['aliases'] ?? []);
+})();

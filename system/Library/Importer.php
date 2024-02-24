@@ -42,7 +42,7 @@ class Importer
         $filePath = self::$path . $file;
 
         if (file_exists($filePath)) {
-            include_once $filePath;
+            require_once $filePath;
             return true;
         }
 

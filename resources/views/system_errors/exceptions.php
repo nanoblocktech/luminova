@@ -1,6 +1,6 @@
 <?php
 use Luminova\Http\Request;
-use Luminova\Functions\Functions;
+use Luminova\Functions\IPAddress;
 use Luminova\Config\Configuration;
 $errorId = uniqid('error', true);
 ?>
@@ -10,7 +10,7 @@ $errorId = uniqid('error', true);
     <meta charset="UTF-8">
     <meta name="robots" content="noindex">
     <link rel="shortcut icon" type="image/png" href="<?php echo $this->_base;?>favicon.png">
-    <title><?= htmlspecialchars($this->_title) ?></title>
+    <title><?= escape($this->_title ?? $exception::class) ?></title>
     <style>
         <?= preg_replace('#[\r\n\t ]+#', ' ', file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'debug.css')) ?>
     </style>
@@ -20,10 +20,10 @@ $errorId = uniqid('error', true);
     <!-- Header -->
     <div class="header">
         <div class="container">
-            <h1><?= htmlspecialchars($this->_title ?? $exception::class), htmlspecialchars($exception->getCode() ? ' #' . $exception->getCode() : '') ?></h1>
+            <h1><?= escape($this->_title ?? $exception::class), escape($exception->getCode() ? ' #' . $exception->getCode() : '') ?></h1>
             <p>
-                <?= nl2br(htmlspecialchars($exception->getMessage())) ?>
-                <a href="https://www.duckduckgo.com/?q=<?= urlencode($title . ' ' . preg_replace('#\'.*\'|".*"#Us', '', $exception->getMessage())) ?>"
+                <?= nl2br(escape($exception->getMessage())) ?>
+                <a href="https://www.duckduckgo.com/?q=<?= urlencode($this->_title . ' ' . preg_replace('#\'.*\'|".*"#Us', '', $exception->getMessage())) ?>"
                    rel="noreferrer" target="_blank">search &rarr;</a>
             </p>
         </div>
@@ -55,9 +55,9 @@ $errorId = uniqid('error', true);
                             <?php if (isset($row['file']) && is_file($row['file'])) : ?>
                                 <?php
                                 if (isset($row['function']) && in_array($row['function'], ['include', 'include_once', 'require', 'require_once'], true)) {
-                                    echo htmlspecialchars($row['function'] . ' ' . trim($row['file']));
+                                    echo escape($row['function'] . ' ' . trim($row['file']));
                                 } else {
-                                    echo htmlspecialchars(trim($row['file']) . ' : ' . $row['line']);
+                                    echo escape(trim($row['file']) . ' : ' . $row['line']);
                                 }
                                 ?>
                             <?php else: ?>
@@ -66,11 +66,11 @@ $errorId = uniqid('error', true);
 
                             <!-- Class/Method -->
                             <?php if (isset($row['class'])) : ?>
-                                &nbsp;&nbsp;&mdash;&nbsp;&nbsp;<?= htmlspecialchars($row['class'] . $row['type'] . $row['function']) ?>
+                                &nbsp;&nbsp;&mdash;&nbsp;&nbsp;<?= escape($row['class'] . $row['type'] . $row['function']) ?>
                                 <?php if (! empty($row['args'])) : ?>
                                     <?php $argsId = $errorId . 'args' . $index ?>
-                                    ( <a href="#" onclick="return toggle('<?= htmlspecialchars($argsId, 'attr') ?>');">arguments</a> )
-                                    <div class="args" id="<?= htmlspecialchars($argsId, 'attr') ?>">
+                                    ( <a href="#" onclick="return toggle('<?= escape($argsId, 'attr') ?>');">arguments</a> )
+                                    <div class="args" id="<?= escape($argsId, 'attr') ?>">
                                         <table cellspacing="0">
 
                                         <?php
@@ -82,8 +82,8 @@ $errorId = uniqid('error', true);
 
                                         foreach ($row['args'] as $key => $value) : ?>
                                             <tr>
-                                                <td><code><?= htmlspecialchars(isset($params[$key]) ? '$' . $params[$key]->name : "#{$key}") ?></code></td>
-                                                <td><pre><?= htmlspecialchars(print_r($value, true)) ?></pre></td>
+                                                <td><code><?= escape(isset($params[$key]) ? '$' . $params[$key]->name : "#{$key}") ?></code></td>
+                                                <td><pre><?= escape(print_r($value, true)) ?></pre></td>
                                             </tr>
                                         <?php endforeach ?>
 
@@ -95,13 +95,13 @@ $errorId = uniqid('error', true);
                             <?php endif; ?>
 
                             <?php if (! isset($row['class']) && isset($row['function'])) : ?>
-                                &nbsp;&nbsp;&mdash;&nbsp;&nbsp;    <?= htmlspecialchars($row['function']) ?>()
+                                &nbsp;&nbsp;&mdash;&nbsp;&nbsp;    <?= escape($row['function']) ?>()
                             <?php endif; ?>
                         </p>
 
                         <?php if (isset($row['file']) && is_file($row['file']) && isset($row['class'])) : ?>
                             <div class="source">
-                                <?= static::highlightFile($row['file'], $row['line']) ?>
+                                <?= $exception->highlightFile($row['file'], $row['line']) ?>
                             </div>
                         <?php endif; ?>
                     </li>
@@ -119,7 +119,7 @@ $errorId = uniqid('error', true);
                         continue;
                     } ?>
 
-                    <h3>$<?= htmlspecialchars($var) ?></h3>
+                    <h3>$<?= escape($var) ?></h3>
 
                     <table>
                         <thead>
@@ -131,12 +131,12 @@ $errorId = uniqid('error', true);
                         <tbody>
                         <?php foreach ($GLOBALS[$var] as $key => $value) : ?>
                             <tr>
-                                <td><?= htmlspecialchars($key) ?></td>
+                                <td><?= escape($key) ?></td>
                                 <td>
                                     <?php if (is_string($value)) : ?>
-                                        <?= htmlspecialchars($value) ?>
+                                        <?= escape($value) ?>
                                     <?php else: ?>
-                                        <pre><?= htmlspecialchars(print_r($value, true)) ?></pre>
+                                        <pre><?= escape(print_r($value, true)) ?></pre>
                                     <?php endif; ?>
                                 </td>
                             </tr>
@@ -161,12 +161,12 @@ $errorId = uniqid('error', true);
                         <tbody>
                         <?php foreach ($constants['user'] as $key => $value) : ?>
                             <tr>
-                                <td><?= htmlspecialchars($key) ?></td>
+                                <td><?= escape($key) ?></td>
                                 <td>
                                     <?php if (is_string($value)) : ?>
-                                        <?= htmlspecialchars($value) ?>
+                                        <?= escape($value) ?>
                                     <?php else: ?>
-                                        <pre><?= htmlspecialchars(print_r($value, true)) ?></pre>
+                                        <pre><?= escape(print_r($value, true)) ?></pre>
                                     <?php endif; ?>
                                 </td>
                             </tr>
@@ -184,15 +184,15 @@ $errorId = uniqid('error', true);
                     <tbody>
                         <tr>
                             <td style="width: 10em">Path</td>
-                            <td><?= htmlspecialchars($request->getUri()) ?></td>
+                            <td><?= escape($request->getUri()) ?></td>
                         </tr>
                         <tr>
                             <td>HTTP Method</td>
-                            <td><?= htmlspecialchars(strtoupper($request->getMethod())) ?></td>
+                            <td><?= escape(strtoupper($request->getMethod())) ?></td>
                         </tr>
                         <tr>
                             <td>IP Address</td>
-                            <td><?= htmlspecialchars(Functions::IP()) ?></td>
+                            <td><?= escape(IPAddress::get()) ?></td>
                         </tr>
                         <tr>
                             <td style="width: 10em">Is AJAX Request?</td>
@@ -208,7 +208,7 @@ $errorId = uniqid('error', true);
                         </tr>
                         <tr>
                             <td>User Agent</td>
-                            <td><?= htmlspecialchars($request->getUserAgent()) ?></td>
+                            <td><?= escape($request->getUserAgent()) ?></td>
                         </tr>
 
                     </tbody>
@@ -224,7 +224,7 @@ $errorId = uniqid('error', true);
 
                     <?php $empty = false; ?>
 
-                    <h3>$<?= htmlspecialchars($var) ?></h3>
+                    <h3>$<?= escape($var) ?></h3>
 
                     <table style="width: 100%">
                         <thead>
@@ -236,12 +236,12 @@ $errorId = uniqid('error', true);
                         <tbody>
                         <?php foreach ($GLOBALS[$var] as $key => $value) : ?>
                             <tr>
-                                <td><?= htmlspecialchars($key) ?></td>
+                                <td><?= escape($key) ?></td>
                                 <td>
                                     <?php if (is_string($value)) : ?>
-                                        <?= htmlspecialchars($value) ?>
+                                        <?= escape($value) ?>
                                     <?php else: ?>
-                                        <pre><?= htmlspecialchars(print_r($value, true)) ?></pre>
+                                        <pre><?= escape(print_r($value, true)) ?></pre>
                                     <?php endif; ?>
                                 </td>
                             </tr>
@@ -274,8 +274,8 @@ $errorId = uniqid('error', true);
                         <tbody>
                         <?php foreach ($headers as $name => $value) : ?>
                             <tr>
-                                <td><?= htmlspecialchars($name, 'html') ?></td>
-                                <td><?= htmlspecialchars($value, 'html') ?></td>
+                                <td><?= escape($name, 'html') ?></td>
+                                <td><?= escape($value, 'html') ?></td>
                             </tr>
                         <?php endforeach; ?>
                         </tbody>
@@ -290,7 +290,7 @@ $errorId = uniqid('error', true);
 
                 <ol>
                 <?php foreach ($files as $file) :?>
-                    <li><?= htmlspecialchars(trim($file)) ?></li>
+                    <li><?= escape(trim($file)) ?></li>
                 <?php endforeach ?>
                 </ol>
             </div>
@@ -305,9 +305,9 @@ $errorId = uniqid('error', true);
         <div class="container">
 
             <p>
-                Displayed at <?= htmlspecialchars(date('H:i:sa')) ?> &mdash;
-                PHP: <?= htmlspecialchars(PHP_VERSION) ?>  &mdash;
-                Luminova: <?= htmlspecialchars(Configuration::$version) ?> --
+                Displayed at <?= escape(date('H:i:sa')) ?> &mdash;
+                PHP: <?= escape(PHP_VERSION) ?>  &mdash;
+                Luminova: <?= escape(Configuration::$version) ?> --
                 Environment: <?= ENVIRONMENT ?>
             </p>
 

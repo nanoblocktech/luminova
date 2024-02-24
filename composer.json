@@ -33,6 +33,7 @@
         "ext-memcached": "Needed if you use Cache class MemcachedHandler with Memcached",
         "ext-mysqli": "Needed if you use MySQL",
         "ext-intl": "Needed if you use Local",
+        "psr/log": "Needed to use PSR logging",
         "phpmailer/phpmailer": "Needed if you use Mailer",
         "smarty/smarty": "Needed if you use Template engine"
     },

@@ -9,38 +9,44 @@
  * @license See LICENSE file
  */
 
-// Refuse to run when called from php-cgi
-if (strpos(PHP_SAPI, 'cgi') === 0) {
-    exit("The cli tool is not supported when running php-cgi. It needs php-cli to function!\n\n");
-}
+/**
+ * Location of the framework bootstrap file.
+*/
+require __DIR__ . '/bootstrap/boot.php';
 
-// We want errors to be shown when using it from the CLI.
-error_reporting(-1);
-ini_set('display_errors', '1');
-
-// Location of the framework bootstrap file.
-require __DIR__ . '/bootstrap/autoload.php';
-
-// Ensure the current directory is pointing to the front controller's directory
+/**
+ * Ensure the current directory is pointing to the front controller's directory
+*/
 chdir(FRONT_CONTROLLER);
 
-// Load environment settings from .env files into $_SERVER and $_ENV
+/**
+ * Load environment settings from .env files into $_SERVER and $_ENV
+*/
 Luminova\Config\DotEnv::register(__DIR__ . DIRECTORY_SEPARATOR . '.env');
 
-// Define ENVIRONMENT
+/**
+ * Define ENVIRONMENT
+*/
 if (!defined('ENVIRONMENT')) {
     define('ENVIRONMENT', getenv('app.environment.mood', 'production'));
 }
 
-// Show header information by default or if `--no-header` is passed suppress header.
+/**
+ * Show header information by default or if `--no-header` is passed suppress header.
+*/
 if (($noHeader = array_search('--no-header', $_SERVER['argv'], true)) !== false) {
     unset($_SERVER['argv'][$noHeader]);
     $noHeader = true;
 }
 
-// Initialize our Console
-// Initialize Terminal CLI
+/**
+ * Initialize our Console, Initialize Terminal CLI
+ * 
+ * @var Console $console
+*/
 $console = new  Luminova\Command\Console($noHeader);
 
-// Run our console instance
+/**
+ * Run our console instance
+*/
 $console->run($_SERVER['argv'] ?? []);

@@ -1,0 +1,33 @@
+{
+    "name": "peterujah/php-search-controller",
+    "type": "library",
+    "description": "Php advance mysql database search to perform search operations.",
+    "keywords": [
+        "library",
+        "search",
+        "php",
+        "php search",
+        "mysql search",
+        "sql search",
+        "mysql query",
+        "advance search",
+        "search class",
+        "php search class"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ujah Chigozie",
+            "email": "ujahchigozie@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^7.0 || ^8.0"
+    },
+    "autoload": {
+        "psr-4": { 
+            "Peterujah\\NanoBlock\\": "src/" 
+        }
+    },
+    "prefer-stable": true
+}

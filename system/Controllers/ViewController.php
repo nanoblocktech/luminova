@@ -8,43 +8,111 @@
  * @license See LICENSE file
  */
 
-namespace Luminova\Controllers;
+ namespace Luminova\Controllers;
 
-use \Luminova\Controllers\Controller;
-use \App\Controllers\Application;
-use \Luminova\Http\Request;
-use \Luminova\Security\InputValidator;
-use \Luminova\Library\Importer;
-
-abstract class ViewController extends Controller
-{
-    /**
-     * HTTP request object 
-     * @var Request $request 
-    */
-    protected ?Request $request = null;
-
-    /**
-     * Input validation object 
-     * @var InputValidator $validate
-    */
-    protected ?InputValidator $validate = null;
-
-    /**
-     * Application instance
-     * @var Application $app 
-    */
-    protected ?Application $app = null;
-
-    /**
-     * Importer instance
-     * @var Importer $library 
-    */
-    protected ?Importer $library = null;
-
+ use \App\Controllers\Application;
+ use \Luminova\Http\Request;
+ use \Luminova\Security\InputValidator;
+ use \Luminova\Library\Importer;
+ 
+ abstract class ViewController
+ {
      /**
-     * Initialize controller
+      * HTTP request object 
+      * @var Request $request 
      */
-    public function __construct() {}
+     private static ?Request $_request = null;
+ 
+     /**
+      * Input validation object 
+      * @var InputValidator $validate
+     */
+    private static ?InputValidator $_validate = null;
+ 
+     /**
+      * Application instance
+      * @var Application $app 
+     */
+    private static ?Application $_app = null;
+ 
+     /**
+      * Importer instance
+      * @var Importer $library 
+     */
+    private static ?Importer $_library = null;
 
-}
+    /**
+    * Initializes the http request class
+    * Allows #[\Override]
+    * 
+    * @return Request $request http request object 
+    */
+    protected function request(): Request
+    {
+        if(self::$_request === null){
+            self::$_request = new Request();
+        }
+
+        return self::$_request;
+    }
+
+    /**
+     * Initializes the input validator class
+    * Allows #[\Override]
+    * 
+    * @return InputValidator $validate input validation object 
+    */
+    protected function validate(): InputValidator
+    {
+        if(self::$_validate === null){
+            self::$_validate = new InputValidator();
+        }
+        
+        return self::$_validate;
+    }
+
+    /**
+     * Initializes the application class
+    * Allows #[\Override]
+    * 
+    * @return Application $app Application instance
+    */
+    protected function app(): Application
+    {
+        if(self::$_app === null){
+            self::$_app = new Application(__DIR__);
+        }
+        
+        return self::$_app;
+    }
+
+    /**
+     * Initializes the application class
+    * Allows #[\Override]
+    * 
+    * @return Importer $app Application instance
+    */
+    protected function library(): Importer
+    {
+        if(self::$_library === null){
+            self::$_library = new Importer();
+        }
+        
+        return self::$_library;
+    }
+
+    /**
+     * Render view
+     *
+     * @param string $view view name
+     * @param array $options view options
+     * 
+     * @return int 0 
+    */
+    protected function view(string $view, array $options = []): int
+    {
+        $this->app()->render($view)->view($options);
+
+        return 0;
+    }
+ }

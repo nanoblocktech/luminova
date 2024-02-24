@@ -16,7 +16,7 @@ use \ReflectionException;
 use \ReflectionClass;
 use Luminova\Command\Terminal;
 use Luminova\Base\BaseCommand;
-use Luminova\Controllers\Controller;
+use Luminova\Controllers\ViewController;
 use Luminova\Base\BaseApplication;
 
 
@@ -750,7 +750,7 @@ class Router
               
                 if (!$checkClass->isInstantiable() || 
                     !($checkClass->isSubclassOf(BaseCommand::class) || 
-                        $checkClass->isSubclassOf(Controller::class) ||
+                        $checkClass->isSubclassOf(ViewController::class) ||
                         $checkClass->isSubclassOf(BaseApplication::class))) {
                     continue;
                 }

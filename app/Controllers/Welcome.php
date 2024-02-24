@@ -17,7 +17,7 @@ class Welcome extends BaseViewController
 
     public function page(): void
     {
-        $this->app()->render("index")->view();
+        $this->view('index');
     }
 
     public function info(): void
