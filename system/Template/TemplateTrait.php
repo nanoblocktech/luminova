@@ -96,16 +96,16 @@ trait TemplateTrait
     /** 
      * Holds the array attributes
      * 
-     * @var array $attributes 
+     * @var array $registeredAttributes 
     */
-    private array $attributes = [];
+    private array $registeredAttributes = [];
 
     /** 
      * Holds the array classes
      * 
-     * @var array $classes 
+     * @var array $registeredClasses 
     */
-    private array $classes = [];
+    private array $registeredClasses = [];
 
     /** 
      * Ignore view optimization
@@ -126,7 +126,7 @@ trait TemplateTrait
      * 
      * @var string $contents 
     */
-    private string $contents = '';
+    private string $templateContents = '';
 
     /**
      * Holds relative file position depth 
@@ -189,7 +189,7 @@ trait TemplateTrait
      * 
      * @var ?string $config 
     */
-    private ?string $config = null;
+    private ?string $templateConfig = null;
 
     /** 
     * Initialize template
@@ -201,14 +201,14 @@ trait TemplateTrait
     */
     public function initialize(?string $config, string $dir =__DIR__): void
     {
-        $this->config = $config ?? TemplateConfig::class;
+        $this->templateConfig = $config ?? TemplateConfig::class;
 
         $this->baseTemplateDir = BaseConfig::root($dir);
-        $this->templateEngin = $this->config::ENGINE;
-        $this->templateFolder = $this->config::$templateFolder;
-        $this->optimizerFolder = $this->config::$optimizerFolder;
-        $this->assetsFolder = $this->config::$assetsFolder;
-        $this->optionsAsVariable = $this->config::$optionsAsVariable;
+        $this->templateEngin = $this->templateConfig::ENGINE;
+        $this->templateFolder = $this->templateConfig::$templateFolder;
+        $this->optimizerFolder = $this->templateConfig::$optimizerFolder;
+        $this->assetsFolder = $this->templateConfig::$assetsFolder;
+        $this->optionsAsVariable = $this->templateConfig::$optionsAsVariable;
         if (BaseConfig::usePublic()) {
             // If the document root is not changed to "public", manually enable the app to use "public" as the default
             $this->setDocumentRoot("public");
@@ -217,7 +217,7 @@ trait TemplateTrait
     
 
     /** 
-    * Get property from $this->attributes or $this->classes
+    * Get property from $this->registeredAttributes or $this->registeredClasses
     *
     * @param string $key property name 
     *
@@ -225,15 +225,15 @@ trait TemplateTrait
     */
     public function __get(string $key): mixed 
     {
-        if (array_key_exists($key, $this->attributes)) {
-            return $this->attributes[$key];
+        if (array_key_exists($key, $this->registeredAttributes)) {
+            return $this->registeredAttributes[$key];
         }
 
         return $this->getClass($key);
     }
 
     /** 
-    * Get registered class object $this->classes
+    * Get registered class object $this->registeredClasses
     *
     * @param string $key object class name 
     *
@@ -241,8 +241,8 @@ trait TemplateTrait
     */
     public function getClass(string $key): ?object 
     {
-        if (isset($this->classes[$key])) {
-            return $this->classes[$key];
+        if (isset($this->registeredClasses[$key])) {
+            return $this->registeredClasses[$key];
         } 
 
         return $this->{$key} ?? null;
@@ -257,7 +257,7 @@ trait TemplateTrait
     */
     public function hasClass(string $class): bool 
     {
-        if (isset($this->classes[$class]) && is_object($this->classes[$class])) {
+        if (isset($this->registeredClasses[$class]) && is_object($this->registeredClasses[$class])) {
             return true;
         } 
 
@@ -527,7 +527,7 @@ trait TemplateTrait
             throw new InvalidObjectException("Invalid class instance provided.");
         }
 
-        $this->classes[$classNameOrInstance] = $classInstance;
+        $this->registeredClasses[$classNameOrInstance] = $classInstance;
         
         return $this;
     }
@@ -551,7 +551,7 @@ trait TemplateTrait
                 throw new RuntimeException("Invalid attribute name: '{$name}'. Attribute names must be non-empty strings.");
             }
 
-            $this->attributes["_{$name}"] = $value;
+            $this->registeredAttributes["_{$name}"] = $value;
         }
 
         return $this;
@@ -564,7 +564,7 @@ trait TemplateTrait
     */
     public function getContents(): mixed
     {
-        return $this->contents;
+        return $this->templateContents;
     }
 
     /** 
@@ -697,9 +697,9 @@ trait TemplateTrait
                 $smarty = new Smarty($this->getRootDir());
                 $smarty->setDirectories(
                     $this->templateDir, 
-                    $this->config::$smartyCompileFolder,
-                    $this->config::$smartyConfigFolder,
-                    $this->config::$smartyCacheFolder
+                    $this->templateConfig::$smartyCompileFolder,
+                    $this->templateConfig::$smartyConfigFolder,
+                    $this->templateConfig::$smartyCacheFolder
                 );
                 $smarty->assignOptions($options);
                 $smarty->caching($this->shouldOptimize());
