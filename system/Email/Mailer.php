@@ -9,10 +9,11 @@
  */
 namespace Luminova\Email;
 
+use Exception;
 use \Luminova\Email\Clients\MailClientInterface;
 use \Luminova\Email\Clients\NovaMailer;
 use \Luminova\Base\BaseConfig;
-use \InvalidArgumentException;
+use \Luminova\Email\Exceptions\MailerException;
 
 class Mailer
 {
@@ -56,7 +57,7 @@ class Mailer
      * Mailer constructor.
      *
      * @param MailClientInterface|string|null $client The mail client instance or class name.
-     * @throws InvalidArgumentException
+     * @throws MailerException
      */
     private function __construct(MailClientInterface|string|null $client = null)
     {
@@ -69,7 +70,7 @@ class Mailer
         } elseif (is_string($client) && in_array($client, ['PHPMailer', 'NovaMailer'], true)) {
             self::$client = new $client($production);
         } else {
-            throw new InvalidArgumentException("Invalid mail client '{$client}', available clients: 'PHPMailer', 'NovaMailer'");
+            throw MailerException::throwWith('invalid_client', $client);
         }
 
         self::initialize();
@@ -91,7 +92,7 @@ class Mailer
      *
      * @param MailClientInterface|string|null $client The mail client instance or class name.
      * 
-     * @throws InvalidArgumentException
+     * @throws MailerException
     */
     public static function getInstance(MailClientInterface|string|null $client = null): self
     {
@@ -232,7 +233,11 @@ class Mailer
      */
     public function send(): bool
     {
-        return self::$client->send();
+        try{
+            return self::$client->send();
+        }catch(Exception $e){
+            throw new MailerException($e->getMessage(), $e->getCode());
+        }
     }
 
     /**

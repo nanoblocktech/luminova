@@ -10,7 +10,7 @@
 namespace Luminova\Email\Clients;
 
 use \Luminova\Email\Clients\MailClientInterface;
-use \Exception;
+use \Luminova\Email\Exceptions\MailerException;
 
 class NovaMailer implements MailClientInterface
 {
@@ -260,7 +260,7 @@ class NovaMailer implements MailClientInterface
     ): bool {
         try {
             if (!static::fileIsAccessible($path)) {
-                throw new Exception('file_access ' . $path);
+                throw MailerException::throwWith('file_access', $path);
             }
 
             if ('' === $name) {
@@ -274,9 +274,9 @@ class NovaMailer implements MailClientInterface
                 'type' => $type,
                 'disposition' => $disposition
             ];
-        } catch (Exception $e) {
+        } catch (MailerException $e) {
             if ($this->exceptions) {
-                throw $e;
+                throw MailerException::throwWith($e->getMessage());
             }
 
             return false;
@@ -302,7 +302,7 @@ class NovaMailer implements MailClientInterface
 
         if (!$success && $this->exceptions) {
             $error = error_get_last()['message'];
-            throw new Exception($error);
+            throw new MailerException($error);
         }
 
         return $success;
