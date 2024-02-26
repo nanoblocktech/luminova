@@ -18,6 +18,8 @@ Usages documentation for PHP Luminova.
 
 [Running Application](docs/START.md)
 
+[Global Helper Functions](docs/GLOBAL.md)
+
 [Routing & Controllers](docs/ROUTING.md)
 
 [Controller Classes](docs/CONTROLLERS.md)
