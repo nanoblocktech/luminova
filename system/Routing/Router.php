@@ -20,7 +20,7 @@ use Luminova\Controllers\ViewController;
 use Luminova\Base\BaseApplication;
 
 
-class Router 
+final class Router 
 {
     /**
      * Success status code
@@ -365,7 +365,7 @@ class Router
      * 
      * @return void
     */
-    public function bootstraps(Bootstrap ...$callbacks): void 
+    public function bootstraps(BaseApplication $application, Bootstrap ...$callbacks): void 
     {
         if (!defined('ENVIRONMENT')) {
             define('ENVIRONMENT', getenv('app.environment.mood', 'development'));
@@ -380,10 +380,7 @@ class Router
             $currentRouteBase = $this->baseRoute;
             foreach ($callbacks as $bootstrap) {
                 $name = $bootstrap->getName();
-                $application = $bootstrap->getApplication();
-                //$callback = $bootstrap->getFunction();
-                //if ($type !== '' && is_callable($callback)) {
-                if ($name !== '' &&  $application !== null) {
+                if ($name !== '') {
                     $errorHandler = $bootstrap->getErrorHandler();
                     $withError = ($errorHandler !== null && is_callable($errorHandler));
                     $this->resetRoutes();
@@ -407,7 +404,6 @@ class Router
                         }
                     
                         $this->discover($name, $this, $application);
-                        //$callback($this);
                         break;
                     }elseif (!in_array($firstSegment, $routeInstances) && self::isWebInstance($name, $firstSegment)) {
                         if($withError){
@@ -415,7 +411,6 @@ class Router
                         }
 
                         $this->discover($name, $this, $application);
-                        //$callback($this);
                         break;
                     }
                 }

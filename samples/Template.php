@@ -9,7 +9,7 @@
  */
 namespace App\Controllers\Config;
 
-class Template 
+final class Template 
 { 
     /** 
      * Application template engine

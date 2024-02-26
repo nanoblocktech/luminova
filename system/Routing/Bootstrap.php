@@ -9,33 +9,42 @@
  */
 namespace Luminova\Routing;
 
-use Luminova\Base\BaseApplication;
-
-class Bootstrap 
+final class Bootstrap 
 {
     /** 
      * Default WEB controller type
+     * 
      * @var string WEB
     */
     public const WEB = 'web';
 
     /** 
      * Default API controller type
+     * 
      * @var string API
     */
     public const API = 'api';
 
     /** 
      * Default CLI controller type
+     * 
      * @var string CLI
     */
     public const CLI = 'cli';
 
      /** 
      * Default CONSOLE controller type
+     * 
      * @var string CONSOLE
     */
     public const CONSOLE = 'console';
+
+     /** 
+     * Default WEBHOOK controller type
+     * 
+     * @var string WEBHOOK
+    */
+    public const WEBHOOK = 'webhook';
 
     /**
      * @var string $name
@@ -48,25 +57,19 @@ class Bootstrap
     private $onError = null;
 
     /**
-     * @var BaseApplication $app
-    */
-    private ?BaseApplication $app = null;
-
-    /**
      * @var array $instances
     */
-    private static $instances = [];
+    private static array $instances = [];
 
     /**
-     *
+     * Initialize Constructor
+     * 
      * @param string  $name  Bootstrap route name
-     * @param BaseApplication $app Application instance
      * @param ?callable $onError Bootstrap Callback function to execute
      */
-    public function __construct(string $name, BaseApplication $app, ?callable $onError = null) {
+    public function __construct(string $name, ?callable $onError = null) {
         $this->name = $name;
         $this->onError = $onError;
-        $this->app = $app;
 
         if( $name !== self::WEB){
             static::$instances[] = $name;
@@ -84,16 +87,6 @@ class Bootstrap
     }
 
     /**
-     * Get application instance
-     * 
-     * @return BaseApplication $this->app; 
-    */
-    public function getApplication(): BaseApplication 
-    {
-        return $this->app;
-    }
-
-    /**
      * Get bootstrap controller error callback handler
      * 
      * @return ?callable $this->onError 
@@ -105,6 +98,7 @@ class Bootstrap
 
     /**
      * Get bootstrap registered custom instance
+     * 
      * @return array static::$instances 
     */
     public static function getInstances(): array 

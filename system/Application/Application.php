@@ -12,16 +12,16 @@ namespace Luminova\Application;
 
 use Luminova\Routing\Router;
 use Luminova\Config\DotEnv;
-use Luminova\Template\Template;
+use Luminova\Template\TemplateTrait;
 use Luminova\Base\BaseConfig;
-use App\Controllers\Config\Template as TemplateConfig;
 
-class Application {
+class Application 
+{
     /**
      * Use Template trait class
-     * @var Template
+     * @var TemplateTrait
     */
-    use Template;
+    use TemplateTrait;
 
     /**
      * Base Application instance
@@ -58,7 +58,7 @@ class Application {
         $this->router->addNamespace('\App\Controllers');
 
         // Initialize the template engine
-        $this->initializeTemplate(new TemplateConfig(), $dir);
+        $this->initialize(null, $dir);
 
         // Set the project base path
         $this->setBasePath($this->getBasePath());
@@ -96,6 +96,7 @@ class Application {
         if (static::$instance === null) {
             static::$instance = new static($dir);
         }
+
         return static::$instance;
     }
 }

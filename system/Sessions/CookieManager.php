@@ -20,9 +20,9 @@ class CookieManager implements SessionInterface
     protected string $storage = '';
 
     /**
-     * @var CookieConfig $config
+     * @var string $config CookieConfig
     */
-    private ?CookieConfig $config = null;
+    private ?string $config = null;
 
     /**
      * Session constructor.
@@ -37,11 +37,11 @@ class CookieManager implements SessionInterface
     /** 
      * Set cookie options 
      * 
-     * @param CookieConfig $config 
+     * @param string $config CookieConfig class name
      * 
      * @return void
     */
-    public function setConfig(CookieConfig $config): void 
+    public function setConfig(string $config): void 
     {
         $this->config = $config;
     }
@@ -175,7 +175,7 @@ class CookieManager implements SessionInterface
     public function clear(string $storage = ''): self
     {
         $context = $storage === '' ? $this->storage : $storage;
-        $this->saveContent('',  $context, time() - $this->config->expiration);
+        $this->saveContent('',  $context, time() - $this->config::$expiration);
         $_COOKIE[$context] = '';
 
         return $this;
@@ -350,16 +350,16 @@ class CookieManager implements SessionInterface
     private function saveContent(string $value, string $storage, ?int $expiry = null): void
     {
 
-        $this->config ??=  new CookieConfig();
-        $expiration = $expiry === null ? time() + $this->config->expiration : $expiry;
+        $this->config ??= CookieConfig::class;
+        $expiration = $expiry === null ? time() + $this->config::$expiration : $expiry;
 
         setcookie($storage, $value, [
             'expires' => $expiration,
-            'path' => $this->config->sessionPath,
-            'domain' => $this->config->sessionDomain,
+            'path' => $this->config::$sessionPath,
+            'domain' => $this->config::$sessionDomain,
             'secure' => true,
             'httponly' => true,
-            'samesite' => $this->config->sameSite 
+            'samesite' => $this->config::$sameSite 
         ]);
     }
 

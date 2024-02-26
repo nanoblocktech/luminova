@@ -11,7 +11,8 @@ namespace App\Controllers;
 
 use Luminova\Base\BaseCommand;
 
-class Command extends BaseCommand {
+class Command extends BaseCommand 
+{
 
     protected string $group = 'custom';
     protected string $name  = 'command';

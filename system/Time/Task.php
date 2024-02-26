@@ -8,16 +8,15 @@
  * @license See LICENSE file
  */
 namespace Luminova\Time;
-
-use \DateTime;
+use \Luminova\Time\Time;
 use \DateTimeZone;
 use \DateInterval;
 
 class Task
 {
-    public static function createDate(string $timeDate, string $timezone = 'GMT')
+    public static function create(string $timeDate, string $timezone = 'GMT')
     {
-        return  DateTime::createFromFormat('Y-m-d H:iA', $timeDate, new DateTimeZone($timezone));
+        return  Time::fromFormat('Y-m-d H:iA', $timeDate, $timezone);
     }
 
     /**
@@ -31,8 +30,8 @@ class Task
      */
     public static function isActive(string $startDate, string $startTime, string $timezone = 'GMT'): bool
     {
-        $startTime = self::createDate(self::toDateTime($startDate . ' ' . $startTime),  $timezone);
-        $nowTime = new DateTime('NOW', new DateTimeZone($timezone));
+        $startTime = self::create(self::toDateTime($startDate . ' ' . $startTime),  $timezone);
+        $nowTime = Time::now($timezone);
         return $nowTime >= $startTime;
     }
 
@@ -47,9 +46,10 @@ class Task
      */
     public static function isOpen(string $open, string $close, string $timezone = 'GMT'): bool
     {
-        $openTime = self::createDate($open,  $timezone);
-        $closeTime = self::createDate($close,  $timezone);
-        $nowTime = new DateTime('NOW', new DateTimeZone($timezone));
+        $openTime = self::create($open,  $timezone);
+        $closeTime = self::create($close,  $timezone);
+        $nowTime = Time::now($timezone);
+        
         if ($closeTime <= $openTime) {
             $closeTime->add(new DateInterval('P1D'));
         }
@@ -66,9 +66,8 @@ class Task
      */
     public static function expired(string $expiryDateTime, string $timezone = 'UTC'): bool
     {
-        $timezone = new DateTimeZone($timezone);
-        $currentDatetime = new DateTime('NOW', $timezone);
-        $expiryDatetime = new DateTime($expiryDateTime, $timezone);
+        $currentDatetime = Time::now($timezone);
+        $expiryDatetime = Time::parse($expiryDateTime, $timezone);
         return ($expiryDatetime < $currentDatetime);
     }
     /**
@@ -81,9 +80,10 @@ class Task
      */
     public static function campaignExpired(string $open, string $timezone = 'GMT'): bool
     {
-        $nowTime = new DateTime('NOW', new DateTimeZone($timezone));
-        $startTime = self::createDate($open,  $timezone);
+        $nowTime = Time::now($timezone);
+        $startTime = self::create($open,  $timezone);
         $openTime = $startTime->modify('-2 days');
+
         return ($nowTime >= $openTime);
     }
 
@@ -98,14 +98,15 @@ class Task
      */
     public static function hasExpired(string $start, string $timezone = 'GMT',  bool $format = false): bool
     {
-        $tz = new DateTimeZone($timezone);
         if ($format) {
             [$date, $time] = explode(' ', $start);
-            $startTime = new DateTime(self::format($date, $time), $tz);
+            $startTime = Time::parse(self::format($date, $time), $timezone);
         } else {
-            $startTime = self::createDate($start,  $timezone);
+            $startTime = self::create($start,  $timezone);
         }
-        $nowTime = new DateTime('NOW', $tz);
+        
+        $nowTime = Time::now($timezone);
+
         return $nowTime >= $startTime;
     }
 
@@ -114,24 +115,19 @@ class Task
      *
      * @param int|string $timestamp Either a Unix timestamp or a string representing a date/time.
      * @param int $minutes The number of minutes to check against.
-     * @param DateTimeZone|null $timezone Optional timezone. If null, the default timezone is used.
+     * @param null|DateTimeZone|string $timezone Optional timezone. If null, the default timezone is used.
      *
      * @return bool True if the specified minutes have passed, false otherwise.
     */
-    public static function hasPassed($timestamp, int $minutes, ?DateTimeZone $timezone = null): bool {
+    public static function hasPassed($timestamp, int $minutes, null|DateTimeZone|string $timezone = null): bool {
 
-        $dateTimestamp = is_numeric($timestamp) ? new DateTime("@$timestamp"): DateTime::createFromFormat('Y-m-d H:i:s', $timestamp);
+        $dateTimestamp = is_numeric($timestamp) ? Time::parse("@$timestamp", $timezone): Time::fromFormat('Y-m-d H:i:s', $timestamp, $timezone);
 
         if (!$dateTimestamp) {
             return false;
         }
 
-        // Set the timezone if provided, or use the default timezone
-        if ($timezone !== null) {
-            $dateTimestamp->setTimezone($timezone);
-        }
-
-        $dateTimeNow = new DateTime("now", $timezone);
+        $dateTimeNow = Time::now($timezone);
 
         // Calculate the interval between the two DateTime objects
         $interval = $dateTimeNow->diff($dateTimestamp);
@@ -156,6 +152,7 @@ class Task
         $time = date('h:i:sA', strtotime($time));
         $setDate = $date . ' ' . $time;
         $build = date_create($setDate);
+
         return $build ? date_format($build, 'M d, Y H:i:s') : $build;
     }
 

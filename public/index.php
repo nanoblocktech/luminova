@@ -7,7 +7,7 @@
  * @copyright (c) Nanoblock Technology Ltd
  * @license See LICENSE file
  */
-require_once __DIR__ . '/../bootstrap/autoload.php';
+require __DIR__ . '/../bootstrap/app.php';
 
 use \Luminova\Routing\Bootstrap;
 use \App\Controllers\Application;
@@ -73,17 +73,17 @@ $api_error = function () use($app): void {
  * We register all our application contexts `WEB, API, CONSOLE and CLI` depending on our requirements 
  * Bootstraps the router and set the error handler based on context
  * 
- * @param Bootstrap The Bootstrap instance to each routing
+ * @param BaseApplication $app Application Instance
+ * @param Bootstrap ...$callbacks The Bootstrap instance to each routing
  * 
  * @example Bootstrap params
- *  - Rout name
- *  - Application Instance 
- *  - Error Handler 
+ *  - @param string $name Rout name any url that starts with $name will be routed to name.php in routes/name.php
+ *  - @param ?callable $onError Error Handler 
 */
-$app->router->bootstraps(
-    new Bootstrap(Bootstrap::WEB, $app, $web_error),
-    new Bootstrap(Bootstrap::API, $app, $api_error),
-    new Bootstrap(Bootstrap::CLI, $app)
+$app->router->bootstraps($app,
+    new Bootstrap(Bootstrap::WEB, $web_error),
+    new Bootstrap(Bootstrap::API, $api_error),
+    new Bootstrap(Bootstrap::CLI)
 );
 
 /**

@@ -8,24 +8,42 @@
  * @license See LICENSE file
 */
 
+/**
+ * We want errors to be shown when using it from the CLI.
+ * And display errors to developers 
+*/
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+
+/**
+ * Autoload composers 
+*/
 require_once __DIR__ . '/../system/plugins/autoload.php';
 
 /**
  * Check php requirements 
  * 
- * @throws trigger_error
+ * @throws STDERR
 */
 if (version_compare(PHP_VERSION, 8.0, '<')) {
     $err = 'Your PHP version must be 8.0 or higher to run PHP Luminova framework. Current version: %s' . PHP_VERSION;
-    if (!ini_get('display_errors')) {
-        if (PHP_SAPI === 'cli' || PHP_SAPI === 'phpdbg') {
-            fwrite(STDERR, $err);
-        } elseif (!headers_sent()) {
-            echo $err;
-        }
+
+    if (PHP_SAPI === 'cli' || PHP_SAPI === 'phpdbg') {
+        fwrite(STDERR, $err);
     }
-    trigger_error($err, E_USER_ERROR);
-    exit(1);
+    exit($err);
+}
+
+/**
+ * Refuse to run when called from php-cgi
+ * 
+ * @throws STDERR
+*/
+if (strpos(PHP_SAPI, 'cgi') === 0) {
+    $err = "The cli tool is not supported when running php-cgi. It needs php-cli to function!\n\n";
+
+    fwrite(STDERR, $err);
+    exit($err);
 }
 
 /**
@@ -42,18 +60,6 @@ defined('PUBLIC_PATH') || define('PUBLIC_PATH', realpath(HOME_PATH . 'public') .
  * @var string Front controller path
 */
 defined('FRONT_CONTROLLER')  || define('FRONT_CONTROLLER', __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR);
-
-/**
- * Set the custom error handler for non-fatal errors
- * @method Error handler
-*/
-set_error_handler(['\Luminova\Errors\Error', 'handle']);
-
-/**
- * Register shutdown function to catch fatal errors
- * @method Error shutdown
-*/
-register_shutdown_function(['\Luminova\Errors\Error', 'shutdown']);
 
 /**
  * Developer application Global.php file .

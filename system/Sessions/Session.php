@@ -36,9 +36,9 @@ class Session
 
     /**
      * session config instance
-     * @var SessionConfig $config 
+     * @var string $config 
     */
-    protected SessionConfig $config;
+    protected string $config;
 
     /**
      * Initializes session constructor
@@ -47,7 +47,7 @@ class Session
     */
     public function __construct(SessionInterface $manager = null)
     {
-        $this->config = new SessionConfig();
+        $this->config = SessionConfig::class;
         $this->manager = $manager ?? new SessionManager();
     }    
 
@@ -345,23 +345,23 @@ class Session
     private function sessionConfigure(): void
     {
         $cookieParams = [
-            'lifetime' => time() + $this->config->expiration,
-            'path'     => $this->config->sessionPath,
-            'domain'   => $this->config->sessionDomain,
+            'lifetime' => time() + $this->config::$expiration,
+            'path'     => $this->config::$sessionPath,
+            'domain'   => $this->config::$sessionDomain,
             'secure'   => true,
             'httponly' => true,
-            'samesite' => $this->config->sameSite,
+            'samesite' => $this->config::$sameSite,
         ];
-        ini_set('session.name', $this->config->cookieName);
-        ini_set('session.cookie_samesite', $this->config->sameSite);
+        ini_set('session.name', $this->config::$cookieName);
+        ini_set('session.cookie_samesite', $this->config::$sameSite);
         session_set_cookie_params($cookieParams);
 
-        if ($this->config->expiration > 0) {
+        if ($this->config::$expiration > 0) {
             ini_set('session.gc_maxlifetime', (string) $cookieParams['lifetime']);
         }
 
-        if ($this->config->savePath !== '') {
-            ini_set('session.save_path', $this->config->savePath);
+        if ($this->config::$savePath !== '') {
+            ini_set('session.save_path', $this->config::$savePath);
         }
 
         ini_set('session.use_trans_sid', '0');

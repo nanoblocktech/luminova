@@ -108,7 +108,7 @@ class Cookie implements CookieInterface
     final public function __construct(string $name, mixed $value = '', array $options = []) 
     {
         if( $options === []){
-            $options = new CookieConfig();
+            $options = CookieConfig::class;
         }
 
         $this->setOptions($options);
@@ -136,22 +136,22 @@ class Cookie implements CookieInterface
     /**
      * Set cookie options 
      * 
-     * @param CookieConfig|array $options Options 
+     * @param string|array $options Options array or CookieConfig class name
      * 
      * @return self $this
     */
-    public function setOptions(CookieConfig|array $options): self
+    public function setOptions(string|array $options): self
     {
         // Convert $options to an array if it's an instance of CookieConfig
-        if ($options instanceof CookieConfig) {
+        if ($options === CookieConfig::class) {
             $options = [
-                'expires'  => $options->expiration,
-                'path'     => $options->cookiePath,
-                'domain'   => $options->cookieDomain,
-                'secure'   => $options->secure,
-                'httponly' => $options->httpOnly,
-                'samesite' => $options->sameSite,
-                'raw'      => $options->cookieRaw,
+                'expires'  => $options::$expiration,
+                'path'     => $options::$cookiePath,
+                'domain'   => $options::$cookieDomain,
+                'secure'   => $options::$secure,
+                'httponly' => $options::$httpOnly,
+                'samesite' => $options::$sameSite,
+                'raw'      => $options::$cookieRaw,
             ];
         }
 

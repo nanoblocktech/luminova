@@ -242,9 +242,10 @@ class Functions
 	 * Converts a PHP timestamp to a social media-style time format (e.g., "2 hours ago").
 	 *
 	 * @param string|int $time The timestamp to convert.
+	 * 
+	 * @deprecated This method is deprecated and will be removed use Time::ago($time) instead
 	 * @return string Time in a human-readable format.
 	 */
-
 	public static function timeSocial(string|int $time): string 
 	{
 		$elapsed = time() - strtotime((string) $time);
@@ -284,12 +285,12 @@ class Functions
 		return $minutesDifference >= $minutes;
 	}
 
-	
-
 	/**
 	 * Get the suffix for a given day (e.g., 1st, 2nd, 3rd, 4th).
 	 *
 	 * @param int $day The day for which to determine the suffix.
+	 * 
+	 * @deprecated This method is deprecated and will be removed use Time::daySuffix($day) instead
 	 * @return string The day with its appropriate suffix.
 	 */
 	public static function daysSuffix(int $day): string 
@@ -411,6 +412,25 @@ class Functions
 
 		return false;
 	}
+
+	/** 
+	* Formats a phone number as (xxx) xxx-xxxx or xxx-xxxx depending on the length.
+	*
+	* @param mixed $phone phone address to format
+	*
+	* @return string 
+	*/
+	public static function formatPhone(string $phone): string 
+	{
+		$phone = preg_replace("/[^0-9]/", '', $phone);
+	
+		return match (strlen($phone)) {
+			7 => preg_replace("/([0-9]{3})([0-9]{4})/", "$1-$2", $phone),
+			10 => preg_replace("/([0-9]{3})([0-9]{3})([0-9]{4})/", "($1) $2-$3", $phone),
+			default => $phone,
+		};
+	}
+	
 
 	/**
 	 * Checks if string is a valid email address or phone number
@@ -616,6 +636,7 @@ class Functions
 	 * @param int $year The year.
 	 * @param string $dateFormat The format for the returned dates (default is "d-M-Y").
 	 * 
+	 * @deprecated This method is deprecated and will be removed, use Time::days($month, $year, $format) instead
 	 * @return array An array of dates within the specified month.
 	 */
 	public static function daysInMonth(int $month = 0, int $year = 0, string $dateFormat = "d-M-Y"): array 

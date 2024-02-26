@@ -10,42 +10,56 @@
 
 namespace App\Controllers\Config;
 
-class Session 
+final class Session 
 {
     /**
      * The name of the session cookie.
+     * 
      * @var string $cookieName;
      */
-    public string $cookieName = "PHPSESSID"; 
+    public static string $cookieName = "PHPSESSID"; 
 
     /**
      * The path where session files are stored on the server.
+     * 
      * @var string $savePath;
      */
-    public string $savePath = ""; 
+    public static string $savePath = ""; 
 
     /**
      * The lifetime of the session in seconds.
+     * 
      * @var int $expiration;
      */
-    public int $expiration = 365 * 24 * 60 * 60; 
+    public static int $expiration = 365 * 24 * 60 * 60; 
 
     /**
      * The path to use for the session cookie.
+     * 
      * @var string $sessionPath;
      */
-    public string $sessionPath = "/"; 
+    public static string $sessionPath = "/"; 
 
     /**
      * The domain to use for the session cookie.
+     * 
      * @var string $sessionDomain;
      */
-    public string $sessionDomain = ".localhost";
+    public static string $sessionDomain = ".localhost";
 
      /**
      * Set the session cookie security level.
      * None, Lax, Strict 
+     * 
      * @var string $sameSite;
      */
-    public string $sameSite = "Lax";
+    public static string $sameSite = "Lax";
+
+    /**
+     * Set the csrf storage engine 
+     * cookie, session, 
+     * 
+     * @var string $csrfStorage;
+     */
+    public static string $csrfStorage = 'session';
 }

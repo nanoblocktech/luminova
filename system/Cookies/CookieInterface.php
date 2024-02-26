@@ -91,11 +91,11 @@ interface CookieInterface
     /**
      * Set cookie options 
      * 
-     * @param CookieConfig|array $options Options 
+     * @param string|array $options Options array or CookieConfig class name
      * 
      * @return self $this
     */
-    public function setOptions(CookieConfig|array $options): self;
+    public function setOptions(string|array $options): self;
 
      /**
      * Create a new Cookie instance from a `Set-Cookie` header.

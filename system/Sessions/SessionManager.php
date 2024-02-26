@@ -20,9 +20,9 @@ class SessionManager implements SessionInterface
     protected string $storage;
 
     /**
-     * @var SessionConfig $config
+     * @var ?string $config
     */
-    private ?SessionConfig $config = null;
+    private ?string $config = null;
 
     /**
      * Session constructor.
@@ -38,11 +38,11 @@ class SessionManager implements SessionInterface
     /** 
      * Set cookie options 
      * 
-     * @param SessionConfig $config 
+     * @param string $config SessionConfig class name
      * 
      * @return void
     */
-    public function setConfig(SessionConfig $config): void 
+    public function setConfig(string $config): void 
     {
         $this->config = $config;
     }

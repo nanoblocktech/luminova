@@ -32,9 +32,9 @@ class Csrf
     /**
      * Cookie config
      *
-     * @var ?CookieConfig $config
+     * @var string $config CookieConfig::class name
     */
-    private static ?CookieConfig $config = null;
+    private static string $config = CookieConfig::class;
 
     /**
      * Generates a CSRF token.
@@ -55,20 +55,11 @@ class Csrf
     */
     private static function tokenStorage(): string 
     {
-        if (session_status() === PHP_SESSION_NONE) {
+        if (self::$config::$csrfStorage === 'cookie' || session_status() === PHP_SESSION_NONE) {
             return 'cookie';
         }
 
         return 'session';
-    }
-
-    private static function getConfig(): CookieConfig
-    {
-        if(self::$config === null){
-            self::$config = new CookieConfig();
-        }
-
-        return self::$config;
     }
 
     /**
@@ -84,15 +75,14 @@ class Csrf
         $storage = self::tokenStorage();
 
         if($storage === 'cookie'){
-            $config = self::getConfig();
-            $expiration = $expiry === null ? time() + $config->expiration : $expiry;
+            $expiration = $expiry === null ? time() + self::$config::$expiration : $expiry;
             setcookie(self::$token, $token, [
                 'expires' => $expiration,
-                'path' => $config->sessionPath,
-                'domain' => $config->sessionDomain,
+                'path' => self::$config::$sessionPath,
+                'domain' => self::$config::$sessionDomain,
                 'secure' => true,
                 'httponly' => true,
-                'samesite' => $config->sameSite 
+                'samesite' => self::$config::$sameSite 
             ]);
             $_COOKIE[self::$token] = $token;
         }else{
@@ -225,7 +215,7 @@ class Csrf
     private static function clearToken(string $storage): void 
     {
         if($storage === 'cookie'){
-            self::saveToken('', time() - self::getConfig()->expiration);
+            self::saveToken('', time() - self::$config::$expiration);
             return;
         }
 
