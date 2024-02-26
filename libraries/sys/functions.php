@@ -12,6 +12,77 @@ use \Luminova\Http\Request;
 use \Luminova\Logger\NovaLogger;
 use \Luminova\Cookies\Cookie;
 
+if(!function_exists('env')){
+    /**
+     * Get environment variables.
+     *
+     * @param string $key The key to retrieve.
+     * @param mixed $default The default value to return if the key is not found.
+     * 
+     * @return mixed
+     */
+    function env(string $key, mixed $default = null): mixed 
+    {
+        if (getenv($key) !== false) {
+            $env = getenv($key);
+        }elseif (isset($_ENV[$key])) {
+            $env = $_ENV[$key];
+        }elseif (isset($_SERVER[$key])) {
+            $env = $_SERVER[$key];
+        }
+
+        return $env ?? $default;
+    }
+}
+
+if(!function_exists('setenv')){
+    /**
+     * Set an environment variable if it doesn't already exist.
+     *
+     * @param string $key The key of the environment variable.
+     * @param string $value The value of the environment variable.
+     * 
+     * @return void
+     */
+    function setenv(string $key, string $value): void
+    {
+        if (!getenv($key, true)) {
+            putenv("{$key}={$value}");
+        }
+
+        if (empty($_ENV[$key])) {
+            $_ENV[$key] = $value;
+        }
+
+        if (empty($_SERVER[$key])) {
+            $_SERVER[$key] = $value;
+        }
+    }
+}
+      
+
+if(!function_exists('locale')){
+    /**
+    * Set locale or return local 
+    *
+    * @param ?string $locale If locale is present it will set it else return default locale
+    *
+    * @return string|bool;
+    */
+   function locale(?string $locale = null): string|bool 
+   {
+        if($locale === null){
+            $locale = env('app.locale', 'en');
+
+            return $locale;
+        }else{
+            setenv('app.locale', $locale);
+        }
+
+        return true;
+   }
+}
+
 if(!function_exists('func')){
     /**
     * Return BaseFunction instance
@@ -142,49 +213,26 @@ if(!function_exists('browser')) {
     }
 }
 
-if(!function_exists('text2html')) {
+if (!function_exists('text2html')) {
     /**
      * Converts text characters in a string to HTML entities. 
      * This is useful when you want to display text in an HTML textarea while preserving the original line breaks.
      * 
      * @param string $text A string containing the text to be processed.
      * 
-     * @return string $text
+     * @return string $text The processed text with HTML entities.
      */
     function text2html(?string $text): string
     { 
-        if($text === null ||  $text === ''){
+        if ($text === null ||  $text === '') {
             return '';
         }
 
-        $text = str_replace(["\n", "\r\n", "[br/]"], "&#13;&#10;", $text);
-        $text = str_replace("\t", "&#09;", $text);
+        $text = htmlspecialchars($text, ENT_QUOTES | ENT_HTML5);
 
         return $text;
     }
 }
-
-if (!function_exists('text2html')) {
-    /**
-     * Converts HTML entities in a string to text characters.
-     * This is useful when you want to convert HTML-encoded text back to its original form.
-     * 
-     * @param string|null $text A string containing the HTML-encoded text to be processed.
-     * 
-     * @return string The decoded text.
-     */
-    function text2html(?string $text): string
-    { 
-        if ($text === null || $text === '') {
-            return '';
-        }
-
-        $text = str_replace(["&#13;&#10;", "&#09;"], ["\n", "\t"], $text);
-
-        return $text;
-    }
-}
-
 
 if(!function_exists('nl2html')) {
     /**
@@ -246,3 +294,77 @@ if(!function_exists('import')) {
         (new NovaLogger())->log($level, $message, $context);
      }
  }
+
+ if (!function_exists('lang')) {
+    /**
+     * Translate multiple languages it supports nested array
+     *
+     * @param string $lookup line to lookup
+     * @param string $default Fallback translation if not found
+     * @param array $placeholders Matching placeholders for translation
+     *    - @example array ['Peter', 'peter@foo.com] "Error name {0} and email {1}"
+     *    - @example array ['name' => 'Peter', 'email' => 'peter@foo.com] "Error name {name} and email {email}"
+     * @param ?string $locale
+     * 
+     * @return string $translation
+     * @throws Exception if translation is not found and default is not provided
+     */
+    function lang(
+        string $lookup, 
+        string $default = '', 
+        array $placeholders = [], 
+        ?string $locale = null
+    ): string
+    {
+        $language = Services::language();
+
+        $defaultLocal = $language->getLocale();
+
+        if ($locale && $locale !== $defaultLocal) {
+            $language->setLocale($locale);
+        }
+
+        $translation = $language->get($lookup, $default, $placeholders);
+
+        if ($locale && $locale !== $defaultLocal) {
+            $language->setLocale($defaultLocal);
+        }
+
+        return $translation;
+    }
+}
+
+if (!function_exists('root')) {
+    /**
+     * Get the root directory.
+     *
+     * @param string $directory The directory to start searching for composer.json or system directory.
+     * 
+     * @return string
+     */
+    function root(string $directory = __DIR__, string $suffix = ''): string
+    {
+        $path = realpath($directory);
+
+        if ($path === false) {
+            return $suffix; 
+        }
+
+        do {
+            if (file_exists($path . DIRECTORY_SEPARATOR . 'composer.json')) {
+                if(str_starts_with($suffix, DIRECTORY_SEPARATOR)){
+                    return $path . $suffix;
+                }
+
+                return $path . DIRECTORY_SEPARATOR . $suffix;
+            }
+            
+            $parent = dirname($path);
+            if ($parent === $path) {
+                return $suffix;
+            }
+
+            $path = $parent;
+        } while (true);
+    }
+}

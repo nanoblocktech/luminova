@@ -31,7 +31,7 @@ abstract class Configuration
     /**
     * @var array allowPreviews allow previews
     */
-    private static array $allowPreviews = ['system', 'app', 'resources', 'writable'];
+    private static array $allowPreviews = ['system', 'app', 'resources', 'writable', 'libraries'];
 
     /**
      * Magic method to retrieve session properties.
@@ -224,30 +224,7 @@ abstract class Configuration
      */
     public static function root(string $directory = __DIR__, string $suffix = ''): string
     {
-        $path = realpath($directory);
-
-        if ($path === false) {
-            //throw new \InvalidArgumentException("Directory '{$directory}' does not exist or is inaccessible.");
-            return $suffix; 
-        }
-
-        do {
-            if (file_exists($path . self::DS . 'composer.json')) {
-                if(str_starts_with($suffix, self::DS)){
-                    return $path . $suffix;
-                }
-
-                return $path . self::DS . $suffix;
-            }
-            
-            $parent = dirname($path);
-            if ($parent === $path) {
-                //throw new \RuntimeException("{$base} not found in '{$directory}' or any parent directory.");
-                return $suffix;
-            }
-
-            $path = $parent;
-        } while (true);
+        return root($directory, $suffix);
     }
 
      /**
@@ -276,7 +253,7 @@ abstract class Configuration
         $matching = '';
 
         foreach (self::$allowPreviews as $directory) {
-            $separator = $directory . self::DS; //'/'
+            $separator = $directory . DIRECTORY_SEPARATOR; 
             if (strpos($path, $separator) !== false) {
                 $matching = $separator;
                 break;
@@ -302,19 +279,7 @@ abstract class Configuration
      */
     public static function get(string $key, mixed $default = null): mixed 
     {
-        if (getenv($key) !== false) {
-            return getenv($key);
-        }
-
-        if (isset($_ENV[$key])) {
-            return $_ENV[$key];
-        }
-
-        if (isset($_SERVER[$key])) {
-            return $_SERVER[$key];
-        }
-
-        return $default;
+        return env($key, $default);
     }
 
     /**
@@ -327,17 +292,7 @@ abstract class Configuration
      */
     public static function set(string $name, string $value): void
     {
-        if (!getenv($name, true)) {
-            putenv("{$name}={$value}");
-        }
-
-        if (empty($_ENV[$name])) {
-            $_ENV[$name] = $value;
-        }
-
-        if (empty($_SERVER[$name])) {
-            $_SERVER[$name] = $value;
-        }
+        setenv($name, $value);
     }
 
     /**

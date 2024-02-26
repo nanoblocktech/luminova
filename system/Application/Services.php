@@ -18,6 +18,7 @@ use \Luminova\Functions\Files;
 use \Luminova\Functions\Document;
 use \Luminova\Sessions\Session;
 use \Luminova\Library\Importer;
+use \Luminova\Languages\Translator;
 use \RuntimeException;
 use \Throwable;
 
@@ -26,12 +27,14 @@ use \Throwable;
  *
  * @method static Functions           functions(...$params, bool $shared = true)
  * @method static Functions           func(...$params, bool $shared = true)
- * @method static Configuration             config(...$params, bool $shared = true)
- * @method static Session                session(...$params, bool $shared = true)
- * @method static Task                   task(...$params, bool $shared = true)
- * @method static Importer               import(...$params, bool $shared = true)
- * @method static $context               $context(...$params, bool $shared = true)
+ * @method static Configuration       config(...$params, bool $shared = true)
+ * @method static Session             session(...$params, bool $shared = true)
+ * @method static Task                task(...$params, bool $shared = true)
+ * @method static Importer            import(...$params, bool $shared = true)
+ * @method static Translator          language($locale, bool $shared = true)
+ * @method static $context            $context(...$params, bool $shared = true)
  */
+
 
 class Services 
 {
@@ -62,6 +65,7 @@ class Services
             'file' => Files::class,
             'document' => Document::class,
             'import' => Importer::class,
+            'language' => Translator::class,
             default => null
         };
     }

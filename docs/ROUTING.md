@@ -17,7 +17,7 @@ To register a custom route, it can be done in `public/index.php` and also create
 The controller file name must match with routing bootstrap name. See below examples.
 
 ```php 
-new Bootstrap("routing name", "callback function to load route controller file", "callback function for error handling");
+new Bootstrap("routing name", "callback function for error handling");
 ```
 `public/index.php`
 
@@ -26,11 +26,8 @@ The routing bootstrap `$app->router->bootstraps()` method accepts arguments of `
 The below route can be accessed in browser by visiting `https://example.com/panel/`, every request that starts with `panel` will be handles by `routes/panel.php`
 
 ```php
-$app->router->bootstraps(
-    new Bootstrap("panel", function($router) use ($app) {
-        require __DIR__ . '/../routes/panel.php';
-    },
-    function() use ($app){
+$app->router->bootstraps($app,
+    new Bootstrap("panel", function() use ($app){
         $app->render("panelError")->view();
     })
 );
@@ -56,6 +53,10 @@ Location: `/routes/api.php`
 #### CONSOLE 
 The `Bootstrap::CONSOLE` interface will handle all your API implementation
 Location: `/routes/console.php`
+
+#### WEBHOOK 
+The `Bootstrap::WEBHOOK` interface will handle all your WEBHOOK implementation
+Location: `/routes/webhook.php`
 
 
 #### Routing Capture & Controllers 

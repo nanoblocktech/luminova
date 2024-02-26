@@ -8,6 +8,8 @@ Luminova is a simple PHP Framework that allows you to create a project using PHP
 
 [Running Application](START.md)
 
+[Global Helper Functions](GLOBAL.md)
+
 [Routing & Controllers](ROUTING.md)
 
 [Controller Classes](CONTROLLERS.md)

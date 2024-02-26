@@ -32,6 +32,6 @@ php novakit server --php /path/to/php.version
 
 ## Application Routing & Controllers
 
-Creating a router and application controllers
+Accessing global helper functions
 
-[Routing & Controllers](ROUTING.md)
+[Global Helper Functions](GLOBAL.md)
