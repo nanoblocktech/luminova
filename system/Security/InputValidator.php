@@ -11,8 +11,6 @@
 namespace Luminova\Security;
 
 use Luminova\Security\ValidatorInterface;
-use Luminova\Functions\Functions;
-use Luminova\Functions\IPAddress;
 
 class InputValidator implements ValidatorInterface
 {
@@ -61,7 +59,7 @@ class InputValidator implements ValidatorInterface
                         case 'none':
                             return true;
                         case 'required':
-                            if (Functions::isEmpty($fieldValue)) {
+                            if (is_empty($fieldValue)) {
                                 $this->addError($field, $ruleName);
                             }
                         break;
@@ -104,7 +102,7 @@ class InputValidator implements ValidatorInterface
                         break;
                         case 'fallback':
                             $defaultValue = $ruleParam;
-                            if (Functions::isEmpty($fieldValue)) {
+                            if (is_empty($fieldValue)) {
                                 $defaultValue = "";
                             } elseif (strtolower($ruleParam) == 'null') {
                                 $defaultValue = null;
@@ -151,9 +149,9 @@ class InputValidator implements ValidatorInterface
             'alphanumeric' => preg_match("/[^A-Za-z0-9]/", $value) !== false,
             'alphabet' => preg_match("/^[A-Za-z]+$/", $value) !== false,
             'url' => filter_var($value, FILTER_VALIDATE_URL) !== false,
-            'uuid' => Functions::is_uuid($value), //$version = (int) $param;
-            'ip' => IPAddress::isValid($value, (int) $param),
-            'phone' => Functions::is_phone($value),
+            'uuid' => func()->is_uuid($value), //$version = (int) $param;
+            'ip' =>  func()->ip()->isValid($value, (int) $param),
+            'phone' => func()->is_phone($value),
             'decimal' => preg_match('/^-?\d+(\.\d+)?$/', $value) === 1,
             'binary' => ctype_print($value) && !preg_match('/[^\x20-\x7E\t\r\n]/', $value),
             'hexadecimal' => ctype_xdigit($value),

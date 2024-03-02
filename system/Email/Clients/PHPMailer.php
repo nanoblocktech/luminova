@@ -23,4 +23,8 @@ class PHPMailer extends PHPMailerClient implements MailClientInterface
     {
         parent::__construct($exceptions);
     }
+
+    public function initialize(): void
+    {
+    }
 }

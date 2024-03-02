@@ -9,6 +9,7 @@
  */
 namespace Luminova\Email\Clients;
 
+use \Luminova\Email\Helpers\Helper;
 use \Luminova\Email\Clients\MailClientInterface;
 use \Luminova\Email\Exceptions\MailerException;
 
@@ -45,27 +46,27 @@ class NovaMailer implements MailClientInterface
     /**
      * @var string $Subject 
     */
-    public string $Subject;
+    public string $Subject = '';
 
     /**
      * @var string $Body 
     */
-    public string $Body;
+    public string $Body = '';
 
      /**
      * @var string $AltBody 
     */
-    public string $AltBody;
+    public string $AltBody = '';
 
     /**
      * @var string $from 
     */
-    private string $from;
+    private string $from = '';
 
     /**
      * @var string $replyTo 
     */
-    private string $replyTo;
+    private string $replyTo = '';
 
     /**
      * @var string $sendWith 
@@ -142,6 +143,9 @@ class NovaMailer implements MailClientInterface
         $this->exceptions = $exceptions;
     }
 
+    public function initialize(): void
+    {
+    }
     /**
      * Add an email address to the recipient list.
      *
@@ -259,7 +263,7 @@ class NovaMailer implements MailClientInterface
         string $disposition = 'attachment'
     ): bool {
         try {
-            if (!static::fileIsAccessible($path)) {
+            if (!Helper::fileIsAccessible($path)) {
                 throw MailerException::throwWith('file_access', $path);
             }
 
@@ -293,20 +297,98 @@ class NovaMailer implements MailClientInterface
     public function send(): bool 
     {
         if($this->attachments === []){
-            [$body, $headers] = $this->sendWithOutAttachment();
+            $result = $this->sendWithOutAttachment();
         }else{
-            [$body, $headers] = $this->sendWithAttachment();
+            $result = $this->sendWithAttachment();
         }
 
-        $success = mail($this->to, $this->Subject, $body, $headers);
+        if($this->sendWith === 'smtp'){
+            $success = $this->smtp_mail($result);
+        }else{
+            $success = mail($this->to, $this->Subject, $result['body'], $result['headers']);
 
-        if (!$success && $this->exceptions) {
-            $error = error_get_last()['message'];
-            throw new MailerException($error);
+            if (!$success && $this->exceptions) {
+                $error = error_get_last()['message'];
+                throw new MailerException($error);
+            }
         }
-
         return $success;
     }
+
+    /**
+     * Send email using smtp details 
+     * 
+     * @return bool
+     * @throws MailerException
+    */
+    private function smtp_mail(array $result): bool
+    {
+        $from = $this->from ?? $this->Username;
+
+        $smtpConnection = fsockopen($this->Host, $this->Port, $errno, $errstr, 30);
+
+        if (!$smtpConnection) {
+            throw new MailerException("Failed to connect to SMTP server: $errstr ($errno)", $errno);
+        }
+
+        $this->smtpGet($smtpConnection);
+
+        fputs($smtpConnection, "EHLO " . $_SERVER['SERVER_NAME'] . "\r\n");
+        $this->smtpGet($smtpConnection);
+
+        if($this->SMTPAuth){
+            fputs($smtpConnection, "AUTH LOGIN\r\n");
+            $this->smtpGet($smtpConnection);
+            
+            fputs($smtpConnection, base64_encode($this->Username) . "\r\n");
+            $this->smtpGet($smtpConnection);
+
+            fputs($smtpConnection, base64_encode($this->Password) . "\r\n");
+            $this->smtpGet($smtpConnection);
+        }
+
+        fputs($smtpConnection, "MAIL FROM: <{$from}>\r\n");
+        $this->smtpGet($smtpConnection);
+
+        fputs($smtpConnection, "RCPT TO: <{$this->to}>\r\n");
+        $this->smtpGet($smtpConnection);
+
+        fputs($smtpConnection, "DATA\r\n");
+        $this->smtpGet($smtpConnection);
+
+        if($this->attachments === []){
+            fputs($smtpConnection, $result['headers'] . $result['body'] . "\r\n.\r\n");
+        }else{
+            fputs($smtpConnection, $result['headers'] . $result['body'] . ".\r\n");
+        }
+        $this->smtpGet($smtpConnection);
+
+        fputs($smtpConnection, "QUIT\r\n");
+        fclose($smtpConnection);
+
+        return true;
+    }
+
+    /**
+     * @param resource $stream
+     * 
+     * @return void 
+     * @throws MailerException
+    */
+    private function smtpGet($connection, string $name = ''):void 
+    {
+        while ($str = fgets($connection, 515)) {
+            logger('debug', (string) $str);
+            if (substr($str, 3, 1) == " ") {
+                break;
+            }
+
+            if ($str === false) {
+                throw new MailerException("Failed to read from SMTP connection {$name}");
+            }
+        }
+    }
+    
 
     /**
      * Get initial headers.
@@ -328,7 +410,8 @@ class NovaMailer implements MailClientInterface
         }
 
         $headers .= "X-Mailer: {$XMailer}\r\n";
-        $headers .= "Date: ".date("r (T)")." \r\n";
+        $headers .= "Date: ".date("r (T)")."\r\n";
+        $headers .= "Message-ID: <". md5(uniqid(time())) . "@" . $_SERVER['SERVER_NAME'].">\r\n";
 
         return $headers;
     }
@@ -357,7 +440,6 @@ class NovaMailer implements MailClientInterface
     {
         $boundary = uniqid('np');
         $headers = $this->getHeaders();
-
         $headers .= "Content-Type: multipart/mixed; boundary=$boundary\r\n";
 
         $body = "--$boundary\r\n";
@@ -419,39 +501,5 @@ class NovaMailer implements MailClientInterface
         } else {
             $this->contentType = static::CONTENT_TYPE_PLAINTEXT;
         }
-    }
-
-    /**
-     * Check whether a file path is safe, accessible, and readable.
-     *
-     * @param string $path A relative or absolute path to a file
-     *
-     * @return bool
-     */
-    protected static function fileIsAccessible($path): bool
-    {
-        if (!static::isPermittedPath($path)) {
-            return false;
-        }
-        $readable = is_file($path);
-        
-        if (strpos($path, '\\\\') !== 0) {
-            $readable = $readable && is_readable($path);
-        }
-        return  $readable;
-    }
-
-    /**
-     * Check whether a file path is of a permitted type.
-     * Used to reject URLs and phar files from functions that access local file paths,
-     * such as addAttachment.
-     *
-     * @param string $path A relative or absolute path to a file
-     *
-     * @return bool
-     */
-    protected static function isPermittedPath($path): bool
-    {
-        return !preg_match('#^[a-z][a-z\d+.-]*://#i', $path);
     }
 }

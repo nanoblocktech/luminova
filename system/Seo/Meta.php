@@ -158,22 +158,21 @@ class Meta
      */
     private function toKebabCase(string $string): string 
     {
-        $string = str_replace([' ', ':', '.', ',','-'], '', $string);
-        $kebabCase = preg_replace('/([a-z0-9])([A-Z])/', '$1-$2', $string);
-        return strtolower($kebabCase);
+        return kebab_case($string);
     }
 
     /**
      * Converts a date string to ISO 8601 format.
      *
      * @param string $date The input date string.
+     * 
      * @return string The date in ISO 8601 format.
      */
     private function toDate(string $date): string
     {
-        $dateTime = new DateTime($date);
-        $iso8601Datetime = $dateTime->format('Y-m-d\TH:i:sP');
-        return $iso8601Datetime;
+        $dateTime = (new DateTime($date))->format('Y-m-d\TH:i:sP');
+
+        return $dateTime;
     }
 
     /**

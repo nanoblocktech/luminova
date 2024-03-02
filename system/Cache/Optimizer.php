@@ -8,13 +8,9 @@
  * @license See LICENSE file
  */
 namespace Luminova\Cache;
+
 use Luminova\Http\Header;
-/**
- *
- * @author Peter Chigozie(NG) peterujah
- * @copyright Copyright (c), 2021 Peter(NG) peterujah
- * @license MIT public license
- */
+
 class Optimizer
 {
     /**

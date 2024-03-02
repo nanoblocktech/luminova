@@ -12,5 +12,5 @@ namespace Luminova\Email\Clients;
 
 interface MailClientInterface
 {
-
+    public function initialize(): void;
 }

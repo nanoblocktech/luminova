@@ -12,7 +12,7 @@ namespace Luminova\Template;
 use \Smarty as SmartyTemplate;
 use \Exception;
 use \SmartyException;
-use Luminova\Exceptions\AppException; 
+use \Luminova\Exceptions\AppException; 
 
 class Smarty 
 {

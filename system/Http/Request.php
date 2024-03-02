@@ -587,9 +587,9 @@ class Request
      * @param ?string $userAgent
      * @param bool $returnObject If set to true, this function will return an array instead of an object.
      * 
-     * @return array 
+     * @return array|object 
     */
-    public static function parseUserAgent(?string $userAgent = null, bool $returnObject = false): array
+    public static function parseUserAgent(?string $userAgent = null, bool $returnObject = false): array|object
     {
         if($userAgent === null){
             $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';

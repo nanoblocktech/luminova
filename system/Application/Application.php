@@ -13,27 +13,27 @@ namespace Luminova\Application;
 use Luminova\Routing\Router;
 use Luminova\Config\DotEnv;
 use Luminova\Template\TemplateTrait;
-use Luminova\Base\BaseConfig;
 
 class Application 
 {
     /**
-     * Use Template trait class
-     * @var TemplateTrait
+     * Include TemplateTrait for template method
+     * 
+     * @method TemplateTrait
     */
     use TemplateTrait;
 
     /**
      * Base Application instance
      *
-     * @var Application|null
+     * @var Application|null $instance
     */
-    private static $instance = null;
+    private static ?Application $instance = null;
 
     /**
      * Router class instance
      *
-     * @var Router
+     * @var Router $router
      */
     public ?Router $router = null;
 
@@ -44,15 +44,15 @@ class Application
      */
     public function __construct(string $dir = __DIR__) {
         // Register dotenv variables
-        DotEnv::register(BaseConfig::root($dir, '.env'));
+        DotEnv::register(root($dir, '.env'));
 
         /*
         * Register The Application Timezone
         */
-        date_default_timezone_set(BaseConfig::getString("app.timezone", 'UTC'));
+        date_default_timezone_set(env("app.timezone", 'UTC'));
        
         // Initialize the router instance
-        $this->router = new Router();
+        $this->router ??= new Router();
 
         // Set application controller class namespace
         $this->router->addNamespace('\App\Controllers');
@@ -61,7 +61,7 @@ class Application
         $this->initialize(null, $dir);
 
         // Set the project base path
-        $this->setBasePath($this->getBasePath());
+        $this->setBasePath($this->router->getBase());
     }
 
     /**
@@ -79,9 +79,9 @@ class Application
      *
      * @return string
      */
-    public function getBasePath(): string 
+    public function getBase(): string 
     {
-        return $this->router->getBasePath();
+        return $this->router->getBase();
     }
 
     /**
@@ -89,14 +89,10 @@ class Application
      *
      * @param string $dir The project root directory
      * 
-     * @return self Application
+     * @return Application
      */
     public static function getInstance(string $dir = __DIR__): static 
     {
-        if (static::$instance === null) {
-            static::$instance = new static($dir);
-        }
-
-        return static::$instance;
+        return static::$instance ??= new static($dir);
     }
 }

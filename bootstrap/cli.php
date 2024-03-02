@@ -47,19 +47,54 @@ if (strpos(PHP_SAPI, 'cgi') === 0) {
 }
 
 /**
- * @var string home directory path 
+ * @var int STATUS_OK success status code
+*/
+defined('STATUS_OK') || define('STATUS_OK', 0);
+
+/**
+ * @var int STATUS_ERROR error status code
+*/
+defined('STATUS_ERROR') || define('STATUS_ERROR', 1);
+
+/**
+ * @var string ENVIRONMENT application development state
+*/
+defined('ENVIRONMENT') || define('ENVIRONMENT', env('app.environment.mood', 'development'));
+
+/**
+ * @var string CLI_ENVIRONMENT application cli development state
+*/
+defined('CLI_ENVIRONMENT') || define('CLI_ENVIRONMENT', env('cli.environment.mood', 'testing'));
+
+/**
+ * @var string STDOUT if it's not already defined
+*/
+defined('STDOUT') || define('STDOUT', 'php://output');
+
+/**
+ * @var string STDIN if it's not already defined
+*/
+defined('STDIN') || define('STDIN', 'php://stdin');
+
+/**
+ * @var string STDERR if it's not already defined
+*/
+defined('STDERR') || define('STDERR', 'php://stderr');
+
+/**
+ * @var string HOME_PATH home directory path 
 */
 defined('HOME_PATH') || define('HOME_PATH', realpath(rtrim(getcwd(), '\\/ ')) . DIRECTORY_SEPARATOR);
 
 /**
- * @var string Public directory path 
+ * @var string PUBLIC_PATH Public directory path 
 */
 defined('PUBLIC_PATH') || define('PUBLIC_PATH', realpath(HOME_PATH . 'public') . DIRECTORY_SEPARATOR);
 
 /**
- * @var string Front controller path
+ * @var string FRONT_CONTROLLER Front controller path
 */
-defined('FRONT_CONTROLLER')  || define('FRONT_CONTROLLER', __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR);
+defined('FRONT_CONTROLLER') || define('FRONT_CONTROLLER', __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR);
 
 /**
  * Developer application Global.php file .

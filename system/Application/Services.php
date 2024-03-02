@@ -13,9 +13,6 @@ namespace Luminova\Application;
 use \Luminova\Config\Configuration;
 use \Luminova\Time\Task;
 use \Luminova\Functions\Functions;
-use \Luminova\Functions\IPAddress;
-use \Luminova\Functions\Files;
-use \Luminova\Functions\Document;
 use \Luminova\Sessions\Session;
 use \Luminova\Library\Importer;
 use \Luminova\Languages\Translator;
@@ -25,15 +22,14 @@ use \Throwable;
 /**
  * Services Configuration file.
  *
- * @method static Functions           functions(...$params, bool $shared = true)
- * @method static Functions           func(...$params, bool $shared = true)
- * @method static Configuration       config(...$params, bool $shared = true)
- * @method static Session             session(...$params, bool $shared = true)
- * @method static Task                task(...$params, bool $shared = true)
- * @method static Importer            import(...$params, bool $shared = true)
- * @method static Translator          language($locale, bool $shared = true)
- * @method static $context            $context(...$params, bool $shared = true)
+ * @method static Functions           functions(bool $shared = true)              @return Functions
+ * @method static Configuration       config(...$params, bool $shared = true)     @return Configuration
+ * @method static Session             session(...$params, bool $shared = true)    @return Session
+ * @method static Task                task(...$params, bool $shared = true)       @return Task
+ * @method static Importer            import(...$params, bool $shared = true)     @return Importer
+ * @method static Translator          language($locale, bool $shared = true)      @return Translator
  */
+
 
 
 class Services 
@@ -44,6 +40,13 @@ class Services
      * @var array
      */
     private static $instances = [];
+
+    /**
+     * Cached instances of service classes.
+     *
+     * @var array
+     */
+    private static $services = [];
 
     /**
      * Get the fully qualified class name of the service based on the provided context.
@@ -60,13 +63,10 @@ class Services
             'task' => Task::class,
             'config' => Configuration::class,
             'session' => Session::class,
-            'func', 'functions' => Functions::class,
-            'ip' => IPAddress::class,
-            'file' => Files::class,
-            'document' => Document::class,
+            'functions' => Functions::class,
             'import' => Importer::class,
             'language' => Translator::class,
-            default => null
+            default => self::$services[$context] ?? null
         };
     }
 
@@ -74,7 +74,7 @@ class Services
      * Dynamically create an instance of the specified service class.
      *
      * @param string $context The context or name of the service.
-     * @param mixed ...$params Parameters to pass to the service constructor.
+     * @param array $arguments Parameters to pass to the service constructor.
      * @param bool $shared The Last parameter to pass to the service constructor 
      * indicate if it should return a shared instance
      * 
@@ -84,7 +84,7 @@ class Services
      * @return object|null An instance of the service class, or null if not found.
      * @throws RuntimeException If failed to instantiate the service.
      */
-    public static function __callStatic($context, $arguments): ?object
+    public static function __callStatic(string $context, $arguments): ?object
     {
         $shared = true; 
 
@@ -151,22 +151,49 @@ class Services
     }
 
     /**
-     * Clear cached instances of service classes.
+     * Delete a service and it cached instances
      *
-     * @param string|null $context Optional. The context or name of the service to clear cache for.
-     *                             If null, clears cache for all services.
+     * @param string $service Your service public name 
+     * 
      * @return void
      */
-    public static function remove(?string $context = null): void
+    public static function delete(string $service): void
     {
-        if ($context === null) {
-            self::rest();
+        $service = strtolower($service);
+
+        if (isset(self::$services[$service])) {
+            unset(self::$services[$service]);
         }
 
-        $className = self::get($context);
-        if ($className !== null) {
-            unset(self::$instances[$className]);
+        if (isset(self::$instances[$service])) {
+            unset(self::$instances[$service]);
         }
+    }
+
+    /**
+     * Clear cached instances of service classes.
+     *
+     * @param string $className Class name to add to service
+     * @param string $name Public identifier name to load the service
+     *          If name is null or empty we use the class name as identifier
+     *          Name will be converted to lowercase 
+     * 
+     * @return void
+     * @throws RuntimeException
+     */
+    public static function add(string $className, ?string $name = null): void
+    {
+        if ($name === null || $name === '') {
+            $name = substr($className, strrpos($className, '\\') + 1);
+        }
+
+        $name = strtolower($name);
+
+        if (self::has($name)) {
+            throw new RuntimeException("Failed to add service, service with '$name'. already exist");
+        }
+
+        self::$services[$name] = $className;
     }
 
     /**

@@ -25,7 +25,7 @@ class Command extends BaseCommand
     {
         var_export($this->getOptions());
         $this->newLine();
-        return parent::STATUS_OK;
+        return STATUS_OK;
 
     }
 
@@ -33,7 +33,7 @@ class Command extends BaseCommand
     {
         var_export($this->getOptions());
         $this->newLine();
-        return parent::STATUS_OK;
+        return STATUS_OK;
 
     }
     

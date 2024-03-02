@@ -10,71 +10,68 @@
 
 namespace Luminova\Database;
 
-use Luminova\Base\BaseConfig;
 use Luminova\Database\Drivers\MySqlDriver;
 use Luminova\Database\Drivers\PdoDriver;
 use Luminova\Config\Database;
 
- /**
-  * Class Connection
-  *
-  * Manages database connections based on configuration.
-  *
-  * @package Luminova\Database
-*/
 class Connection
 {
     /** 
       * Database connection instance 
-      * @var object 
+      * @var MySqlDriver|PdoDriver|null $db
     */
-    protected $db;
+    protected MySqlDriver|PdoDriver|null $db = null;
  
-    /** @var object|null */
-    private static $instance = null;
- 
-     /**
-      * Connection constructor.
-      *
-      * Initializes the database connection based on configuration.
-      * @throws DatabaseException|InvalidException|InvalidObjectException If fails
-      */
-     public function __construct()
-     {
-        $this->db = self::createDatabaseInstance();
-        $this->db->setDebug(!BaseConfig::isProduction());
-     }
- 
-     /**
-      * Get the singleton instance of Connection.
-      *
-      * @return object Database connection instance.
-      *  @throws DatabaseException|InvalidException|InvalidObjectException If fails
-      */
+    /** 
+     * @var Connection|null $instance
+     */
+    private static ?Connection $instance = null;
 
-     public static function getInstance(): self 
-     {
-        if (self::$instance === null) {
-            self::$instance = new self();
-        }
-        
-        return self::$instance;
-        // return self::$instance->db;
+    /** 
+     * @var bool $production
+     * 
+     */
+    private static bool $production = false;
+
+    /**
+    * Connection constructor.
+    *
+    * Initializes the database connection based on configuration.
+    * @throws DatabaseException|InvalidException If fails
+    */
+    public function __construct()
+    {
+      self::$production = env('app.environment.mood', 'development') === 'production';
+      $this->db ??= self::createDatabaseInstance();
+      $this->db->setDebug(!self::$production);
+    }
+ 
+    /**
+     * Get the singleton instance of Connection.
+     *
+     * @return self Database connection instance.
+     * @throws DatabaseException|InvalidException If fails
+    */
+    public static function newInstance(): self 
+    {
+      return self::$instance ??= new static();
     }
  
     /**
       * Create an instance of the database driver based on configuration.
       *
       * @return object Database driver instance (either MySqlDriver or PdoDriver).
-      * @throws DatabaseException|InvalidException|InvalidObjectException If fails
+      * @throws DatabaseException|InvalidException If fails
     */
     private static function createDatabaseInstance(): object
     {
-        return match (BaseConfig::get("database.driver")) {
-            "MYSQLI" => new MySqlDriver(self::getDatabaseConfig()),
-            "PDO" => new PdoDriver(self::getDatabaseConfig()),
-            default => new PdoDriver(self::getDatabaseConfig())
-        };
+      $driver = env("database.driver", 'PDO');
+      $config = self::getDatabaseConfig();
+
+      return match ($driver) {
+        "MYSQLI" => new MySqlDriver($config),
+        default => new PdoDriver($config)
+      };
     }
  
     /**
@@ -84,17 +81,18 @@ class Connection
     */
     private static function getDatabaseConfig(): Database
     {
-         $config = new Database();
-         $config->port = BaseConfig::get("database.port");
-         $config->host = BaseConfig::get("database.hostname");
-         $config->version = BaseConfig::get("database.version");
-         $config->charset = BaseConfig::get("database.charset");
-         $config->sqlite_path = BaseConfig::get("database.sqlite.path");
-         $config->production = BaseConfig::isProduction();
-         $config->username = BaseConfig::isProduction() ? BaseConfig::get("database.username") : BaseConfig::get("database.development.username");
-         $config->password = BaseConfig::isProduction() ? BaseConfig::get("database.password") : BaseConfig::get("database.development.password");
-         $config->database = BaseConfig::isProduction() ? BaseConfig::get("database.name") : BaseConfig::get("database.development.name");
-         return $config;
+      $config = new Database();
+      $config->port = env("database.port");
+      $config->host = env("database.hostname");
+      $config->version = env("database.version");
+      $config->charset = env("database.charset");
+      $config->sqlite_path = env("database.sqlite.path");
+      $config->production = self::$production;
+      $config->username = self::$production ? env("database.username") : env("database.development.username");
+      $config->password = self::$production ? env("database.password") : env("database.development.password");
+      $config->database = self::$production ? env("database.name") : env("database.development.name");
+
+      return $config;
     }
 }
  

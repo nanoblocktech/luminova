@@ -10,45 +10,19 @@
 
 namespace Luminova\Base;
 
-use Luminova\Functions\Functions;
-use Luminova\Functions\IPAddress;
-use Luminova\Functions\Files;
-use Luminova\Functions\Document;
+use \Luminova\Functions\FunctionTrait;
+use \Luminova\Functions\StringTrait;
 
-abstract class BaseFunction extends Functions
+abstract class BaseFunction
 {
     /**
-     * @var array $instances Instances of function classes
+     * @class FunctionTrait
      */
-    private static array $instances = [];
+    use FunctionTrait;
 
     /**
-     * Returns an instance of the Files class.
-     *
-     * @return Files
+     * @class StringTrait
      */
-    public static function files(): Files
-    {
-        return self::$instances['Files'] ??= new Files();
-    }
+    use StringTrait;
 
-    /**
-     * Returns an instance of the IPAddress class.
-     *
-     * @return IPAddress
-     */
-    public static function ip(): IPAddress
-    {
-        return self::$instances['IPAddress'] ??= new IPAddress();
-    }
-
-    /**
-     * Returns an instance of the Document class.
-     *
-     * @return Document
-     */
-    public static function document(): Document
-    {
-        return self::$instances['Document'] ??= new Document();
-    }
 }

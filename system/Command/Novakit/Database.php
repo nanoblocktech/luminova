@@ -71,10 +71,10 @@ class Database extends BaseCommand
             },
             default => function() {
                 echo "Handle Unknown command\n";
-                return 1;
+                return STATUS_ERROR;
             }
         };
     
-        return 0;
+        return STATUS_OK;
     }
 }

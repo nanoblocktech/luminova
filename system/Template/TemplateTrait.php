@@ -75,7 +75,7 @@ trait TemplateTrait
     /** 
      * Holds the sub view template directory path
      * 
-     * @var string $optimizerFile 
+     * @var string $subViewFolder 
     */
     private string $subViewFolder = '';
 
@@ -98,14 +98,14 @@ trait TemplateTrait
      * 
      * @var array $registeredAttributes 
     */
-    private array $registeredAttributes = [];
+    private static array $registeredAttributes = [];
 
     /** 
      * Holds the array classes
      * 
      * @var array $registeredClasses 
     */
-    private array $registeredClasses = [];
+    private static array $registeredClasses = [];
 
     /** 
      * Ignore view optimization
@@ -124,7 +124,7 @@ trait TemplateTrait
     /**
      * Holds template html content
      * 
-     * @var string $contents 
+     * @var string $templateContents 
     */
     private string $templateContents = '';
 
@@ -187,7 +187,7 @@ trait TemplateTrait
     /**
      * Template configs
      * 
-     * @var ?string $config 
+     * @var ?string $templateConfig 
     */
     private ?string $templateConfig = null;
 
@@ -217,7 +217,7 @@ trait TemplateTrait
     
 
     /** 
-    * Get property from $this->registeredAttributes or $this->registeredClasses
+    * Get property from static::$registeredAttributes or static::$registeredClasses
     *
     * @param string $key property name 
     *
@@ -225,27 +225,31 @@ trait TemplateTrait
     */
     public function __get(string $key): mixed 
     {
-        if (array_key_exists($key, $this->registeredAttributes)) {
-            return $this->registeredAttributes[$key];
+        if (array_key_exists($key, static::$registeredAttributes)) {
+            return static::$registeredAttributes[$key];
         }
 
-        return $this->getClass($key);
+        if (isset(static::$registeredClasses[$key])) {
+            return static::$registeredClasses[$key];
+        } 
+
+        return $this->{$key} ?? null;
     }
 
     /** 
-    * Get registered class object $this->registeredClasses
+    * Get registered class object static::$registeredClasses
     *
     * @param string $key object class name 
     *
     * @return object|null 
     */
-    public function getClass(string $key): ?object 
+    public static function getClass(string $key): ?object 
     {
-        if (isset($this->registeredClasses[$key])) {
-            return $this->registeredClasses[$key];
+        if (isset(static::$registeredClasses[$key])) {
+            return static::$registeredClasses[$key];
         } 
 
-        return $this->{$key} ?? null;
+        return null;
     }
 
     /** 
@@ -255,17 +259,17 @@ trait TemplateTrait
     *
     * @return bool If class is registered
     */
-    public function hasClass(string $class): bool 
+    public static function hasClass(string $class): bool 
     {
-        if (isset($this->registeredClasses[$class]) && is_object($this->registeredClasses[$class])) {
+       /* if (isset(static::$registeredClasses[$class]) && is_object(static::$registeredClasses[$class])) {
             return true;
         } 
 
         if (isset($this->{$class}) && is_object($this->{$class})) {
             return true;
-        } 
+        } */
 
-        return false;
+        return isset(static::$registeredClasses[$class]);
     }
 
     /** 
@@ -278,6 +282,7 @@ trait TemplateTrait
     public function setLevel(int $level): self
     {
         $this->relativeLevel = $level;
+
         return $this;
     }
 
@@ -291,6 +296,7 @@ trait TemplateTrait
     public function setOptimizeBase(bool $allow): self 
     {
         $this->optimizeBase = $allow;
+
         return $this;
     }
 
@@ -304,6 +310,7 @@ trait TemplateTrait
     public function setCompressIgnoreCodeblock(bool $ignore): self 
     {
         $this->ignoreCodeblock = $ignore;
+
         return $this;
     }
 
@@ -317,6 +324,7 @@ trait TemplateTrait
     public function setBasePath(string $base): self
     {
         $this->currentRequestBase = $base;
+
         return $this;
     }
    
@@ -327,7 +335,7 @@ trait TemplateTrait
     */
     public function getRootDir(): string
     {
-        if(empty($this->baseTemplateDir)){
+        if($this->baseTemplateDir === ''){
             $this->baseTemplateDir = dirname(__DIR__, 2);
         }
         return $this->baseTemplateDir;
@@ -343,6 +351,7 @@ trait TemplateTrait
     public function setTemplatePath(string $path): self
     {
         $this->templateFolder = trim( $path, "/" );
+
         return $this;
     }
 
@@ -356,6 +365,7 @@ trait TemplateTrait
     public function setTemplateEngin(string $engin): self
     {
         $this->templateEngin = $engin;
+
         return $this;
     }
 
@@ -402,33 +412,6 @@ trait TemplateTrait
             throw new InvalidException('Invalid argument, $viewName required (string or array), ' . gettype($viewName) . ' is given instead');
         }
         
-        return $this;
-    }
-
-    /** 
-    * render render template view
-    *
-    * @param string $viewName view name
-    *
-    * @return self $this
-    */
-    public function render(string $viewName): self 
-    {
-        $this->templateDir = $this->getBaseViewFolder();
-        $this->optimizerFile = $this->getBaseOptimizerFolder();
-        if($this->subViewFolder !== ''){
-            $this->templateDir .= $this->subViewFolder . self::$ds;
-        }
-
-        $this->templateFile = "{$this->templateDir}{$viewName}{$this->getTemplateEngin()}";
-
-        if (!file_exists($this->templateFile) && BaseConfig::isProduction()) {
-            $viewName = '404';
-            $this->templateFile = "{$this->templateDir}{$viewName}{$this->getTemplateEngin()}";
-        }
-
-        $this->activeView = $viewName;
-
         return $this;
     }
 
@@ -489,6 +472,7 @@ trait TemplateTrait
     public function setDocumentRoot(string $root): self 
     {
         $this->appPublicFolder = $root;
+
         return $this;
     }
 
@@ -527,7 +511,7 @@ trait TemplateTrait
             throw new InvalidObjectException("Invalid class instance provided.");
         }
 
-        $this->registeredClasses[$classNameOrInstance] = $classInstance;
+        static::$registeredClasses[$classNameOrInstance] = $classInstance;
         
         return $this;
     }
@@ -551,7 +535,7 @@ trait TemplateTrait
                 throw new RuntimeException("Invalid attribute name: '{$name}'. Attribute names must be non-empty strings.");
             }
 
-            $this->registeredAttributes["_{$name}"] = $value;
+            static::$registeredAttributes["_{$name}"] = $value;
         }
 
         return $this;
@@ -674,87 +658,117 @@ trait TemplateTrait
     */
     private function renderViewContent(array $options = []): void 
     {
-        
-        $shouldSaveCache = false;
-        $optimizer = null;
-        if (!defined('ALLOW_ACCESS')){
-            define("ALLOW_ACCESS", true);
-        }
-  
         try {
-            if (!file_exists($this->templateFile)) {
-                throw new ViewNotFoundException($this->activeView, 404);
-            }
+            if($this->iniRenderSetup()){
 
-            // Set the project script execution time
-            set_time_limit(BaseConfig::getInt("script.execution.limit", 90));
-            // Set cache control for application cache
-            ignore_user_abort(BaseConfig::getBoolean('script.ignore.abort', true));
-            // Set output handler
-            ob_start(BaseConfig::getMixedNull('script.ob.handler', null));
-            
-            if($this->templateEngin === 'smarty'){
-                $smarty = new Smarty($this->getRootDir());
-                $smarty->setDirectories(
-                    $this->templateDir, 
-                    $this->templateConfig::$smartyCompileFolder,
-                    $this->templateConfig::$smartyConfigFolder,
-                    $this->templateConfig::$smartyCacheFolder
-                );
-                $smarty->assignOptions($options);
-                $smarty->caching($this->shouldOptimize());
-                $smarty->display($this->activeView . $this->getTemplateEngin());
-                exit(0);
-            }else{
-                if($this->optionsAsVariable){
-                    // can access options as variable
-                    extract($options);
-                }else{
-                    $this->setAttributes($options);
+                if ($this->templateEngin === 'smarty') {
+                    $this->renderWithSmarty($options);
+                } else {
+                    $this->renderWithDefault($options);
                 }
             }
-
-            /**
-             * Check If The Application Is Under Maintenance
-             * 
-             * If the application is in maintenance load maintenance and exit immediately
-             * instead of starting the framework, which could cause an exception.
-            */
-            if(BaseConfig::isMaintenance()){
-                $maintenanceView = $this->getBaseErrorViewFolder('maintenance');
-                include_once $maintenanceView;
-                exit(0);
-            }
-
-            if ($this->shouldOptimize()) {
-                $shouldSaveCache = true;
-                $optimizer = new Optimizer(BaseConfig::get("page.optimize.expiry"), $this->optimizerFile);
-                $optimizer->setKey($this->getTemplateBaseUri());
-                if ($optimizer->hasCache() && $optimizer->getCache()) {
-                    exit(0);
-                }
-            }
-
-            if($this->hasClass('Meta')){
-                $this->getClass('Meta')?->setTitle($options['title'] ?? '');
-            }
-           
-            include_once $this->templateFile;
-            $viewContents = ob_get_clean();
-            if(BaseConfig::getBoolean("enable.compression")){
-                $contentType = $options["ContentType"] ?? 'html';
-                $this->displayCompressedContent($viewContents, $optimizer, $contentType, $shouldSaveCache);
-            }else{
-                
-                if ($shouldSaveCache && $optimizer !== null) {
-                    $optimizer->saveCache($viewContents, BaseConfig::copyright(), $this->requestHeaders());
-                }
-                exit($viewContents);
-            }
-            exit(0);
         } catch (AppException $e) {
             $this->handleException($e, $options);
         }
+        
+        exit(0);
+    }
+
+    /**
+     * Initialize rendering setup
+     * 
+     * @return bool 
+     * @throws ViewNotFoundException
+    */
+    private function iniRenderSetup(): bool
+    {
+        defined('ALLOW_ACCESS') || define('ALLOW_ACCESS', true);
+
+        if (!file_exists($this->templateFile)) {
+            throw new ViewNotFoundException($this->activeView, 404);
+        }
+
+        set_time_limit(BaseConfig::getInt("script.execution.limit", 90));
+        ignore_user_abort(BaseConfig::getBoolean('script.ignore.abort', true));
+        ob_start(BaseConfig::getMixedNull('script.ob.handler', null));
+
+        if (BaseConfig::isMaintenance()) {
+            include $this->getBaseErrorViewFolder('maintenance');
+            return false;
+        }
+
+        return true;
+    }
+
+     /**
+     * Render with smarty
+     * @param array $options
+     * 
+     * @return void 
+    */
+    private function renderWithSmarty(array $options): void
+    {
+        $smarty = new Smarty($this->getRootDir());
+        $smarty->setDirectories(
+            $this->templateDir, 
+            $this->templateConfig::$smartyCompileFolder,
+            $this->templateConfig::$smartyConfigFolder,
+            $this->templateConfig::$smartyCacheFolder
+        );
+        $smarty->assignOptions($options);
+        $smarty->caching($this->shouldOptimize());
+        $smarty->display($this->activeView . $this->getTemplateEngin());
+    }
+
+     /**
+     * Render without smarty using default .php template engine.
+     * @param array $options
+     * 
+     * @return void 
+    */
+    private function renderWithDefault(array $options): void
+    {
+        if ($this->optionsAsVariable) {
+            extract($options);
+        } else {
+            $this->setAttributes($options);
+        }
+
+        $optimizer = null;
+        $shouldSaveCache = false;
+
+        if ($this->shouldOptimize()) {
+            $shouldSaveCache = true;
+            $optimizer ??= new Optimizer(BaseConfig::get("page.optimize.expiry"), $this->optimizerFile);
+            $optimizer->setKey(static::getTemplateBaseUri());
+
+            if ($optimizer->hasCache() && $optimizer->getCache()) {
+                return;
+            }
+        }
+
+        if (static::hasClass('Meta') && method_exists(static::getClass('Meta'), 'setTitle')) {
+            static::getClass('Meta')->setTitle($options['title'] ?? '');
+        }
+
+        include $this->templateFile;
+        $viewContents = ob_get_clean();
+
+        if (BaseConfig::getBoolean("enable.compression")) {
+            $this->displayCompressedContent(
+                $viewContents, 
+                $optimizer, 
+                $options["ContentType"] ?? 'html', 
+                $shouldSaveCache
+            );
+            return;
+        }
+
+        if ($shouldSaveCache && $optimizer !== null) {
+            $optimizer->saveCache($viewContents, BaseConfig::copyright(), static::requestHeaders());
+        }
+
+        exit($viewContents);
     }
 
     /** 
@@ -820,7 +834,7 @@ trait TemplateTrait
     * 
     * @return array $info
     */
-    private function requestHeaders(): array
+    private static function requestHeaders(): array
     {
         $responseHeaders = headers_list();
         $info = [];
@@ -845,8 +859,36 @@ trait TemplateTrait
         return $info;
     }
 
+     /** 
+    * render render template view
+    *
+    * @param string $viewName view name
+    *
+    * @return self $this
+    */
+    public function view(string $viewName): self 
+    {
+        $this->templateDir = $this->getBaseViewFolder();
+        $this->optimizerFile = $this->getBaseOptimizerFolder();
+        if($this->subViewFolder !== ''){
+            $this->templateDir .= $this->subViewFolder . self::$ds;
+        }
+
+        $this->templateFile = "{$this->templateDir}{$viewName}{$this->getTemplateEngin()}";
+
+        if (!file_exists($this->templateFile) && BaseConfig::isProduction()) {
+            $viewName = '404';
+            $this->templateFile = "{$this->templateDir}{$viewName}{$this->getTemplateEngin()}";
+        }
+
+        $this->activeView = $viewName;
+
+        return $this;
+    }
+
     /** 
-    * Calls after render() to display your template view and
+     * Pass additional options to view before rendering
+    * Calls after view() to display your template view and
     * Include any accessible global variable within the template file.
     *
     * @param array $options additional parameters to pass in the template file $this->_myOption
@@ -855,10 +897,10 @@ trait TemplateTrait
     * @return void
     * @throws InvalidException
     */
-    public function view(array $options = [], int $level = 0): void 
+    public function render(array $options = [], int $level = 0): void 
     {
         $level =  (int) ( $level > 0 ? $level : $this->relativeLevel);
-        $relative = $this->calculateLevel($level);
+        $relative = static::calculateLevel($level);
         $path = (BaseConfig::isProduction() ? self::$ds : $relative);
         $base = rtrim($path . $this->appPublicFolder, "/") . "/";
 
@@ -883,11 +925,11 @@ trait TemplateTrait
         }
 
         if(!isset($options["title"])){
-            $options["title"] = self::toTitle($options["active"], true);
+            $options["title"] = static::toTitle($options["active"], true);
         }
 
         if(!isset($options["subtitle"])){
-            $options["subtitle"] = self::toTitle($options["active"]);
+            $options["subtitle"] = static::toTitle($options["active"]);
         }
 
         if($this->activeView === '404'){
@@ -927,10 +969,10 @@ trait TemplateTrait
     *
     * @return string relative path 
     */
-    private function calculateLevel(int $level = 0): string 
+    private static function calculateLevel(int $level = 0): string 
     {
         if($level === 0){
-            $uri = $this->getTemplateBaseUri();
+            $uri = static::getTemplateBaseUri();
            
 
             if (!BaseConfig::isProduction() && strpos($uri, '/public') !== false) {
@@ -953,7 +995,7 @@ trait TemplateTrait
     *
     * @return string template view segments
     */
-    private function getTemplateBaseUri(): string
+    private static function getTemplateBaseUri(): string
     {
         $url = '';
         if(isset($_SERVER['REQUEST_URI'])){
@@ -1010,7 +1052,7 @@ trait TemplateTrait
         $exceptionView = $this->getBaseErrorViewFolder('exceptions');
 
         if(BaseConfig::getBoolean("show.debug.tracer")){
-            define('SHOW_DEBUG_BACKTRACE', true);
+            defined('SHOW_DEBUG_BACKTRACE') || define('SHOW_DEBUG_BACKTRACE', true);
             $trace = debug_backtrace();
         }
 
@@ -1033,6 +1075,7 @@ trait TemplateTrait
         $view = str_replace(['_', '-'], ' ', $view);
         $view = ucwords($view);
         $view = str_replace(',', '', $view);
+        
         return ($suffix ? self::addTitleSuffix($view) : trim($view));
     }
 
@@ -1045,9 +1088,14 @@ trait TemplateTrait
     */
     private static function addTitleSuffix(string $title): string
     {
-        $appName = BaseConfig::get("app.name");
+        $appName = env("app.name");
+
+        if($appName === null){
+            return $title;
+        }
+
         if (strpos($title, "| {$appName}") === false) {
-            $title = " {$title} | {$appName}";
+            $title = "{$title} | {$appName}";
         }
 
         return trim($title);

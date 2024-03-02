@@ -12,6 +12,7 @@ namespace Luminova\Email;
 use Exception;
 use \Luminova\Email\Clients\MailClientInterface;
 use \Luminova\Email\Clients\NovaMailer;
+use \Luminova\Email\Clients\PHPMailer;
 use \Luminova\Base\BaseConfig;
 use \Luminova\Email\Exceptions\MailerException;
 
@@ -52,6 +53,16 @@ class Mailer
     */
     public string $AltBody = '';
 
+    /**
+     * Available clients 
+     * 
+     * @var array $clients 
+    */
+    private static array $clients = [
+        PHPMailer::class, 
+        NovaMailer::class
+    ];
+
 
     /**
      * Mailer constructor.
@@ -61,21 +72,24 @@ class Mailer
      */
     private function __construct(MailClientInterface|string|null $client = null)
     {
-        $production = !BaseConfig::isProduction();
-
-        if ($client === null) {
-            self::$client = new NovaMailer($production);
-        } elseif ($client instanceof MailClientInterface) {
-            self::$client = $client;
-        } elseif (is_string($client) && in_array($client, ['PHPMailer', 'NovaMailer'], true)) {
-            self::$client = new $client($production);
-        } else {
-            throw MailerException::throwWith('invalid_client', $client);
+        $development = !BaseConfig::isProduction();
+        try{
+            if ($client === null) {
+                self::$client = new NovaMailer($development);
+            } elseif ($client instanceof MailClientInterface) {
+                self::$client = $client;
+            } elseif (is_string($client) && in_array($client, self::$clients, true)) {
+                self::$client = new $client($development);
+            } else {
+                throw MailerException::throwWith('invalid_client', $client);
+            }
+            self::initialize();
+        }catch(Exception|MailerException $e) {
+            if($development){
+                throw $e;
+            }
         }
-
-        self::initialize();
     }
-
 
     /**
      * Get the Mailer client instance.
@@ -137,7 +151,7 @@ class Mailer
      *
      * @return bool True if the address was added successfully, false otherwise.
      */
-    public function addCC(string $address, string $name = ''): bool
+    public function addCc(string $address, string $name = ''): bool
     {
         return self::$client->addCC($address, $name);
     }
@@ -150,7 +164,7 @@ class Mailer
      *
      * @return bool True if the address was added successfully, false otherwise.
      */
-    public function addBCC(string $address, string $name = ''): bool
+    public function addBcc(string $address, string $name = ''): bool
     {
         return self::$client->addBCC($address, $name);
     }
@@ -266,6 +280,7 @@ class Mailer
 
         self::$client->setFrom(BaseConfig::get("smtp.email.sender"), BaseConfig::get("app.name"));
         self::$client->isHTML(true);
+        self::$client->initialize();
     }
 
     /**

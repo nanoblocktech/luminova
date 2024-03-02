@@ -10,7 +10,6 @@
 namespace Luminova\Sessions;
 
 use Luminova\Sessions\SessionInterface;
-use \App\Controllers\Config\Session as SessionConfig;
 
 class SessionManager implements SessionInterface 
 {
@@ -185,7 +184,7 @@ class SessionManager implements SessionInterface
      * 
      * @return bool
     */
-    public function hasKey(string $key): bool
+    public function has(string $key): bool
     {
         return isset($_SESSION[$this->storage][$key]);
     }

@@ -43,11 +43,19 @@ abstract class BaseController  extends ViewController
      * @var Request $request $this->request
      * @var Request $app  $this->app
     */
-    final public function __construct()
+    public function __construct()
     {
         $this->validate = $this->validate();
         $this->request = $this->request();
         $this->app = $this->app();
+        $this->onCreate();
+    }
+
+    /**
+     * Uninitialized controller instance
+    */
+    public function __destruct() {
+        $this->onDestroy();
     }
 
     /**

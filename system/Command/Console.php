@@ -57,7 +57,6 @@ class Console
     */
     public function run(array $commands): void
     {
-        $result = 1;
         $cli = static::getTerminal();
         $commands = $cli::parseCommands($commands);
         $cli::registerCommands($commands, false);
@@ -69,7 +68,7 @@ class Console
         if('--version' === $command){
             $cli::writeln('Novakit Command Line Tool');
             $cli::writeln('version: ' . BaseConfig::$version, 'green');
-            exit(0);
+            exit(STATUS_OK);
         }
 
         $params  = array_merge($cli::getArguments(), $cli::getQueries());

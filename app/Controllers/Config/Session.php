@@ -55,6 +55,14 @@ final class Session
      */
     public static string $sameSite = "Lax";
 
+     /**
+     * Enable strict session IP authentication.
+     * If set to true, the user will be logged out if their IP address changes.
+     * 
+     * @var bool $strictSessionIp
+     */
+    public static bool $strictSessionIp = false;
+
     /**
      * Set the csrf storage engine 
      * cookie, session, 

@@ -107,12 +107,27 @@
      * @param string $view view name
      * @param array $options view options
      * 
-     * @return int 0 
+     * @return int STATUS_OK
     */
     protected function view(string $view, array $options = []): int
     {
-        $this->app()->render($view)->view($options);
+        $this->app()->view($view)->render($options);
 
-        return 0;
+        return STATUS_OK;
     }
+
+    /**
+     * On create method 
+     * 
+     * @return void 
+    */
+    protected function onCreate(): void {}
+
+    /**
+     * On destroy method 
+     * 
+     * @return void 
+    */
+    protected function onDestroy(): void {}
+   // abstract protected function onDestroy(): void;
  }

@@ -17,6 +17,7 @@ user.php
 <html lang="en">
     <head>
         <title>Luminova User</title>
+        <link rel="shortcut icon" type="image/png" href="<?php echo $this->_assets;?>images/icons/favicon.png">
     </head>
     <body>
         <h1>Welcome <?= $this->_name; ?></h1>
@@ -32,6 +33,7 @@ user.tpl
 <html lang="en">
     <head>
         <title>Luminova User</title>
+        <link rel="shortcut icon" type="image/png" href="{$assets}images/icons/favicon.png">
     </head>
     <body>
         <h1>Welcome {$name}</h1>
@@ -45,7 +47,7 @@ user.tpl
 To configure your template view default options, you can pass array of options to render view with.
 
 ```php 
-$app->render("user")->view([
+$app->view("user")->render([
     "active" => "String: Set the name of activate view,"
     "ContentType" => "String: Set the rendering content type of view [json, text or html], the default is html",
     "optimize" => "Boolean: Enable or disable view optimization. The default is true. But before it work you have to enable it in your initialization environment config file .env",
@@ -54,6 +56,17 @@ $app->render("user")->view([
     "base" => "String: Set project base directory",
     "assets" => "String: Set project assets directory"
 ]);
+```
+
+Rendering views in controller class 
+
+```php
+$this->app->view('user')->render([]);
+```
+Same as above 
+
+```php
+$this->view('user', []);
 ```
 
 #### Templates Global Variables

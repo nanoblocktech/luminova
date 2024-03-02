@@ -131,3 +131,7 @@
 [php_errors] [2024-02-06T20:22:09+00:00]: Error [8192]: htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in resources/views/system_errors/exceptions.php on line 13
 [php_errors] [2024-02-06T20:22:50+00:00]: Error [8192]: htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in resources/views/system_errors/exceptions.php on line 13
 [php_errors] [2024-02-06T20:22:50+00:00]: Error [2]: Undefined variable $title in resources/views/system_errors/exceptions.php on line 26
+[php_errors] [2024-03-01T20:17:50+00:00]: Error [2]: Undefined variable $pp in web.php on line 13
+[php_errors] [2024-03-02T12:45:53+00:00]: Error [2]: file_get_contents(/Applications/XAMPP/xamppfiles/htdocs/luminova.com/libraries/.env): Failed to open stream: No such file or directory in libraries/sys/functions.php on line 66
+[php_errors] [2024-03-02T12:45:53+00:00]: Error [2]: file_put_contents(/Applications/XAMPP/xamppfiles/htdocs/luminova.com/libraries/.env): Failed to open stream: Permission denied in libraries/sys/functions.php on line 78
+[php_errors] [2024-03-02T12:46:24+00:00]: Error [2]: file_put_contents(/Applications/XAMPP/xamppfiles/htdocs/luminova.com/.env): Failed to open stream: Permission denied in libraries/sys/functions.php on line 78

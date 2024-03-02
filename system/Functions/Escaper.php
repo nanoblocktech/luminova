@@ -15,9 +15,24 @@ use \RuntimeException;
 
 class Escaper
 {
+    /**
+     * @var object $escaper Escaper object
+    */
     private ?object $escaper = null;
+
+    /**
+     * @var string $encoding Escaper encoding
+    */
     protected string $encoding = 'utf-8';
+
+    /**
+     * @var int $encodingFlags Escaper encoding flag
+    */
     protected int $encodingFlags = 0;
+
+     /**
+     * @var array $supportedEncodings Escaper supported encodings
+    */
     protected array $supportedEncodings = [
         'iso-8859-1',
         'iso8859-1',
@@ -82,6 +97,7 @@ class Escaper
      * 
      * @param string $name The name of the method being called.
      * @param array $arguments The arguments passed to the method.
+     * 
      * @return mixed The result of the method call.
      * @throws Exception When the called method does not exist.
      */
@@ -134,9 +150,10 @@ class Escaper
      * Escape JavaScript special characters.
      * 
      * @param array|string $string The string or array of strings to be escaped.
-     * @return array|string The escaped string or array of strings.
+     * 
+     * @return string The escaped string or array of strings.
      */
-    protected function escapeJs(array|string $string): array|string
+    protected function escapeJs(array|string $string): string
     {
         return str_replace(
             ['<', '>', '\'', '"', '&', '\\'],

@@ -9,11 +9,11 @@
  */
 
 namespace Luminova\Database\Drivers;
-use Luminova\Database\Drivers\DriversInterface;
-use Luminova\Config\Database;
-use Luminova\Exceptions\DatabaseException;
-use Luminova\Exceptions\InvalidObjectException;
-use Luminova\Exceptions\InvalidException;
+
+use \Luminova\Database\Drivers\DriversInterface;
+use \Luminova\Config\Database;
+use \Luminova\Exceptions\DatabaseException;
+use \Luminova\Exceptions\InvalidException;
 use \mysqli;
 use \mysqli_stmt;
 use \mysqli_result;
@@ -25,12 +25,16 @@ use \Exception;
 class MySqlDriver implements DriversInterface 
 {
     /**
-    * @var mysqli $connection mysqli Database connection instance
+     * Mysqli Database connection instance
+     * 
+    * @var mysqli|null $connection 
     */
-    private mysqli $connection; 
+    private ?mysqli $connection = null; 
 
     /**
-    * @var object|mysqli_stmt|mysqli_result|bool $stmt mysqli statement, result object or false
+     * mysqli statement, result object or false
+     * 
+    * @var object|mysqli_stmt|mysqli_result|bool $stmt 
     */
     private object|bool $stmt = false;
 
@@ -40,7 +44,9 @@ class MySqlDriver implements DriversInterface
     private bool $onDebug = false;
 
     /**
-    * @var Database $config Database configuration
+     * Database configuration
+     * 
+    * @var Database $config 
     */
     private Database $config; 
 
@@ -64,14 +70,10 @@ class MySqlDriver implements DriversInterface
      * Constructor.
      *
      * @param Database $config database configuration. array
-     * @throws InvalidException|InvalidObjectException If a required configuration key is missing.
+     * @throws InvalidException If a required configuration key is missing.
      */
     public function __construct(Database $config) 
     {
-        if (empty($config) || !is_object($config)) {
-            throw new InvalidObjectException("Missing database configurations");
-        }
-        
         if (!$config instanceof Database) {
             throw new InvalidException("Invalid database configuration, required type: Database, but " . gettype($config) . " is given instead.");
         }
@@ -109,7 +111,7 @@ class MySqlDriver implements DriversInterface
      */
     private function initializeDatabase(): void 
     {
-        if (!empty($this->connection)) {
+        if ($this->connection !== null) {
             return;
         }
         //mysqli_report(MYSQLI_REPORT_ALL);

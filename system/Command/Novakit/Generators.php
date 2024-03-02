@@ -67,9 +67,10 @@ class Generators extends BaseCommand
             'create:controller' => $this->createController($name),
             'create:view' => $this->createView($name),
             'create:class' => $this->createClass($name, $extend, $implement),
-            default => function() {
+            default => function(): int {
                 echo "Handle Unknown command\n";
-                return 1;
+
+                return STATUS_ERROR;
             }
         };
 
@@ -139,7 +140,7 @@ class Generators extends BaseCommand
 
     private function saveFile(string $content, string $path): bool 
     {
-        $filepath = BaseConfig::getRootDirectory(__DIR__) . $path;
+        $filepath = BaseConfig::root(__DIR__) . $path;
         try {
             file_put_contents($filepath, $content);
             return true;

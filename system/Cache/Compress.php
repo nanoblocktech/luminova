@@ -254,10 +254,10 @@ class Compress
     
             if ($encodedData !== false) {
                 return $encodedData;
-            } else {
-                return '';
             }
         }
+        
+        return '';
     }    
 
     /**

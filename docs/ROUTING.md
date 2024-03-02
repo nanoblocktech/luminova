@@ -26,11 +26,9 @@ The routing bootstrap `$app->router->bootstraps()` method accepts arguments of `
 The below route can be accessed in browser by visiting `https://example.com/panel/`, every request that starts with `panel` will be handles by `routes/panel.php`
 
 ```php
-$app->router->bootstraps($app,
-    new Bootstrap("panel", function() use ($app){
-        $app->render("panelError")->view();
-    })
-);
+$app->router->bootstraps($app,new Bootstrap("panel", function() use ($app){
+    $app->view("panelError")->render();
+}));
 ```
 *IMPORTANT*
 
@@ -73,11 +71,11 @@ Or you can also do that on bind for group capture.
 Your middleware must return and integer value `0` as passed or `1` as failed.
 
 ```php 
-$router->before('GET|POST', '/.*', function () use($router) {
+$router->before('GET|POST', '/.*', function () use($router): int {
     if($ok){
-        return $router::STATUS_OK;
+        return STATUS_OK;
     }
-    return $router::STATUS_ERROR;
+    return STATUS_ERROR;
 });
 
 //OR
@@ -89,7 +87,7 @@ Landing page goes here if you need to
 
 ```php
 $router->get('/', function() use ($app) {
-    $app->render("index")->view();
+    $app->view("index")->render();
 });
 
 //OR
@@ -115,11 +113,11 @@ The below can be accessed from `https://example.com/foo` or to access the inner 
 $router->bind('/foo', function() use ($router, $app) {
 
     $router->get('/', function() use ($router, $app) {
-        $app->render("foo")->view();
+        $app->view("foo")->render();
     });
 
     $router->get('/bar/([a-zA-Z0-9]+)', function($id) use ($app) {
-        $app->render("bar")->view([
+        $app->view("bar")->render([
             "id" => $id
         ]);
     });
@@ -134,12 +132,12 @@ This can be done in before middleware or call before revering view.
 But be careful while using it, if registered globally and other controllers uses default view directory it might affect them as all controllers will be searching for view in the custom folder. To use it in before middleware always use a matching pattern.
 
 ```php
-$router->before('GET', '/admin/.*', function () use($app, $router) {
+$router->before('GET', '/admin/.*', function () use($app, $router): int {
     $app->setFolder("admin");
     if($ok){
-        return $router::STATUS_OK;
+        return STATUS_OK;
     }
-    return $router::STATUS_ERROR;
+    return STATUS_ERROR;
 });
 ```
 OR 
@@ -147,7 +145,7 @@ OR
 ```php
 $router->bind('/admin', function() use ($router, $app) {
     $router->get('/', function() use ($app) {
-        $app->setFolder("admin")->render("foo")->view();
+        $app->setFolder("admin")->view("foo")->render();
     });
 });
 ```
@@ -156,14 +154,14 @@ $router->bind('/admin', function() use ($router, $app) {
 
 In NovaKit CLI, you can register a global before middleware security check as like you did on web and apis but using another method name call `authenticate`.
 
-You callback or controller method must return an integer (`0` or `Terminal::STATUS_OK`) as passed or (`1` or `Terminal::STATUS_ERROR`) as failed.
+You callback or controller method must return an integer (`0` or `STATUS_OK`) as passed or (`1` or `STATUS_ERROR`) as failed.
 
 ```php
-$router->authenticate(function(){
+$router->authenticate(function(): int {
     if($ok){
-        return Terminal::STATUS_OK;
+        return STATUS_OK;
     }
-    return Terminal::STATUS_ERROR;
+    return STATUS_ERROR;
 });
 ```
 
@@ -187,17 +185,17 @@ Executing: `php index.php demo`
 In the router, you can define routes with dynamic segments, similar to a website front controller. To capture dynamic values within a segment, use the syntax `(:value)`.
 
 ```php
-$router->command('/user/name/(:value)', function($name) {
+$router->command('/user/name/(:value)', function($name): int {
     echo "Username: {$name}";
-    return Terminal::STATUS_OK;
+    return STATUS_OK;
 });
 ```
 Executing: `php index.php user name "Peter"`
 
 ```php
-$router->command('/user/name/(:value)/id/(:value)', function($name, $id) {
+$router->command('/user/name/(:value)/id/(:value)', function($name, $id): int {
     echo "UserInfo: {$name}, Id: {$id}";
-    return Terminal::STATUS_OK;
+    return STATUS_OK;
 });
 ```
 Executing: `php index.php user name "Peter" id 22`

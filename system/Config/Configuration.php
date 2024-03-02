@@ -41,10 +41,10 @@ abstract class Configuration
      */
     public function __get(string $propertyName): mixed 
     {
-        $data = self::get($propertyName);
+        $data = env($propertyName);
 
         if ($data === null) {
-            $data = self::get(self::variableToNotation($propertyName, ".")) ?? self::get(self::variableToNotation($propertyName, "_")) ?? "";
+            $data = env(self::variableToNotation($propertyName, ".")) ?? env(self::variableToNotation($propertyName, "_")) ?? "";
         }
 
         return $data;
@@ -118,7 +118,7 @@ abstract class Configuration
      */
     public static function shouldMinify(): int 
     {
-        return (int)self::get("build.minify");
+        return self::getInt("build.minify");
     }
 
     /**
@@ -176,7 +176,7 @@ abstract class Configuration
      */
     public static function isProduction(): bool
     {
-        return (self::getEnvironment() == "production");
+        return (self::getEnvironment() === "production");
     }
 
    /**
@@ -306,7 +306,7 @@ abstract class Configuration
      */
     public static function getVariables(string $key, mixed $default = null): mixed 
     {
-        return self::get($key, $default);
+        return env($key, $default);
     }
 
     /**
@@ -319,7 +319,7 @@ abstract class Configuration
      */
     public static function getString(string $key, string $default = ''): string 
     {
-        $value = self::get($key, $default);
+        $value = env($key, $default);
         
         if( $value === null){
             return '';
@@ -337,7 +337,7 @@ abstract class Configuration
     */
     public static function getInt(string $key, int $default = 0): int
     {
-        $value = self::get($key, $default);
+        $value = env($key, $default);
         return (int) $value;
     }
 
@@ -350,7 +350,7 @@ abstract class Configuration
     */
     public static function getBoolean(string $key, bool $default = false): bool
     {
-        $value = self::get($key, $default);
+        $value = env($key, $default);
 
         if (is_bool($value)) {
             return $value;
@@ -373,7 +373,7 @@ abstract class Configuration
     */
     public static function getMixedNull(string $key, mixed $default = null): mixed
     {
-        $value = self::get($key, $default);
+        $value = env($key, $default);
 
         if ($value === '' || $value === []) {
             return null;

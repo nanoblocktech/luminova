@@ -15,6 +15,21 @@ use Luminova\Controllers\ViewController;
 abstract class BaseViewController  extends ViewController
 {
     /**
+     * Initialize controller instance
+    */
+    public function __construct()
+    {
+        $this->onCreate();
+    }
+
+    /**
+     * Uninitialized controller instance
+    */
+    public function __destruct() {
+        $this->onDestroy();
+    }
+    
+    /**
      * Magic method getter
      *
      * @param string $key property key

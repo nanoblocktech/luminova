@@ -7,10 +7,12 @@
  * @copyright (c) Nanoblock Technology Ltd
  * @license See LICENSE file
  */
-use Luminova\Application\Services;
+use \Luminova\Application\Services;
 use \Luminova\Http\Request;
 use \Luminova\Logger\NovaLogger;
 use \Luminova\Cookies\Cookie;
+use \Luminova\Functions\Functions;
+use \Countable;
 
 if(!function_exists('env')){
     /**
@@ -41,25 +43,45 @@ if(!function_exists('setenv')){
      *
      * @param string $key The key of the environment variable.
      * @param string $value The value of the environment variable.
+     * @param bool $add_to_env Save or update to .env file 
      * 
      * @return void
      */
-    function setenv(string $key, string $value): void
+    function setenv(string $key, string $value, bool $add_to_env = false): void
     {
         if (!getenv($key, true)) {
             putenv("{$key}={$value}");
         }
-
+    
         if (empty($_ENV[$key])) {
             $_ENV[$key] = $value;
         }
-
+    
         if (empty($_SERVER[$key])) {
             $_SERVER[$key] = $value;
         }
+    
+        if ($add_to_env) {
+            $envFile = dirname(__DIR__, 2) . '/.env';
+            $envContents = file_get_contents($envFile);
+            $keyValueExists = strpos($envContents, "$key=") !== false || strpos($envContents, "$key =") !== false;
+            //$keyValueExists = preg_match('/^' . preg_quote($key, '/') . '\s*=\s*.*$/m', $envContents);
+    
+            if (!$keyValueExists) {
+                file_put_contents($envFile, "\n$key=$value", FILE_APPEND);
+            } else {
+                $newContents = preg_replace_callback('/(' . preg_quote($key, '/') . ')\s*=\s*(.*)/',
+                    function($match) use ($key, $value) {
+                        return $match[1] . '=' . $value;
+                    },
+                    $envContents
+                );
+                file_put_contents($envFile, $newContents);
+            }
+        }
     }
+    
 }
-      
 
 if(!function_exists('locale')){
     /**
@@ -69,47 +91,67 @@ if(!function_exists('locale')){
     *
     * @return string|bool;
     */
-   function locale(?string $locale = null): string|bool 
-   {
+    function locale(?string $locale = null): string|bool 
+    {
         if($locale === null){
             $locale = env('app.locale', 'en');
 
             return $locale;
         }else{
-            setenv('app.locale', $locale);
+            setenv('app.locale', $locale, true);
         }
 
         return true;
-   }
+    }
 }
 
-if(!function_exists('func')){
+if (!function_exists('func')) {
     /**
-    * Return BaseFunction instance
-    *
-    * @param string $context If context is present return instance of specified context else return 
-    *          BaseFunction instance or null ['files', 'ip', 'document', 'escape']
-    * @param mixed ...$params
-    *
-    * @throws Exception;
-    * @throws RuntimeException;
-    */
-   function func(?string $context = null, ...$params): mixed 
-   {
-        $func = Services::functions();
-
-        if($context === null){
-            return $func;
+     * Return Functions instance or a specific context instance.
+     *
+     * If context is specified, return an instance of the specified context,
+     * otherwise return a Functions instance or null.
+     * Supported contexts: 'files', 'ip', 'document', 'escape', 'tor'.
+     *
+     * @param string|null $context The context to return instance for.
+     * @param mixed ...$params Additional parameters based on context.
+     *
+     * @return Functions|object|null|string|bool Returns an instance of Functions, 
+     *      object, string, or boolean value depending on the context.
+     *
+     * @throws Exception
+     * @throws RuntimeException
+     */
+    function func(?string $context = null, ...$params): mixed 
+    {
+        if ($context === null) {
+            return new Functions();
         }
+
         $context = strtolower($context);
 
-        if(in_array($context, ['files', 'ip', 'document', 'escape'], true)){
-            return $func::{$context}(...$params);
+        if (in_array($context, ['files', 'ip', 'document', 'escape', 'tor'], true)) {
+            return Functions::{$context}(...$params);
         }
 
         return null;
-   }
+    }
 }
+
+if(!function_exists('kebab_case')){
+   /**
+	 * Convert a string to kebab case.
+	 *
+	 * @param string $string The input string to convert.
+	 * 
+	 * @return string The kebab-cased string.
+	 */
+    function kebab_case(string $input): string 
+    {
+       return Functions::toKebabCase($input);
+    }
+}
+
 
 if(!function_exists('escape')){
     /**
@@ -125,12 +167,47 @@ if(!function_exists('escape')){
     * @throws Exception;
     * @throws RuntimeException;
     */
-   function escape(string|array $input, string $context = 'html', ?string $encoding = null): mixed 
-   {
-       $func = Services::functions();
+    function escape(string|array $input, string $context = 'html', ?string $encoding = null): mixed 
+    {
+       return Functions::escape($input, $context, $encoding);
+    }
+}
 
-       return $func::escape($input, $context, $encoding);
-   }
+if(!function_exists('is_tor')){
+    /**
+    * Checks if the given IP address is a Tor exit node
+    *
+    * @param string|null $ip Ip address to check else use current ip address
+    * 
+    * @return bool 
+    */
+    function is_tor(string|null $ip = null): mixed 
+    {
+       if($ip === null){
+            $ip = Functions::ip()->get();
+       }
+
+       return Functions::tor()->isTorExitNode($ip);
+    }
+}
+
+if(!function_exists('is_empty')){
+    /**
+     * Check if values are empty.
+     * 
+     * @param mixed ...$values Arguments.
+     * 
+     * @return bool True if any of the values are empty, false otherwise.
+     */
+    function is_empty(mixed ...$values): bool 
+    {
+        foreach ($values as $value) {
+            if (is_null($value) || (is_string($value) && trim($value) === '') || empty($value) || (is_object($value) && $value instanceof Countable && count($value) === 0)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
 
 if(!function_exists('session')) {
@@ -171,20 +248,46 @@ if (!function_exists('cookie')) {
 if(!function_exists('service')) {
     /**
      * Returns a shared instance of the class
+     * Or service instance if context is null
      *
      * Same as:
      * @example $config = service('config')
      * @example $config = \Luminova\Application\Services::config();
      * @example $config = new \Luminova\Config\Configuration();
      * 
-     * @param string $context The class name to load
+     * @param string|null $context The class name to load
      * @param mixed ...$params
      * 
-     * @return object|null 
+     * @return Services|object|null
      */
-    function service(string $context, ...$params): ?object
+    function service(string|null $context, ...$params): ?object
     {
+        if($context === null){
+            return new Services();
+        }
+
         return Services::$context(...$params);
+    }
+}
+
+if(!function_exists('add_service')) {
+    /**
+     * Add a class to service a shared instance
+     * The identifier will be converted to lower case
+     *
+     * Usages:
+     * @example add_service(Configuration::class, 'config) as $config = service('config)
+     * @example add_service('\Luminova\Config\Configuration', 'config) as $config = service('config)
+     * @example add_service(Configuration::class) as $config = service('configuration)
+     * 
+     * @param string $className The class name to add
+     * @param string|null $identifier The identifier for the class 
+     * 
+     * @return void
+     */
+    function add_service(string $className, ?string $identifier = null): void
+    {
+        Services::add($className, $identifier);
     }
 }
 
@@ -268,15 +371,14 @@ if(!function_exists('import')) {
       * @return bool true if the library was successfully imported
       * @throws RuntimeException if library could not be found
      */
-     function import(string $library): bool
-     {
-         $instance = Services::import();
-         $import = $instance::import($library);
+    function import(string $library): bool
+    {
+        $instance = Services::import();
+        $import = $instance::import($library);
  
-         return $import;
-     }
+        return $import;
+    }
  }
-
 
  if(!function_exists('logger')) {
     /**
@@ -289,10 +391,10 @@ if(!function_exists('import')) {
      *
      * @return void
      */
-     function logger(string $level, string $message, array $context = []): void
-     {
+    function logger(string $level, string $message, array $context = []): void
+    {
         (new NovaLogger())->log($level, $message, $context);
-     }
+    }
  }
 
  if (!function_exists('lang')) {
@@ -336,11 +438,12 @@ if(!function_exists('import')) {
 
 if (!function_exists('root')) {
     /**
-     * Get the root directory.
+     * Return to the root directory of your project.
      *
      * @param string $directory The directory to start searching for composer.json or system directory.
+     * @param string $suffix Prepend a path to root directory.
      * 
-     * @return string
+     * @return string $path + $suffix
      */
     function root(string $directory = __DIR__, string $suffix = ''): string
     {

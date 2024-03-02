@@ -36,9 +36,10 @@ class Commands{
             'list' => (new Lists)->run($options),
             'db:create','db:update','db:insert','db:delete','db:drop','db:truncate','db:select' => (new Database)->run($options),
             'server', 'serve' => (new Server)->run($options),
-            default => function() use($command) {
-                Terminal::writeln('Unknown command ' . Terminal::color("'$command'", 'red') . ' not found');
-                return 1;
+            default => function() use($command): int {
+                Terminal::error('Unknown command ' . Terminal::color("'$command'", 'red') . ' not found', null);
+
+                return STATUS_ERROR;
             }
         };
 

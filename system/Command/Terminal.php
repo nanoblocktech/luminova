@@ -16,21 +16,6 @@ use Luminova\Command\TextUtils;
 
 class Terminal {
     /**
-     * Success status code
-     *
-     * @var int STATUS_OK
-    */
-
-    public const STATUS_OK = 0;
-
-    /**
-     * Error status code
-     *
-     * @var int STATUS_ERROR
-    */
-    public const STATUS_ERROR = 1;
-
-    /**
      * Height of terminal visible window
      *
      * @var int|null $height
@@ -86,8 +71,21 @@ class Terminal {
             static::$isReadline = extension_loaded('readline');
             static::$commandsOptions  = [];
             static::$isColored = static::resourceSupportColor(STDOUT);
-        }elseif(!defined('STDOUT')){
-            define('STDOUT', 'php://output');
+        }else{
+            /**
+             * @var string STDOUT if it's not already defined
+            */
+            defined('STDOUT') || define('STDOUT', 'php://output');
+
+            /**
+             * @var string STDIN if it's not already defined
+            */
+            defined('STDIN') || define('STDIN', 'php://stdin');
+
+            /**
+             * @var string STDERR if it's not already defined
+            */
+            defined('STDERR') || define('STDERR', 'php://stderr');
         }
     }
 
@@ -521,12 +519,12 @@ class Terminal {
      * Display error text on CLI 
      *
      * @param string $text Error message
-     * @param string $foreground Foreground color name
+     * @param string|null $foreground Foreground color name
      * @param string|null $background Optional background color name
      * 
      * @return void
     */
-    public static function error(string $text, string $foreground = 'red', ?string $background = null): void
+    public static function error(string $text, string|null $foreground = 'red', ?string $background = null): void
     {
         $stdout = static::$isColored;
         static::$isColored = static::resourceSupportColor(STDERR);
@@ -1049,10 +1047,10 @@ class Terminal {
     */
     public static function getStatusCode(mixed $result = null): int
     {
-        if ($result === false || (is_int($result) && $result == static::STATUS_ERROR)) {
-            return static::STATUS_ERROR;
+        if ($result === false || (is_int($result) && $result == STATUS_ERROR)) {
+            return STATUS_ERROR;
         }
-        return static::STATUS_OK;
+        return STATUS_OK;
     }
 
     /**

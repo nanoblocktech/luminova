@@ -8,6 +8,7 @@
  * @license See LICENSE file
  */
 namespace Luminova\Time;
+
 use \Luminova\Time\Time;
 use \DateTimeZone;
 use \DateInterval;

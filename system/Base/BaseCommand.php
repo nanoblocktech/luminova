@@ -30,7 +30,7 @@ abstract class BaseCommand extends Terminal
     protected string|array $usage = '';
 
     /**
-     * @var array $options command options
+     * @var array<string, mixed> $options command options
     */
     protected array $options = [];
 
@@ -42,7 +42,7 @@ abstract class BaseCommand extends Terminal
     /**
      * Run a command.
      *
-     * @param mixed, string|null> $params
+     * @param array<string, mixed> $params
      * 
      * @return int status code 1 or 0
     */

@@ -168,7 +168,7 @@ class UserController extends BaseController
                 if ($model->updateRecord($this->request->getPost("id"), $data)) {
                     /**
                     * Do your business here 
-                    * $this->app->render("profile")->view(['userInfo' => $data]); Render view
+                    * $this->app->view("profile")->render(['userInfo' => $data]); Render view
                     * $this->app->redirect("/"); Redirect to main view or any view
                     */
                 } else {
@@ -193,7 +193,7 @@ class UserController extends BaseController
             */
             return;
         }
-        $this->app->render("profile")->view(['userInfo' => $userInfo]);
+        $this->app->view("profile")->render(['userInfo' => $userInfo]);
     }
 }
 ```

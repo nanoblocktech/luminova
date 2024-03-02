@@ -120,13 +120,15 @@ class Csrf
      * Generate and Stores the CSRF token in the session.
      * After it has been validated 
      * 
-     * @return void 
+     * @return string $token 
      */
-    public static function refreshToken(): void 
+    public static function refreshToken(): string 
     {
         $token = self::generateToken();
 
         self::saveToken($token);
+
+        return $token;
     }
 
     /**

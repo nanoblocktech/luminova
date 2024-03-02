@@ -13,7 +13,7 @@ use Luminova\Sessions\SessionInterface;
 use \App\Controllers\Config\Session as CookieConfig;
 
 class CookieManager implements SessionInterface 
-{
+{ 
     /**
      * @var string $storage
     */
@@ -205,7 +205,7 @@ class CookieManager implements SessionInterface
      * 
      * @return bool
     */
-    public function hasKey(string $key): bool
+    public function has(string $key): bool
     {
         $data = $this->getContents();
 

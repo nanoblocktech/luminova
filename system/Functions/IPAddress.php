@@ -9,32 +9,57 @@
  */
 namespace Luminova\Functions;
 
+use \Luminova\Functions\TorDetector;
+
 class IPAddress
 {
+   /**
+    * @var array $cf
+   */
+   private static string $cf = 'HTTP_CF_CONNECTING_IP';
+
+   /**
+    * @var array $ipHeaders
+   */
+   private static array $ipHeaders = [
+      'HTTP_CLIENT_IP',
+      'HTTP_X_FORWARDED_FOR',
+      'HTTP_X_FORWARDED',
+      'HTTP_X_CLUSTER_CLIENT_IP',
+      'HTTP_FORWARDED_FOR',
+      'HTTP_FORWARDED',
+      'REMOTE_ADDR',
+   ];
+
     /**
 	 * Get the client's IP address.
 	 *
-	 * @return string The client's IP address or 'PROXY' if not found.
+	 * @return string The client's IP address or '0.0.0.0' if not found.
 	*/
-	public static function get(): string 
+  public static function get(): string 
    {
-     $ipHeaders = [
-        'HTTP_CLIENT_IP',
-        'HTTP_X_FORWARDED_FOR',
-        'HTTP_X_FORWARDED',
-        'HTTP_FORWARDED_FOR',
-        'HTTP_FORWARDED',
-        'REMOTE_ADDR',
-     ];
 
-     foreach ($ipHeaders as $header) {
-        if (isset($_SERVER[$header]) && filter_var($_SERVER[$header], FILTER_VALIDATE_IP)) {
-           return $_SERVER[$header];
-        }
-     }
+      if (isset($_SERVER[static::$cf])) {
+         $_SERVER['REMOTE_ADDR'] = $_SERVER[static::$cf];
+         $_SERVER['HTTP_CLIENT_IP'] = $_SERVER[static::$cf];
+         return $_SERVER[static::$cf];
+      }
 
-     return 'PROXY';
-  }
+      foreach (static::$ipHeaders as $header) {
+         $ips = isset($_SERVER[$header]) ? $_SERVER[$header] : getenv($header);
+         if ($ips !== false) {
+            $list = array_map('trim', explode(',', $ips));
+            foreach ($list as $ip) {
+                  if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false) {
+                     return $ip;
+                  }
+            }
+         }
+      }
+      
+      return '0.0.0.0'; 
+   }
+
 
   /**
    * Check if an IP address is valid.
@@ -46,15 +71,15 @@ class IPAddress
    */
   public static function isValid(?string $address = null, int $version = 0): bool 
   {
-       if($address === null){
-           $address = self::get();
-       }
+      if($address === null){
+         $address = self::get();
+      }
 
-     return match ($version) {
-        4 => filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false,
-        6 => filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) !== false,
-        default => filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6) !== false
-     };
+      return match ($version) {
+         4 => filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false,
+         6 => filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) !== false,
+         default => filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6) !== false
+      };
   }
 
   /**
@@ -64,21 +89,25 @@ class IPAddress
    *
    * @return int|string Numeric IP address or empty string on error.
    */
-  public static function toNumeric(?string $address = null): mixed
+  public static function toNumeric(?string $address = null): int|string
   {
-       if($address === null){
-           $address = self::get();
-       }
+      if($address === null){
+         $address = self::get();
+      }
 
-     if (self::isValid($address, 4)) {
-        return ip2long($address);
-     } 
-       
-       if (self::isValid($address, 6)) {
-        return inet_pton($address);
-     }
+      $ip = false;
 
-     return '';
+      if (self::isValid($address, 4)) {
+         $ip = ip2long($address);
+      }elseif (self::isValid($address, 6)) {
+         $ip = inet_pton($address);
+      }
+
+      if( $ip === false){
+         return '';
+      }
+
+      return $ip;
   }
 
   /**
@@ -88,22 +117,38 @@ class IPAddress
    *
    * @return string IP address in string format or empty string on error.
    */
-  public static function toAddress(int|string $numeric = null): string
-  {
-     $ip = ''; 
-       if($numeric === null){
-           $numeric = self::toNumeric();
-       }
+   public static function toAddress(int|string $numeric = null): string
+   {
+         $ip = ''; 
+         if($numeric === null){
+            $numeric = self::toNumeric();
+         }
 
-     // Check if it's binary (IPv6) or numeric (IPv4).
-     if (is_numeric($numeric)) {
-        // Convert numeric (IPv4) to human-readable IPv4 address.
-        $ip = long2ip($numeric);
-     }elseif (is_string($numeric)) {
-        // Convert binary (IPv6) to human-readable IPv6 address.
-        $ip = inet_ntop($numeric);
-     }
+         // Check if it's binary (IPv6) or numeric (IPv4).
+         if (is_numeric($numeric)) {
+            // Convert numeric (IPv4) to human-readable IPv4 address.
+            $ip = long2ip($numeric);
+         }elseif (is_string($numeric)) {
+            // Convert binary (IPv6) to human-readable IPv6 address.
+            $ip = inet_ntop($numeric);
+         }
 
-     return $ip !== false ? $ip : '';
-  }
+         return $ip !== false ? $ip : '';
+   }
+
+   /**
+     * Checks if the given IP address is a Tor exit node
+     * 
+     * @param string|null $ip
+     * 
+     * @return bool 
+    */
+   public static function isTor(string|null $ip = null): bool 
+   {
+      if($ip === null){
+         $ip = self::get();
+      }
+
+      return TorDetector::isTorExitNode($ip);
+   }
 }

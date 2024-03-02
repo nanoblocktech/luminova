@@ -47,6 +47,7 @@ $web_error = function () use ($app): void {
         "error_view" => $app->getView()
     ]);
 };
+ 
 
 /**
  * Define a function for the API error handler

@@ -44,7 +44,7 @@ class Lists extends BaseCommand
     {
         self::listCommands();
 
-        return 0;
+        return STATUS_OK;
     }
 
     public static function listCommands(): void 

@@ -8,11 +8,11 @@
  * @license See LICENSE file
  */
 namespace Luminova\Database\Drivers;
-use Luminova\Database\Drivers\DriversInterface;
-use Luminova\Config\Database;
-use Luminova\Exceptions\DatabaseException;
-use Luminova\Exceptions\InvalidException;
-use Luminova\Exceptions\InvalidObjectException;
+
+use \Luminova\Database\Drivers\DriversInterface;
+use \Luminova\Config\Database;
+use \Luminova\Exceptions\DatabaseException;
+use \Luminova\Exceptions\InvalidException;
 use \PDO;
 use \PDOStatement;
 use \PDOException;
@@ -21,12 +21,14 @@ use \stdClass;
 class PdoDriver implements DriversInterface 
 {
     /**
-    * @var PDO $connection PDO Database connection instance
+     * PDO Database connection instance
+    * @var PDO $connection 
     */
     private ?PDO $connection = null; 
 
     /**
-    * @var PDOStatement $stmt pdo statement object
+     * Pdo statement object
+    * @var PDOStatement $stmt
     */
     private ?PDOStatement $stmt = null;
 
@@ -64,14 +66,10 @@ class PdoDriver implements DriversInterface
      * Constructor.
      *
      * @param Database $config database configuration. array
-     * @throws InvalidException|InvalidObjectException If a required configuration key is missing.
+     * @throws InvalidException If a required configuration key is missing.
      */
     public function __construct(Database $config) 
     {
-        if (empty($config) || !is_object($config)) {
-            throw new InvalidObjectException("Missing database configurations");
-        }
-        
         if (!$config instanceof Database) {
             throw new InvalidException("Invalid database configuration, required type: Database, but " . gettype($config) . " is given instead.");
         }

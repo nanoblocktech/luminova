@@ -17,9 +17,9 @@ class Translator
     /**
      * The current language/locale to work with.
      *
-     * @var string
+     * @var string|null
      */
-    private $locale = 'en';
+    private string|null $locale = null;
 
     /**
      * Translate constructor.
@@ -56,7 +56,7 @@ class Translator
     */
     public function getLocale(): string
     {
-        return $this->locale;
+        return $this->locale ?? locale();
     }
 
     /**
@@ -93,6 +93,7 @@ class Translator
      *
      * @param string $lang The language key (e.g., 'filename.key1.key2').
      * @param string $default The fallback value to return if translation is not found.
+     * @param array $placeholders placeholders
      * 
      * @return string The translation text or the fallback value if any.
      * @throws Exception When translation file cannot be loaded.

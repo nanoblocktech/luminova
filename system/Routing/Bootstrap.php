@@ -52,7 +52,7 @@ final class Bootstrap
     private string $name = '';
 
     /**
-     * @var callable $onError
+     * @var callable|null $onError
     */
     private $onError = null;
 

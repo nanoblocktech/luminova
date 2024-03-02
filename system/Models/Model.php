@@ -61,9 +61,10 @@ abstract class Model
      * Insert a new record into the database.
      *
      * @param array $data The data to be inserted.
-     * @return bool True if the insertion was successful, false otherwise.
+     * 
+     * @return int 
      */
-    public function insertRecord(array $data): bool
+    public function insertRecord(array $data): int
     {
         return $this->query->table($this->table)->insert($data);
     }
@@ -73,9 +74,10 @@ abstract class Model
      *
      * @param string $key The primary key value for the record to be updated.
      * @param array $data The data to be updated.
-     * @return bool True if the update was successful, false otherwise.
+     * 
+     * @return int 
      */
-    public function updateRecord(string $key, array $data): bool
+    public function updateRecord(string $key, array $data): int
     {
         return $this->query->table($this->table)->where($this->primaryKey, $key)->update($data);
     }
@@ -85,6 +87,7 @@ abstract class Model
      *
      * @param string $key The primary key value for the record to retrieve.
      * @param array $fields The fields to retrieve (default is all).
+     * 
      * @return mixed An associative array representing the record, or null if not found.
      */
     public function getRecord(string $key, array $fields = ["*"]): mixed
@@ -97,6 +100,7 @@ abstract class Model
      *
      * @param string $key The primary key value for the record to start the selection from.
      * @param array $fields Additional selection criteria.
+     * 
      * @return mixed An array of records matching the criteria.
      */
     public function selectRecords(string $key, array $fields): mixed
@@ -108,7 +112,8 @@ abstract class Model
      * Delete a record from the database.
      *
      * @param string $key The primary key value for the record to be deleted.
-     * @return bool True if the deletion was successful, false otherwise.
+     * 
+     * @return int 
      */
     public function deleteRecord(string $key): bool
     {

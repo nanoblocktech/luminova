@@ -17,8 +17,9 @@ class MailerException extends AppException
      * @var array $types
     */
     private static array $types = [
-        'invalid_client' => 'Invalid mail client "%s", available clients: [PHPMailer, NovaMailer].',
-        'file_access' => 'File access denied for "%s"'
+        'invalid_client' => 'Invalid mail client "%s", available clients: [PHPMailer, NovaMailer, SwiftMailer].',
+        'file_access' => 'File access denied for "%s"',
+        'class_not_exist' => 'Class "%s" does not exist, install package first before using.'
     ];
 
     /**

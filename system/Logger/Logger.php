@@ -21,10 +21,14 @@ class Logger implements LoggerInterface
      * Set a logger instance on the object.
      *
      * @param LoggerInterface $logger The logger instance.
+     * 
+     * @return self 
     */
-    public function setLogger(LoggerInterface $logger)
+    public function setLogger(LoggerInterface $logger): self
     {
         $this->logger = $logger;
+
+        return $this;
     }
     
     /**

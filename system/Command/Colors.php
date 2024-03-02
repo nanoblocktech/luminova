@@ -95,13 +95,17 @@ class Colors
     /**
      * Check if color name exist
      * 
-     * @param string $color Color name
-     * @param array colorMap Color mapping array
+     * @param string|null $color Color name
+     * @param array $colors Color mapping array
      *
      * @return bool true or false
     */
-    private static function isValidColor(string $color, array $colorMap): bool
+    private static function isValidColor(string|null $color, array $colors = []): bool
     {
-        return isset($colorMap[$color]);
+        if($color === null || $colors === []){
+            return false;
+        }
+
+        return isset($colors[$color]);
     }
 }

@@ -540,6 +540,29 @@ class Time extends DateTimeImmutable
 	}
 
     /**
+     * Get a list of time hours in 12-hour format with customizable intervals.
+     *
+     * @param int $interval The interval in minutes. Default is 30.
+     * 
+     * @return array An array of time hours.
+     */
+    public static function hours(int $interval = 30): array 
+    {
+        $formatTime = function ($timestamp) {
+            return date('g:iA', $timestamp);
+        };
+
+        $stepSize = $interval * 60;
+        $maxOneDay = 24 * 60 * 60; 
+        $steps = range(0, $maxOneDay, $stepSize);
+
+        $timeHours = array_map($formatTime, $steps);
+
+        return $timeHours;
+    }
+
+
+    /**
 	 * Converts a PHP timestamp to a social media-style time format (e.g., "2 hours ago").
 	 *
 	 * @param string|int $time The timestamp to convert.
@@ -559,6 +582,31 @@ class Time extends DateTimeImmutable
 			$elapsed <= 29030400 => sprintf('%d month%s ago', round($elapsed / 2419200), (round($elapsed / 2419200) == 1) ? '' : 's'),
 			default => sprintf('%d year%s ago', round($elapsed / 29030400), (round($elapsed / 29030400) == 1) ? '' : 's'),
 		};
+	}
+
+    /**
+	 * Check if a certain amount of minutes has passed since the given timestamp.
+	 *
+	 * @param int|string $timestamp Either a Unix timestamp or a string representing a date/time.
+	 * @param int $minutes The number of minutes to check against.
+	 *
+	 * @return bool True if the specified minutes have passed, false otherwise.
+	 */
+	public static function passed(string|int $timestamp, int $minutes): bool 
+	{
+		if (is_numeric($timestamp)) {
+			$timestamp = (int) $timestamp;
+		} else {
+			$timestamp = strtotime($timestamp);
+			if ($timestamp === false) {
+				return false;
+			}
+		}
+
+		$timeDifference = time() - $timestamp;
+		$minutesDifference = $timeDifference / 60;
+
+		return $minutesDifference >= $minutes;
 	}
 
     /**

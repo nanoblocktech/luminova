@@ -26,7 +26,7 @@ class Home extends BaseViewController
         ]);
 
         /* Same as above
-        $this->app()->render("index")->view([
+        $this->app()->view("index")->render([
             'foo' => 'bar'
         ]);
         */

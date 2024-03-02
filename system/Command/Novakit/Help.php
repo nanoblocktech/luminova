@@ -46,6 +46,6 @@ class Help extends BaseCommand
 
         Terminal::printHelp(AvailableCommands::get('help'));
     
-        return 0;
+        return STATUS_OK;
     }
 }

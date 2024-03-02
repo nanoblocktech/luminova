@@ -8,20 +8,21 @@
  * @license See LICENSE file
  */
 namespace Luminova\Database;
-use Luminova\Database\Connection;
+
+use \Luminova\Database\Connection;
 use \Luminova\Exceptions\DatabaseException;
 use \Luminova\Cache\FileCache;
-use \Luminova\Base\BaseConfig;
 use \Luminova\Database\Results\Statements;
 
 //use \Luminova\Arrays\ArrayCountable;
 
-class Query extends Connection {  
+class Query extends Connection 
+{  
     /**
     * Class instance
-    * @var object $instance 
+    * @var Query|null $instance 
     */
-    private static $instance = null;
+    private static ?Query $instance = null;
 
     /**
     * Table name to query
@@ -134,35 +135,13 @@ class Query extends Connection {
 
 
     /**
-    * Class Constructor
+     * Class Constructor
+     * @throws DatabaseException|InvalidException If fails
     */
-	public function __construct(){
+	public function __construct()
+    {
 		parent::__construct();
 	}
-
-     /**
-     * Get properties
-     * 
-     * @param string $key
-     * 
-     * @return mixed 
-    */
-    public function __get(string $key): mixed 
-    {
-        return $this->{$key} ?? null;
-    }
-
-    /**
-     * Check if property key is set
-     * 
-     * @param string $key
-     * 
-     * @return bool 
-    */
-    public function __isset(string $key): bool 
-    {
-        return isset($this->{$key});
-    }
 
     /*
         Class cloning
@@ -174,16 +153,14 @@ class Query extends Connection {
     /*
         Prevent unserialization of the singleton instance
     */
-    public function __wakeup() {
-        
-    }
+    public function __wakeup() { }
 
     /**
      * Get database connection
      * 
-     * @return object 
+     * @return MySqlDriver|PdoDriver|null 
     */
-    public function getConn(): object 
+    public function getConn(): object|null
     {
         return $this->db;
     }
@@ -200,14 +177,13 @@ class Query extends Connection {
 
     /**
     * Class Singleton
+    *
     * @return self object $instance
+    * @throws DatabaseException|InvalidException If fails
     */
     public static function getInstance(): self 
     {
-        if (self::$instance === null) {
-            self::$instance = new self();
-        }
-        return self::$instance;
+        return self::$instance ??= new self();
     }
 
     /**
@@ -490,7 +466,7 @@ class Query extends Connection {
         $suffix =  DIRECTORY_SEPARATOR . "writeable" . DIRECTORY_SEPARATOR . "caches";
         $suffix .= DIRECTORY_SEPARATOR . "database" . DIRECTORY_SEPARATOR;
 
-        return  BaseConfig::root(__DIR__, $suffix);
+        return root(__DIR__, $suffix);
     }
 
     /**
@@ -504,7 +480,7 @@ class Query extends Connection {
      */
     public function cache(string $key, string $storage = null, int $expiry = 7 * 24 * 60 * 60): self
     {
-        $storage = $storage === null ? 'database_' . $this->databaseTable ?? 'capture' : $storage;
+        $storage ??=  'database_' . ($this->databaseTable ?? 'capture');
         $this->cache = FileCache::getInstance();
         $this->cache->setEnableCache(true);
         $this->cache->setExpire($expiry);
@@ -639,6 +615,7 @@ class Query extends Connection {
         }
         $return = $this->db->getAll();
         $this->reset();
+
         return $return;
     }
 

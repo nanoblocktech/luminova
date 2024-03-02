@@ -8,6 +8,7 @@
  * @license See LICENSE file
  */
 namespace Luminova\Sessions;
+
 use \Luminova\Sessions\SessionInterface;
 use \App\Controllers\Config\Session as SessionConfig;
 use \Psr\Log\LoggerInterface;
@@ -49,7 +50,8 @@ class Session
     {
         $this->config = SessionConfig::class;
         $this->manager = $manager ?? new SessionManager();
-    }    
+        $this->ipAuthSession();
+    } 
 
     /**
      * Get an instance of the Session class.
@@ -137,6 +139,16 @@ class Session
     {
         $this->manager->setStorage($storage);
         return $this;
+    }
+
+    /**
+     * Get storage name
+     * 
+     * @return string
+    */
+    public function getStorage(): string 
+    {
+        return $this->manager->getStorage();
     }
 
     /**
@@ -254,7 +266,7 @@ class Session
     */
     public function has(string $key): bool
     {
-        return $this->manager->hasKey($key);
+        return $this->manager->has($key);
     }
 
     /**
@@ -296,10 +308,75 @@ class Session
     public function synchronize(string $ip = ''): self
     {
         $this->manager->set("_online", "YES");
-        if($ip !== ''){
-            $this->manager->set("_online_session_id", $ip);
+        if($this->config::$strictSessionIp){
+            $ip = func()->ip()->get();
+            if($ip){
+                $this->manager->set("_online_session_id", $ip);
+            }
         }
+ 
         return $this;
+    }
+
+      /**
+     * Check if user ip address match with session login ip
+     * If not logout
+     *
+     * @param string $storage Optional storage location
+     * 
+     * @return void
+     */
+    public function ipAuthSession(string $storage = ''): void
+    {
+        if($this->config::$strictSessionIp){
+            $default = $this->getStorage();
+            if($storage !== '' && $storage !== $default){
+                $this->setStorage($storage);
+            }
+
+            if($this->manager->online()){
+                $last = $this->manager->get("_online_session_id", '');
+                $current = func('ip')->get();
+                if($last !== null && $last !== '' && $last !== $current){
+                    $this->manager->set('_online', '');
+                    $this->manager->set('_online_session_id', '');
+                }
+            }
+
+            if($storage !== '' && $storage !== $default){
+                $this->setStorage($default);
+            }
+
+        }
+    }
+
+    /**
+     * Check if user ip address match with session login ip
+     *
+     * @param string $storage Optional storage location
+     * 
+     * @return bool
+     */
+    public function ipChanged(string $storage = ''): bool
+    {
+        $default = $this->getStorage();
+        if($storage !== '' && $storage !== $default){
+            $this->setStorage($storage);
+        }
+
+        if($this->manager->online()){
+            $last = $this->manager->get("_online_session_id", '');
+            $current = func('ip')->get();
+            if($last !== null && $last !== '' & $last !== $current){
+                return false;
+            }
+        }
+
+        if($storage !== '' && $storage !== $default){
+            $this->setStorage($default);
+        }
+        
+        return true;
     }
 
     /**
@@ -315,26 +392,6 @@ class Session
     {
         trigger_error('The goOnline() method is deprecated. Use synchronize() method instead.', E_USER_DEPRECATED);
         return  $this->synchronize($ip);
-    }
-
-    /**
-     * Check if user ip address match with session login ip
-     *
-     * @param string $ip Current session ip address
-     * @param string $storage Optional storage location
-     * 
-     * @return bool
-     */
-    public function ipChanged(string $ip, string $storage = ''): bool
-    {
-        $online = $this->online($storage);
-        if($online){
-            $sip = $this->get("_online_session_id");
-            if($sip !== null && $sip !== '' & $sip != $ip){
-                return false;
-            }
-        }
-        return true;
     }
 
     /**

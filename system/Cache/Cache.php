@@ -62,7 +62,6 @@ class Cache
             self::$instance = new self($engine);
         }
         return self::$instance;
-        //return self::$instance->engine;
     }
 
 
