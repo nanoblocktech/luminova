@@ -2,6 +2,10 @@
 
 ![Local Image](docs/logo.svg)
 
+## ATTENTION
+
+Hey, sorry this project has been permanently moved to a new location ![Local Image](https://github.com/luminovang/luminova)
+This will no longer receive updates.
 
 # About Luminova!
 PHP Luminova framework built for speed and keeping your existing coding skills going.
